@@ -78,7 +78,7 @@ const Login = () => {
                             {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Sign In'}
                         </Button>
                         <hr />
-                        <Button
+                        {/* <Button
                             type="submit"
                             fullWidth
                             variant="contained"
@@ -86,7 +86,7 @@ const Login = () => {
                             onClick={signWithGoogle}
                         >
                             {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Sign In with Google'}
-                        </Button>
+                        </Button> */}
                         <Grid container>
                             <Grid item>
                                 <NavLink to="/signup">

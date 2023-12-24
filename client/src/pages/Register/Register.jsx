@@ -10,12 +10,15 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../Hooks/useAuth';
-import { Alert, CircularProgress, IconButton } from '@mui/material';
+import { Alert, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Select, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PageLayout from '../../Layout/PageLayout';
+import useUtility from '../../Hooks/useUtility';
+import { tagTitle } from '../../utility/tagTitle';
 
 const Register = () => {
     const { signWithGoogle, name, setName, setEmail, setPassword, signUpWithEmail, isLoading, error, setError } = useAuth();
+    const { getDepartments, deptLoading } = useUtility();
     const [emailWarning, setEmailWarning] = React.useState(" ");
     const [passwordWarning, setPasswordWarning] = React.useState(" ");
 
@@ -92,7 +95,7 @@ const Register = () => {
                             required
                             fullWidth
                             id="name"
-                            label="Name"
+                            label="Enter Name"
                             name="name"
                             autoComplete="name"
                         />
@@ -101,7 +104,7 @@ const Register = () => {
                             required
                             fullWidth
                             id="email"
-                            label="Email Address"
+                            label="Enter Email Address"
                             name="email"
                             autoComplete="email"
                             onChange={(e) => onChangeWarning(e)}
@@ -112,13 +115,45 @@ const Register = () => {
                             required
                             fullWidth
                             name="password"
-                            label="Password"
+                            label="Enter Password"
                             type="password"
                             id="password"
                             autoComplete="current-password"
                             onChange={(e) => onChangeWarning(e)}
                         />
                         <Typography variant="subtitle2">{passwordWarning && passwordWarning}</Typography>
+                        <FormControl fullWidth sx={{ mt: 2 }}>
+                            <InputLabel id="user_designation">Designation</InputLabel>
+                            <Select
+                                labelId="demo_user_designation"
+                                name="sub_categories"
+                                label="Designation"
+                                defaultValue=""
+                                required
+                            >
+                                <MenuItem value="teacher">Teacher</MenuItem>
+                                <MenuItem value="student">Student</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth sx={{ mt: 2 }}>
+                            <InputLabel id="user_department">Department</InputLabel>
+                            <Select
+                                labelId="demo_user_department"
+                                name="sub_categories"
+                                label="department"
+                                defaultValue=""
+                                required
+                            >
+                                {!deptLoading && getDepartments.map((item, index) => (
+                                    item &&
+                                    <MenuItem key={index} value={item}>
+                                        <Tooltip title={tagTitle[item] || ''} placement="top-start" arrow>
+                                            <div className="w-full">{item.toUpperCase()}</div>
+                                        </Tooltip>
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
                         <Button
                             type="submit"
                             fullWidth
@@ -130,7 +165,7 @@ const Register = () => {
                             {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'SIGN UP'}
                         </Button>
                         <hr />
-                        <Button
+                        {/* <Button
                             type="submit"
                             fullWidth
                             variant="contained"
@@ -138,7 +173,7 @@ const Register = () => {
                             onClick={signWithGoogle}
                         >
                             {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'SIGN UP WITH GOOGLE'}
-                        </Button>
+                        </Button> */}
                         <Grid container>
                             <Grid item>
                                 <NavLink to="/login">
