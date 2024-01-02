@@ -36,6 +36,8 @@ const GraphQLSchemaForUser = {
   password: { type: GraphQLString },
   photoURL: { type: GraphQLString },
   authType: { type: GraphQLString },
+  designation: { type: GraphQLString },
+  department: { type: GraphQLString },
   role: { type: GraphQLString, defaultValue: "regular" },
 };
 const GraphQLSchemaAuth = {

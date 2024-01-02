@@ -91,6 +91,8 @@ const GET_USER = gql`
       password
       photoURL
       authType
+      designation
+      department
       role
     }
   }
@@ -103,6 +105,8 @@ const GET_USERS = gql`
       email
       photoURL
       authType
+      designation
+      department
       role
     }
   }
@@ -219,6 +223,8 @@ const POST_USER = gql`
     $password: String
     $authType: String
     $photoURL: String
+    $designation: String
+    $department: String
   ) {
     addUser(
       displayName: $displayName
@@ -226,6 +232,8 @@ const POST_USER = gql`
       password: $password
       authType: $authType
       photoURL: $photoURL
+      designation: $designation
+      department: $department
     ) {
       _id
     }

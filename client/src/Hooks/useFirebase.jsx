@@ -15,6 +15,7 @@ const useFirebase = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [userExtraInfo, setUserExtraInfo] = useState({ designation: "", department: "" });
     const [updateTrack, setUpdateTrack] = useState(0);
     const [error, setError] = useState();
     const [token, setToken] = useState('');
@@ -37,7 +38,7 @@ const useFirebase = () => {
     }
 
     // Change Profile photo
-    const [changePhoto,{ loading: updateProfileLoading } ] = useMutation(UPDATE_PROFILE)
+    const [changePhoto, { loading: updateProfileLoading }] = useMutation(UPDATE_PROFILE)
 
     // new user entry in DB
     const [saveUser] = useMutation(POST_USER)
@@ -128,6 +129,8 @@ const useFirebase = () => {
                         password,
                         displayName: name,
                         photoURL: result?.user?.photoURL,
+                        designation: userExtraInfo.designation,
+                        department: userExtraInfo.department,
                         authType: result?.user?.providerData[0]?.providerId
                     }
                 })
@@ -185,6 +188,7 @@ const useFirebase = () => {
         signWithGoogle,
         signInWithEmail,
         signUpWithEmail,
+        setUserExtraInfo,
         updateProfileLoading,
         updateProfileSettings,
     }

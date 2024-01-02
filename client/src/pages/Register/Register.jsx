@@ -17,7 +17,7 @@ import useUtility from '../../Hooks/useUtility';
 import { tagTitle } from '../../utility/tagTitle';
 
 const Register = () => {
-    const { signWithGoogle, name, setName, setEmail, setPassword, signUpWithEmail, isLoading, error, setError } = useAuth();
+    const { signWithGoogle, name, setName, setEmail, setPassword, setUserExtraInfo, signUpWithEmail, isLoading, error, setError } = useAuth();
     const { getDepartments, deptLoading } = useUtility();
     const [emailWarning, setEmailWarning] = React.useState(" ");
     const [passwordWarning, setPasswordWarning] = React.useState(" ");
@@ -38,10 +38,17 @@ const Register = () => {
     }
 
     const handleSubmit = (event) => {
-        const data = new FormData(event.currentTarget);
-        setName(data.get('name'))
-        setEmail(data.get('email'))
-        setPassword(data.get('password'))
+        if (event.isTrusted) {
+            const data = new FormData(event.currentTarget);
+            setName(data.get('name'))
+            setEmail(data.get('email'))
+            setPassword(data.get('password'))
+        } else {
+            setUserExtraInfo((pre) => {
+                pre[event.target.name] = event.target.value;
+                return pre;
+            })
+        }
     };
 
     return (
@@ -122,27 +129,27 @@ const Register = () => {
                             onChange={(e) => onChangeWarning(e)}
                         />
                         <Typography variant="subtitle2">{passwordWarning && passwordWarning}</Typography>
-                        <FormControl fullWidth sx={{ mt: 2 }}>
+                        <FormControl fullWidth sx={{ mt: 2 }} required>
                             <InputLabel id="user_designation">Designation</InputLabel>
                             <Select
                                 labelId="demo_user_designation"
-                                name="sub_categories"
+                                name="designation"
                                 label="Designation"
                                 defaultValue=""
-                                required
+                                onChange={handleSubmit}
                             >
                                 <MenuItem value="teacher">Teacher</MenuItem>
                                 <MenuItem value="student">Student</MenuItem>
                             </Select>
                         </FormControl>
-                        <FormControl fullWidth sx={{ mt: 2 }}>
+                        <FormControl fullWidth sx={{ mt: 2 }} required>
                             <InputLabel id="user_department">Department</InputLabel>
                             <Select
                                 labelId="demo_user_department"
-                                name="sub_categories"
+                                name="department"
                                 label="department"
                                 defaultValue=""
-                                required
+                                onChange={handleSubmit}
                             >
                                 {!deptLoading && getDepartments.map((item, index) => (
                                     item &&
