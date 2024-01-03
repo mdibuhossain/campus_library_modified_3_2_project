@@ -111,10 +111,12 @@ const GET_USERS = gql`
     }
   }
 `;
-const GET_ADMIN = gql`
-  query IsAdmin($email: String!) {
-    isAdmin(email: $email) {
+const GET_USER_STATUS = gql`
+  query GetUserStatus($email: String!) {
+    getUserStatus(email: $email) {
       isAdmin
+      designation
+      department
     }
   }
 `;
@@ -378,7 +380,7 @@ const DELETE_SYLLABUS = gql`
 export {
   GET_USER,
   GET_BOOKS,
-  GET_ADMIN,
+  GET_USER_STATUS,
   GET_USERS,
   GET_ALL_DATA,
   GET_SYLLABUS,

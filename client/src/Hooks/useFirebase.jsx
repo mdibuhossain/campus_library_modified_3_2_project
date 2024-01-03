@@ -4,7 +4,7 @@ import { getDownloadURL, getStorage, ref, uploadString } from 'firebase/storage'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import initAuth from "../firebase/initAuth"
-import { POST_USER, GET_ADMIN, UPDATE_PROFILE } from '../queries/query';
+import { POST_USER, GET_USER_STATUS, UPDATE_PROFILE } from '../queries/query';
 
 
 
@@ -44,7 +44,16 @@ const useFirebase = () => {
     const [saveUser] = useMutation(POST_USER)
 
     // Check is User admin or Not
-    const { data: { isAdmin: { isAdmin: admin = false } = {} } = [], loading: adminLoading = true } = useQuery(GET_ADMIN, {
+    const {
+        data: {
+            getUserStatus: {
+                isAdmin: admin = false,
+                designation: userDesignation = "",
+                department: userDepartment = ""
+            } = {}
+        } = [],
+        loading: userStatusLoading = true
+    } = useQuery(GET_USER_STATUS, {
         variables: { email: user?.email }
     })
 
@@ -183,7 +192,9 @@ const useFirebase = () => {
         password,
         isLoading,
         setPassword,
-        adminLoading,
+        userDepartment,
+        userDesignation,
+        userStatusLoading,
         uploadAvatar,
         signWithGoogle,
         signInWithEmail,

@@ -70,10 +70,12 @@ const UserType = new GraphQLObjectType({
     ...GraphQLSchemaForUser,
   }),
 });
-const AdminCheck = new GraphQLObjectType({
-  name: "isAdmin",
+const UserStatus = new GraphQLObjectType({
+  name: "getUserStatus",
   fields: () => ({
     isAdmin: { type: GraphQLBoolean },
+    designation: { type: GraphQLString },
+    department: { type: GraphQLString },
   }),
 });
 const DepartmentType = new GraphQLObjectType({
@@ -95,9 +97,15 @@ const RootQuery = new GraphQLObjectType({
         const syllabus = await Syllabus.find();
         let dept = await [
           ...new Set([
-            ...book.map(({ categories, status }) => (status ? categories : null)),
-            ...question.map(({ categories, status }) => (status ? categories : null)),
-            ...syllabus.map(({ categories, status }) => (status ? categories : null)),
+            ...book.map(({ categories, status }) =>
+              status ? categories : null
+            ),
+            ...question.map(({ categories, status }) =>
+              status ? categories : null
+            ),
+            ...syllabus.map(({ categories, status }) =>
+              status ? categories : null
+            ),
           ]),
         ];
         return dept;
@@ -164,13 +172,16 @@ const RootQuery = new GraphQLObjectType({
         throw new Error("Unauthenticated!");
       },
     },
-    isAdmin: {
-      type: AdminCheck,
+    getUserStatus: {
+      type: UserStatus,
       args: { email: { type: GraphQLString } },
       async resolve(_, args) {
         const searchedUser = await User.findOne({ email: args.email });
-        if (searchedUser?.role === "admin") return { isAdmin: true };
-        else return { isAdmin: false };
+        return {
+          isAdmin: searchedUser?.role === "admin",
+          designation: searchedUser?.designation,
+          department: searchedUser?.department,
+        };
       },
     },
   },

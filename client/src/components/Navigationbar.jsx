@@ -12,16 +12,16 @@ import useUtility from '../Hooks/useUtility';
 
 const usersRoute = [
     {
-        name: 'Settings',
-        to: '/settings'
-    },
-    {
         name: 'Pending Request',
         to: '/pending'
     },
     {
         name: 'My Content',
         to: '/mycontent'
+    },
+    {
+        name: 'Settings',
+        to: '/settings'
     }
 ]
 
@@ -49,7 +49,9 @@ function classNames(...classes) {
 }
 
 const ProfileButton = () => {
-    const { user, logOut, admin } = useAuth();
+    const { user, logOut, admin, userDesignation, userDepartment } = useAuth();
+    console.log(admin, userDesignation, userDepartment)
+
     if (user?.email)
         return (
             <Menu as="div" className="ml-3 relative z-50">
@@ -73,6 +75,15 @@ const ProfileButton = () => {
                     leaveTo="transform opacity-0 scale-95"
                 >
                     <Menu.Items className="bg-gray-700 origin-top-right absolute md:right-0 -right-20 mt-2 w-48 rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                        {userDesignation === 'teacher' && <Menu.Item>
+                            {({ active }) => (
+                                <NavLink to="/createClassroom"
+                                    className={classNames(active ? 'bg-gray-800' : '', 'block px-4 py-2 text-sm text-gray-200')}
+                                >
+                                    Create classroom
+                                </NavLink>
+                            )}
+                        </Menu.Item>}
                         {/* Admin and normal user features */}
                         {admin &&
                             adminRoute.map(route => (

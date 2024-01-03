@@ -20,7 +20,7 @@ const MakeAdmin = () => {
     const { data: { getUsers: users = [] } = {}, loading: usersLoading } =
         useQuery(GET_USERS, { variables: { token } });
 
-    const [handleMakeAdmin, { loading: adminLoading }] = useMutation(MAKE_ADMIN, {
+    const [handleMakeAdmin, { loading: userStatusLoading }] = useMutation(MAKE_ADMIN, {
         update(cache, { data: { makeAdmin } }) {
             const { getUsers } = cache.readQuery({
                 query: GET_USERS,
@@ -45,7 +45,7 @@ const MakeAdmin = () => {
                 MAKE ADMIN
             </Typography>
             <div className="flex flex-col 2xl:w-6/12 xl:w-7/12 lg:w-8/12 md:w-9/12 w-11/12 mx-auto mt-10 mb-10 bg-white p-5 rounded-lg shadow-2xl">
-                {adminLoading && <LinearProgress />}
+                {userStatusLoading && <LinearProgress />}
                 {usersLoading ? (
                     <div className=" flex justify-center items-center">
                         <CircularProgress color="info" />
