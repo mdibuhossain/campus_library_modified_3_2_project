@@ -41,7 +41,7 @@ const useFirebase = () => {
     const [changePhoto, { loading: updateProfileLoading }] = useMutation(UPDATE_PROFILE)
 
     // new user entry in DB
-    const [saveUser] = useMutation(POST_USER)
+    const [saveUser, { loading: saveUserLoading }] = useMutation(POST_USER)
 
     // Check is User admin or Not
     const {
@@ -52,7 +52,8 @@ const useFirebase = () => {
                 department: userDepartment = ""
             } = {}
         } = [],
-        loading: userStatusLoading = true
+        loading: userStatusLoading = true,
+        refetch: refetchUserStatus
     } = useQuery(GET_USER_STATUS, {
         variables: { email: user?.email }
     })
@@ -160,6 +161,10 @@ const useFirebase = () => {
         // .finally(() => setIsLoading(false))
         user && redirect();
     }
+
+    useEffect(() => {
+        refetchUserStatus();
+    }, [saveUserLoading])
 
     useEffect(() => {
         const unsubscribed = onAuthStateChanged(auth, user => {
