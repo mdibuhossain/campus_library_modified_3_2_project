@@ -8,6 +8,7 @@ const schema = require("./Schema/schema");
 const admin = require("firebase-admin");
 const multer = require("multer");
 const path = require("path");
+const apiRouter = require("./routes/api");
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
@@ -58,6 +59,8 @@ app.use(
     graphiql: process.env.NODE_EVN === "development",
   })
 );
+
+app.use("/api", apiRouter);
 
 app.post('/test', upload.any(), (req, res) => {
   res.status(200).json({ "status": "Success" })
