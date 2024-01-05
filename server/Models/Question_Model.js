@@ -9,4 +9,4 @@ const QuestionSchema = new mongoose.Schema({
     status: { type: Boolean }
 })
 
-module.exports = mongoose.model('questions', QuestionSchema)
+module.exports = mongoose.model('Question', QuestionSchema)

@@ -12,4 +12,4 @@ const BookSchema = new mongoose.Schema({
     status: { type: Boolean }
 })
 
-module.exports = mongoose.model('books', BookSchema)
+module.exports = mongoose.model('Book', BookSchema)

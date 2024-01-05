@@ -9,4 +9,4 @@ const SyllabusSchema = new mongoose.Schema({
     status: { type: Boolean }
 })
 
-module.exports = mongoose.model('programs', SyllabusSchema)
+module.exports = mongoose.model('Program', SyllabusSchema)
