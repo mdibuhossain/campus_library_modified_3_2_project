@@ -1,6 +1,7 @@
 const express = require("express");
 const User = require("../Models/User_Model");
-const Group = require("../Models/Group_Model");
+const Group = require("../Models/Room_Model");
+const classroomController = require("../controllers/classroomController");
 
 const apiRouter = express.Router();
 
@@ -10,35 +11,10 @@ apiRouter.get("/", (req, res) => {
   );
 });
 
-apiRouter.post("/classroom/create", async (req, res) => {
-  const { roomName, courseTitle, courseCode, ui } = req.body;
-  try {
-    const savedGroup = await new Group({
-      roomName: roomName,
-      courseTitle: courseTitle,
-      courseCode: courseCode,
-      admin: uid,
-    }).save();
-    res.status(200).json(savedGroup);
-  } catch {}
-});
+apiRouter.post("/classroom/create", classroomController.createClassroom);
 
-apiRouter.get("/classroom", async (req, res) => {
-  const { uid } = req.body;
-  try {
-    const ownGroup = await Group.find({ admin: uid });
-    const joinGroup = await Group.find({ members: uid });
-    res.status(200).json({
-      data: {
-        myGroup: ownGroup,
-        joinGroup: joinGroup,
-      },
-    });
-  } catch {
-    res.status(500).json({
-      message: "Something went wrong!",
-    });
-  }
-});
+apiRouter.post("/classroom/addmember", classroomController.addMember);
+
+apiRouter.get("/classroom", classroomController.getRooms);
 
 module.exports = apiRouter;

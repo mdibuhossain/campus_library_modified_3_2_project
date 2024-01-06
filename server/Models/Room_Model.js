@@ -6,7 +6,7 @@ const commonConfig = {
   trim: true,
 };
 
-const GroupSchema = new mongoose.Schema({
+const RoomSchema = new mongoose.Schema({
   roomName: commonConfig,
   courseTitle: commonConfig,
   courseCode: commonConfig,
@@ -31,4 +31,4 @@ const GroupSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Group", GroupSchema);
+module.exports = mongoose.model("Room", RoomSchema);
