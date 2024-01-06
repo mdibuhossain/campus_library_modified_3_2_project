@@ -13,13 +13,15 @@ const CreateClassroom = () => {
                         label="Classroom name"
                         multiline
                         variant="standard"
+                        name="room_name"
                         required
                     />
                     <TextField
                         id="component-course"
-                        label="Course"
+                        label="Course title"
                         multiline
                         variant="standard"
+                        name="course_title"
                         required
                     />
                     <TextField
@@ -27,6 +29,7 @@ const CreateClassroom = () => {
                         label="Course code"
                         multiline
                         variant="standard"
+                        name="course_code"
                         required
                     />
                     <Button type='submit' className='self-end w-0' variant="text">Create</Button>
