@@ -21,7 +21,7 @@ const AdminRoute = lazy(() => import("./PrivateRoute/AdminRoute"));
 const MakeAdmin = lazy(() => import("./pages/MakeAdmin/MakeAdmin"));
 const EditContent = lazy(() => import("./pages/EditContent/EditContent"));
 const ChangeDP = lazy(() => import("./pages/ChangeDP/ChangeDP"));
-const CreateClassroom = lazy(() => import("./pages/Classroom/CreateClassroom"));
+const Classroom = lazy(() => import("./pages/Classroom/Classroom"));
 const ContentManagement = lazy(() =>
   import("./pages/ContentManagement/ContentManagement")
 );
@@ -101,9 +101,9 @@ function App() {
                   <Route exact path="search" element={<Search />} />
                   <Route exact path="request" element={<Request />} />
                   <Route exact path="test" element={<Test />} />
-                  <Route exact path="createClassroom" element={
+                  <Route exact path="classroom" element={
                     <RequireAuth>
-                      <CreateClassroom />
+                      <Classroom />
                     </RequireAuth>
                   } />
                   <Route

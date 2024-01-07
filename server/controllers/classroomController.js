@@ -69,11 +69,11 @@ module.exports.getRooms = async (req, res) => {
     const findUser = await User.findOne({ email: email });
     if (findUser?._id) {
       const ownRoom = await Room.find({ admin: findUser._id });
-      const joinnedRoom = await Room.find({ members: findUser._id });
+      const joinedRoom = await Room.find({ members: findUser._id });
       res.status(200).json({
         data: {
           myRoom: ownRoom,
-          joinnedRoom: joinnedRoom,
+          joinedRoom: joinedRoom,
         },
       });
     } else {

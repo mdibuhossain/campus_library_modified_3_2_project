@@ -114,7 +114,7 @@ const useFirebase = () => {
                 clearUser()
                 user && redirect();
             })
-            .catch(error => setError("Incorrect Email and Password!"))
+            .catch(error => setError(error.message.split('(')[1].split(')')[0]))
             .finally(() => setIsLoading(false))
     }
 
@@ -147,7 +147,7 @@ const useFirebase = () => {
                 // saveUser(email, password, name, result?.user?.photoURL, result?.user?.providerData[0]?.providerId, "POST");
                 user && redirect();
             })
-            .catch(error => setError('Invalid Email and Password!'))
+            .catch(error => setError(error.message.split('(')[1].split(')')[0]))
             .finally(() => setIsLoading(false))
     }
 

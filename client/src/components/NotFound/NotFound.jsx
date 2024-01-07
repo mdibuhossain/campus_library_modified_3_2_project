@@ -6,7 +6,7 @@ import NotFoundStyle from './NotFoundStyle.module.css';
 const NotFound = () => {
     return (
         <PageLayout>
-            <div id="notfound">
+            <div id="notfound" className="overflow-hidden">
                 <div className={NotFoundStyle.notfound}>
                     <div className={NotFoundStyle.notfound_404}>
                         <h1>404</h1>
