@@ -101,11 +101,13 @@ function App() {
                   <Route exact path="search" element={<Search />} />
                   <Route exact path="request" element={<Request />} />
                   <Route exact path="test" element={<Test />} />
-                  <Route exact path="classroom" element={
-                    <RequireAuth>
-                      <Classroom />
-                    </RequireAuth>
-                  } />
+                  <Route exact path="classroom">
+                    <Route path="" element={
+                      <RequireAuth>
+                        <Classroom />
+                      </RequireAuth>
+                    } />
+                  </Route>
                   <Route
                     exact
                     path="/settings"

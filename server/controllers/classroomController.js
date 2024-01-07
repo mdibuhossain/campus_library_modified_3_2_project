@@ -64,17 +64,15 @@ module.exports.addMember = async (req, res) => {
 };
 
 module.exports.getRooms = async (req, res) => {
-  const { email } = req.body;
+  const { email } = req.query;
   try {
     const findUser = await User.findOne({ email: email });
     if (findUser?._id) {
       const ownRoom = await Room.find({ admin: findUser._id });
       const joinedRoom = await Room.find({ members: findUser._id });
       res.status(200).json({
-        data: {
-          myRoom: ownRoom,
-          joinedRoom: joinedRoom,
-        },
+        myRoom: ownRoom,
+        joinedRoom: joinedRoom,
       });
     } else {
       res.status(404).json({ message: "User not exist!" });

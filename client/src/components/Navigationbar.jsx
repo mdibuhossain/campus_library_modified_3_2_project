@@ -54,7 +54,6 @@ function classNames(...classes) {
 
 const ProfileButton = () => {
     const { user, logOut, admin, userDesignation, userDepartment } = useAuth();
-    console.log(admin, userDesignation, userDepartment)
 
     if (user?.email)
         return (

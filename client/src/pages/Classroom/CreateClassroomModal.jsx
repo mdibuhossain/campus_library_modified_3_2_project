@@ -1,6 +1,8 @@
 import React from 'react'
 import { Box, Button, Modal, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import axios from 'axios';
+import { useAuth } from '../../Hooks/useAuth';
 
 
 const style = {
@@ -15,9 +17,30 @@ const style = {
 };
 
 const CreateClassroomModal = () => {
+    const { user } = useAuth();
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+    const [formInfo, setFormInfo] = React.useState({ roomName: "", courseCode: "", courseTitle: "" });
+
+    const handleOnChangeForm = (e) => {
+        const tmpFormInfo = { ...formInfo };
+        tmpFormInfo[e.target.name] = e.target.value;
+        setFormInfo(tmpFormInfo);
+    }
+
+    const handleCreateClassroom = (e) => {
+        e.preventDefault();
+        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/create`, {
+            ...formInfo,
+            email: user?.email
+        }).then(result => {
+            console.log(result)
+        }).catch(err => {
+            console.log(err)
+        })
+    }
+
     return (
         <>
             <Button
@@ -33,13 +56,14 @@ const CreateClassroomModal = () => {
                     sx={{ ...style, maxWidth: "450px", m: { md: "auto", xs: 2 }, p: 5, bgcolor: "white", borderRadius: 2, boxShadow: '0.65px 1.75px 10px rgb(0, 0, 0, 0.3)' }}
                 >
                     <h5 className="mb-5 text-lg">Create classroom</h5>
-                    <form className='flex flex-col gap-y-5'>
+                    <form onSubmit={handleCreateClassroom} className='flex flex-col gap-y-5'>
                         <TextField
                             id="component-classroom-name"
                             label="Classroom name"
                             multiline
                             variant="standard"
-                            name="room_name"
+                            name="roomName"
+                            onChange={handleOnChangeForm}
                             required
                         />
                         <TextField
@@ -47,7 +71,8 @@ const CreateClassroomModal = () => {
                             label="Course title"
                             multiline
                             variant="standard"
-                            name="course_title"
+                            name="courseTitle"
+                            onChange={handleOnChangeForm}
                             required
                         />
                         <TextField
@@ -55,11 +80,12 @@ const CreateClassroomModal = () => {
                             label="Course code"
                             multiline
                             variant="standard"
-                            name="course_code"
+                            name="courseCode"
+                            onChange={handleOnChangeForm}
                             required
                         />
                         <div className="flex flex-row-reverse gap-x-3">
-                            <Button type='submit' className='self-end w-0' variant="text" color='error' onClick={handleClose}>Close</Button>
+                            <Button className='self-end w-0' variant="text" color='error' onClick={handleClose}>Close</Button>
                             <Button type='submit' className='self-end w-0' variant="text">Create</Button>
                         </div>
                     </form>
