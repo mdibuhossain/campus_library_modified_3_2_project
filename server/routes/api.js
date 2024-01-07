@@ -12,9 +12,8 @@ apiRouter.get("/", (req, res) => {
 });
 
 apiRouter.post("/classroom/create", classroomController.createClassroom);
-
 apiRouter.post("/classroom/addmember", classroomController.addMember);
-
 apiRouter.get("/classroom", classroomController.getRooms);
+apiRouter.get("/classroom/:roomid", classroomController.getRoomDetails)
 
 module.exports = apiRouter;

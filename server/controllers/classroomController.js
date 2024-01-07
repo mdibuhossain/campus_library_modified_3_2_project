@@ -83,3 +83,38 @@ module.exports.getRooms = async (req, res) => {
     });
   }
 };
+
+module.exports.getRoomDetails = async (req, res) => {
+  const { roomid } = req.params;
+  const { email } = req.query;
+  try {
+    const checkUser = await User.findOne({ email: email });
+    if (checkUser) {
+      const checkRoom = await Room.findById(roomid);
+      if (checkRoom) {
+        if (checkRoom.members.includes(checkUser._id) || checkRoom.admin.equals(checkUser._id)) {
+          await checkRoom.populate("members", "displayName email designation department");
+          res.status(200).json({ ...checkRoom, isJoined: true });
+        } else {
+          res.status(200).json({
+            roomName: checkRoom.roomName,
+            courseTitle: checkRoom.courseTitle,
+            courseCode: checkRoom.courseCode,
+            admin: checkRoom.admin,
+            isJoined: false
+          });
+        }
+      } else {
+        res.status(404).json({
+          message: "Group doesn't exist!"
+        });
+      }
+    } else {
+      res.status(404).json({ message: "User not exist!" });
+    }
+  } catch {
+    res.status(500).json({
+      message: "Something went wrong!",
+    });
+  }
+}
