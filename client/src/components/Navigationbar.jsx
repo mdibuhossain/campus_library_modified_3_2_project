@@ -35,6 +35,10 @@ const adminRoute = [
     //     to: '/test'
     // },
     {
+        name: 'Classroom',
+        to: '/classroom'
+    },
+    {
         name: 'Manage Content',
         to: '/manage'
     },
