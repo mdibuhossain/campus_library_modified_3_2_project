@@ -24,6 +24,18 @@ module.exports.createClassroom = async (req, res) => {
   }
 };
 
+module.exports.deleteClassroom = async (req, res) => {
+  const { roomid } = req.body;
+  try {
+    const deleteRoom = await Room.deleteOne({ _id: roomid });
+    res.status(200).json(deleteRoom)
+  } catch {
+    res.status(500).json({
+      message: "Something went wrong!",
+    });
+  }
+}
+
 module.exports.addMember = async (req, res) => {
   const { email, roomid } = req.body;
   try {

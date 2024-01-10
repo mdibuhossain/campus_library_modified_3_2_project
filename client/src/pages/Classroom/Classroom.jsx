@@ -11,8 +11,6 @@ const Classroom = () => {
     const [myRoom, setMyRoom] = React.useState([])
     const [joinedRoom, setJoinedRoom] = React.useState([])
 
-    console.log(myRoom, joinedRoom)
-
     const handleFetchClassroomFromDB = () => {
         axios.get(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom`, {
             params: { email: user?.email }
@@ -24,13 +22,28 @@ const Classroom = () => {
         })
     }
 
+    const handleDeleteClassroom = (id) => {
+        if (window.confirm("Are you sure want to delete your classroom?")) {
+            axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/delete`, { roomid: id })
+                .then(result => {
+                    if (result?.data?.deletedCount)
+                        setMyRoom(pre => pre.filter(room => room?._id !== id));
+                    else {
+                        console.log("Room doesn't exist!");
+                    }
+                }).catch(err => {
+                    console.error(err);
+                })
+        }
+    }
+
     React.useEffect(() => {
         return handleFetchClassroomFromDB()
     }, [])
     return (
         <PageLayout>
             <Box sx={{ pt: 4, px: 5 }}>
-                <CreateClassroomModal />
+                <CreateClassroomModal setMyRoom={setMyRoom} />
                 <Box sx={{ pt: 4 }}>
                     <Box>
                         <h3 className="text-xl">Classrooms you manage ({myRoom?.length})</h3>
@@ -47,7 +60,7 @@ const Classroom = () => {
                                             <p><em>Admin</em>: {user?.email}</p>
                                             <div className="flex justify-between mt-4">
                                                 <Button size="small" variant="contained">View</Button>
-                                                <IconButton size="small"><DeleteIcon /></IconButton>
+                                                <IconButton onClick={() => handleDeleteClassroom(room?._id)} size="small"><DeleteIcon /></IconButton>
                                             </div>
                                         </div>
                                     </div>

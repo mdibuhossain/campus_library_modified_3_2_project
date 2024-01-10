@@ -16,7 +16,7 @@ const style = {
     p: 4,
 };
 
-const CreateClassroomModal = () => {
+const CreateClassroomModal = ({ setMyRoom }) => {
     const { user } = useAuth();
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
@@ -35,7 +35,9 @@ const CreateClassroomModal = () => {
             ...formInfo,
             email: user?.email
         }).then(result => {
-            console.log(result)
+            if (result?.status === 200) {
+                setMyRoom(pre => [...pre, result?.data])
+            }
         }).catch(err => {
             console.log(err)
         })
