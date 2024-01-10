@@ -24,7 +24,7 @@ const Classroom = () => {
 
     const handleDeleteClassroom = (id) => {
         if (window.confirm("Are you sure want to delete your classroom?")) {
-            axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/delete`, { roomid: id })
+            axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/delete`, { roomid: id, email: user?.email })
                 .then(result => {
                     if (result?.data?.deletedCount)
                         setMyRoom(pre => pre.filter(room => room?._id !== id));
@@ -57,7 +57,7 @@ const Classroom = () => {
                                         <div className="py-3 px-4">
                                             <p><em>Course Title</em>: {room?.courseTitle}</p>
                                             <p><em>Course Code</em>: {room?.courseCode}</p>
-                                            <p><em>Admin</em>: {user?.email}</p>
+                                            <p><em>Admin</em>: {user?.email} (You)</p>
                                             <div className="flex justify-between mt-4">
                                                 <Button size="small" variant="contained">View</Button>
                                                 <IconButton onClick={() => handleDeleteClassroom(room?._id)} size="small"><DeleteIcon /></IconButton>

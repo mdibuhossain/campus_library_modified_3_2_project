@@ -25,10 +25,20 @@ module.exports.createClassroom = async (req, res) => {
 };
 
 module.exports.deleteClassroom = async (req, res) => {
-  const { roomid } = req.body;
+  const { roomid, email } = req.body;
   try {
-    const deleteRoom = await Room.deleteOne({ _id: roomid });
-    res.status(200).json(deleteRoom)
+    const checkAdmin = await User.findOne({ email });
+    if (!checkAdmin) {
+      res.status(404).json({ message: "User not exist!" });
+    }
+    const theRoom = await Room.findById(roomid);
+    if (theRoom.admin.equals(checkAdmin._id)) {
+      res.status(200).json(await Room.deleteOne({ _id: theRoom._id }));
+    } else {
+      res.status(401).json({
+        message: "Unauthorized"
+      });
+    }
   } catch {
     res.status(500).json({
       message: "Something went wrong!",
