@@ -22,6 +22,7 @@ const MakeAdmin = lazy(() => import("./pages/MakeAdmin/MakeAdmin"));
 const EditContent = lazy(() => import("./pages/EditContent/EditContent"));
 const ChangeDP = lazy(() => import("./pages/ChangeDP/ChangeDP"));
 const Classroom = lazy(() => import("./pages/Classroom/Classroom"));
+const ClassroomDetails = lazy(() => import("./pages/Classroom/ClassroomDetails"));
 const ContentManagement = lazy(() =>
   import("./pages/ContentManagement/ContentManagement")
 );
@@ -102,9 +103,14 @@ function App() {
                   <Route exact path="request" element={<Request />} />
                   <Route exact path="test" element={<Test />} />
                   <Route exact path="classroom">
-                    <Route path="" element={
+                    <Route index element={
                       <RequireAuth>
                         <Classroom />
+                      </RequireAuth>
+                    } />
+                    <Route path=":rid" element={
+                      <RequireAuth>
+                        <ClassroomDetails />
                       </RequireAuth>
                     } />
                   </Route>

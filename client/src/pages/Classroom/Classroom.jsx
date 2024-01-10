@@ -5,6 +5,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CreateClassroomModal from "./CreateClassroomModal";
 import { useAuth } from "../../Hooks/useAuth";
 import axios from "axios";
+import { NavLink } from "react-router-dom";
 
 const Classroom = () => {
     const { user } = useAuth();
@@ -59,7 +60,7 @@ const Classroom = () => {
                                             <p><em>Course Code</em>: {room?.courseCode}</p>
                                             <p><em>Admin</em>: {user?.email} (You)</p>
                                             <div className="flex justify-between mt-4">
-                                                <Button size="small" variant="contained">View</Button>
+                                                <NavLink to={`${room?._id}`}><Button size="small" variant="contained">View</Button></NavLink>
                                                 <IconButton onClick={() => handleDeleteClassroom(room?._id)} size="small"><DeleteIcon /></IconButton>
                                             </div>
                                         </div>
@@ -82,7 +83,7 @@ const Classroom = () => {
                                             <p><em>Course Code</em>: {room?.courseCode}</p>
                                             <p><em>Admin</em>: {user?.email}</p>
                                             <div className="flex justify-between mt-4">
-                                                <Button size="small" variant="contained">View</Button>
+                                                <NavLink to={`${room?._id}`}><Button size="small" variant="contained">View</Button></NavLink>
                                             </div>
                                         </div>
                                     </div>
