@@ -39,7 +39,7 @@ const Classroom = () => {
     }
 
     React.useEffect(() => {
-        return handleFetchClassroomFromDB()
+        handleFetchClassroomFromDB();
     }, [])
     return (
         <PageLayout>

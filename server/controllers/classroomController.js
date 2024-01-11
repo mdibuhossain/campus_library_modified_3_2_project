@@ -116,7 +116,7 @@ module.exports.getRoomDetails = async (req, res) => {
       if (checkRoom) {
         if (checkRoom.members.includes(checkUser._id) || checkRoom.admin.equals(checkUser._id)) {
           await checkRoom.populate("members", "displayName email designation department");
-          res.status(200).json({ ...checkRoom, isJoined: true });
+          res.status(200).json({ ...checkRoom.toObject(), isJoined: true });
         } else {
           res.status(200).json({
             roomName: checkRoom.roomName,
