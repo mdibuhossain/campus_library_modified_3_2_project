@@ -3,6 +3,12 @@ import PageLayout from "../../Layout/PageLayout"
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../Hooks/useAuth";
 import axios from "axios";
+import { Dropdown } from '@mui/base/Dropdown';
+import { Menu } from '@mui/base/Menu';
+import { MenuButton } from '@mui/base/MenuButton';
+import { MenuItem, menuItemClasses } from '@mui/base/MenuItem';
+import { Button, Typography } from "@mui/material";
+import { styled } from '@mui/system';
 
 const ClassroomDetails = () => {
     const { rid } = useParams();
@@ -23,19 +29,76 @@ const ClassroomDetails = () => {
         handleFetchRoomDetails();
     }, []);
 
+    console.log(RoomInfo)
+
     if (RoomInfo?.isJoined) {
         return (
             <PageLayout>
-                <h1>This is Room details</h1>
+                <div className="md:w-3/5 w-full m-auto">
+                    <RoomBanner RoomInfo={RoomInfo} />
+                </div>
             </PageLayout>
         )
     } else {
         return (
             <PageLayout>
-                <h1>You are not member of this classroom</h1>
+                <div className="md:w-3/5 w-full m-auto">
+                    <RoomBanner RoomInfo={RoomInfo} />
+                </div>
             </PageLayout>
         )
     }
 }
+
+const RoomBanner = ({ RoomInfo }) => {
+    return (
+        <>
+            <div className='md:mt-10 mb-10 md:shadow-lg md:rounded-lg overflow-hidden bg-sky-200'>
+                <div className="px-4 py-5">
+                    <Typography variant="h3">{RoomInfo?.courseTitle}</Typography>
+
+                </div>
+                <div className="bg-sky-50 px-4 py-2 flex justify-between md:items-center items-start md:flex-row flex-col">
+                    <Typography variant="caption">Created by {RoomInfo?.admin}</Typography>
+                    {
+                        !RoomInfo?.isJoined ? <Button sx={{ my: 1 }} variant="contained" size="small">Join</Button> :
+                            <Dropdown>
+                                <MenuButton>
+                                    <Button sx={{ my: 1 }} variant="outlined" size="small">Joined</Button>
+                                </MenuButton>
+                                <Menu slots={{ listbox: Listbox }}>
+                                    {/* <MenuItem> */}
+                                    <Button sx={{ m: 0, p: 0, width: "100%", textTransform: "lowercase", color: "red" }} variant="text">Leave</Button>
+                                    {/* </MenuItem> */}
+                                </Menu>
+                            </Dropdown>
+                    }
+                </div>
+            </div>
+        </>
+    )
+
+}
+
+const Listbox = styled('ul')(
+    ({ theme }) => `
+    font-size: 0.875rem;
+    box-sizing: border-box;
+    margin: 12px 0;
+    min-width: 100px;
+    border-radius: 12px;
+    overflow: auto;
+    outline: none;
+    background: '#fff';
+    border: 1px solid #fff;
+    color: red;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0px 4px 6px ${theme.palette.mode === 'dark' ? 'rgba(0,0,0, 0.50)' : 'rgba(0,0,0, 0.05)'
+        };
+    z-index: 1;
+    `,
+);
 
 export default ClassroomDetails;
