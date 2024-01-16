@@ -6,7 +6,7 @@ import axios from "axios";
 import { Dropdown } from '@mui/base/Dropdown';
 import { Menu } from '@mui/base/Menu';
 import { MenuButton } from '@mui/base/MenuButton';
-import { MenuItem, menuItemClasses } from '@mui/base/MenuItem';
+import TextField from '@mui/material/TextField';
 import { Button, Typography } from "@mui/material";
 import { styled } from '@mui/system';
 
@@ -14,6 +14,7 @@ const ClassroomDetails = () => {
     const { rid } = useParams();
     const { user } = useAuth();
     const [RoomInfo, setRoomInfo] = React.useState({});
+    const [requestEmail, setRequestEmail] = React.useState('')
 
     const handleFetchRoomDetails = () => {
         axios.get(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/${rid}`, {
@@ -25,16 +26,47 @@ const ClassroomDetails = () => {
         })
     }
 
+    const handleAddMemberDemo = (e) => {
+        e.preventDefault();
+        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/addmember`, { email: requestEmail, roomid: RoomInfo?._id })
+            .then(result => {
+                if (result?.status === 200)
+                    setRoomInfo(result?.data);
+            }).catch(err => {
+                if (err?.response?.status === 409) {
+                    alert(err?.response?.data?.message);
+                } else if (err?.response?.status === 404) {
+                    alert(err?.response?.data?.message);
+                }
+            })
+    }
+
     React.useEffect(() => {
         handleFetchRoomDetails();
     }, []);
 
-    
+
     if (RoomInfo?.isJoined) {
         return (
             <PageLayout>
                 <div className="md:w-3/5 w-full m-auto">
                     <RoomBanner RoomInfo={RoomInfo} />
+                    {
+                        user?.email === RoomInfo?.admin?.email && <div>
+                            <p>Add member:</p>
+                            <form onSubmit={handleAddMemberDemo} className="flex items-center">
+                                <input
+                                    type="text"
+                                    placeholder="Enter email"
+                                    name="requestEmail"
+                                    className="outline-none border-2 border-gray-200 rounded-lg px-2 py-1 rounded-e-none"
+                                    onChange={(e) => setRequestEmail(e.target.value)} />
+                                <button type="submit"
+                                    className="rounded-lg rounded-s-none px-3 py-1 outline-none border-2 border-gray-200 border-s-0 hover:bg-sky-400 hover:border-sky-400 hover:text-white duration-200"
+                                >ADD</button>
+                            </form>
+                        </div>
+                    }
                 </div>
             </PageLayout>
         )

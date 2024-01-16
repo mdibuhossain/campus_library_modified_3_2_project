@@ -71,7 +71,18 @@ module.exports.addMember = async (req, res) => {
           } else {
             modifiedRoom.members.push(findUser._id);
             modifiedRoom = await modifiedRoom.save();
-            res.status(200).json(modifiedRoom);
+            res.status(200).json(
+              await modifiedRoom.populate([
+                {
+                  path: "members",
+                  select: "displayName email designation department -_id",
+                },
+                {
+                  path: "admin",
+                  select: "displayName email -_id",
+                },
+              ])
+            );
           }
         }
       }
