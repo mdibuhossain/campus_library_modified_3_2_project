@@ -29,8 +29,7 @@ const ClassroomDetails = () => {
         handleFetchRoomDetails();
     }, []);
 
-    console.log(RoomInfo)
-
+    
     if (RoomInfo?.isJoined) {
         return (
             <PageLayout>
@@ -59,7 +58,7 @@ const RoomBanner = ({ RoomInfo }) => {
 
                 </div>
                 <div className="bg-sky-50 px-4 py-2 flex justify-between md:items-center items-start md:flex-row flex-col">
-                    <Typography variant="caption">Created by {RoomInfo?.admin}</Typography>
+                    <Typography variant="caption">Created by {RoomInfo?.admin?.email}</Typography>
                     {
                         !RoomInfo?.isJoined ? <Button sx={{ my: 1 }} variant="contained" size="small">Join</Button> :
                             <Dropdown>

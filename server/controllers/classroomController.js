@@ -36,7 +36,7 @@ module.exports.deleteClassroom = async (req, res) => {
       res.status(200).json(await Room.deleteOne({ _id: theRoom._id }));
     } else {
       res.status(401).json({
-        message: "Unauthorized"
+        message: "Unauthorized",
       });
     }
   } catch {
@@ -44,7 +44,7 @@ module.exports.deleteClassroom = async (req, res) => {
       message: "Something went wrong!",
     });
   }
-}
+};
 
 module.exports.addMember = async (req, res) => {
   const { email, roomid } = req.body;
@@ -114,8 +114,20 @@ module.exports.getRoomDetails = async (req, res) => {
     if (checkUser) {
       const checkRoom = await Room.findById(roomid);
       if (checkRoom) {
-        if (checkRoom.members.includes(checkUser._id) || checkRoom.admin.equals(checkUser._id)) {
-          await checkRoom.populate("members", "displayName email designation department");
+        if (
+          checkRoom.members.includes(checkUser._id) ||
+          checkRoom.admin.equals(checkUser._id)
+        ) {
+          await checkRoom.populate([
+            {
+              path: "members",
+              select: "displayName email designation department -_id",
+            },
+            {
+              path: "admin",
+              select: "displayName email -_id",
+            },
+          ]);
           res.status(200).json({ ...checkRoom.toObject(), isJoined: true });
         } else {
           res.status(200).json({
@@ -123,12 +135,12 @@ module.exports.getRoomDetails = async (req, res) => {
             courseTitle: checkRoom.courseTitle,
             courseCode: checkRoom.courseCode,
             admin: checkRoom.admin,
-            isJoined: false
+            isJoined: false,
           });
         }
       } else {
         res.status(404).json({
-          message: "Group doesn't exist!"
+          message: "Group doesn't exist!",
         });
       }
     } else {
@@ -139,4 +151,4 @@ module.exports.getRoomDetails = async (req, res) => {
       message: "Something went wrong!",
     });
   }
-}
+};
