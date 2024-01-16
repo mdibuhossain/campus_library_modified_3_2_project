@@ -1,0 +1,978 @@
+[{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a040"
+  },
+  "book_name": "Fundamentals of Mathematical Statistics",
+  "author": "S.C. Gupta, V.K. Kapoor",
+  "edition": "10",
+  "download_link": "https://drive.google.com/file/d/1l99bIgm8ez8RsQL2ef_dRwkDFDkoKtQ_/view?usp=sharing",
+  "categories": "math",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a041"
+  },
+  "book_name": "Digital Logic and Computer Design",
+  "author": "M. Morris Mano",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1CB779xxkVE0vdlKkykNn8rObCqEsNJmj/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "2.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a042"
+  },
+  "book_name": "ANSI C",
+  "author": "E. BALAGURUSAMY",
+  "edition": 6,
+  "download_link": "https://drive.google.com/file/d/1Yqz4SRtJGZpHvZgwKQGssf1-JEJehJiq/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a043"
+  },
+  "book_name": "Fundamentals Of Computers",
+  "author": "E. BALAGURUSAMY",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1BmYGeOi5nGL6mQvUP90BtFdUkDzwt4pU/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a044"
+  },
+  "book_name": "Computer Fundamentals",
+  "author": "PK. SINHA",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1AEueixi4y1v7Dq-v-FC1mY49k7v1HZC0/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a045"
+  },
+  "book_name": "Discrete Mathematics And Its Applications",
+  "author": "Kenneth Rosen",
+  "edition": 7,
+  "download_link": "https://drive.google.com/file/d/1KPyJN5j33PuqEy0jjdD-K70pWscPoyBk/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a046"
+  },
+  "book_name": "Discrete Mathematical Structures",
+  "author": "Kolman, Busby, Ross",
+  "edition": 6,
+  "download_link": "https://drive.google.com/file/d/1Ori5Q8CQ0pSz8Us_BrITfWfyVoVw7dz9/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a047"
+  },
+  "book_name": "Solution of Discrete Mathematics And Its Applications",
+  "author": "Kenneth Rosen",
+  "edition": 7,
+  "download_link": "https://onedrive.live.com/?authkey=%21AJNJ4cOWZ%5FieIbk&cid=1ACDA53AC1A8E50E&id=1ACDA53AC1A8E50E%214293&parId=1ACDA53AC1A8E50E%214292&o=OneUp",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a048"
+  },
+  "book_name": "C++ The Complete Reference",
+  "author": "Herbert Schildt",
+  "edition": 4,
+  "download_link": "https://drive.google.com/file/d/1yxprwXNYYEOhglpnP0jNafPCc0rGxyMa/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a049"
+  },
+  "book_name": "Head First C",
+  "author": "David Griffiths, Dawn Griffiths",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/14z-UBZoD9c5lzJpOds1Ns5mT5fCRl2Ye/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a04a"
+  },
+  "book_name": "Head First Object-Oriented Analysis and Design",
+  "author": "Brett D. McLaughlin, Gary Pollice, Dave West",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1hf7xJ2diWqpYrUAMrs49EPQ8jpgnt9dR/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a04b"
+  },
+  "book_name": "Computer Programming",
+  "author": "TAMIM SHAHARIAR SUBEEN",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1fFi7VUyeY9zc1TeDqFcJBGngDbKFU8P4/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "1.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a04c"
+  },
+  "book_name": "Dawn Of Programming Contest March 2015",
+  "author": "MD MAHBUBUL HASAN",
+  "edition": "",
+  "download_link": "https://drive.google.com/file/d/1DXpv5hg966Z7eI_Z1hbgWzqVuT9OnORh/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a04d"
+  },
+  "book_name": "ডাটা স্ট্রাকচার এবং অ্যালগরিদম",
+  "author": "শাহরিয়ার সুবিন",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/18UztO6ysZN_HkQIEtV4LNb01WCvQOtef/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": [
+    "2.1",
+    "2.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a04e"
+  },
+  "book_name": "Competitive Programming (2011)",
+  "author": "Steven Halim",
+  "edition": "",
+  "download_link": "https://drive.google.com/file/d/1LgyhmBRmQ2fRfDYwv31Xx7dVoKpMkMDj/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a04f"
+  },
+  "book_name": "Fundamentals Of Electric Circuits",
+  "author": "Alexander Sadiku",
+  "edition": "4",
+  "download_link": "https://drive.google.com/file/d/1g1xAmkzhxGyTBbcdctipEBnP4S0K9SU7/view?usp=sharing",
+  "categories": "eee",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a050"
+  },
+  "book_name": "Fundamentals Of Electric Circuits",
+  "author": "Alexander Sadiku",
+  "edition": "5",
+  "download_link": "https://drive.google.com/file/d/18pTexxzkFO4Kf10HFMCw5yAIKVTiNb08/view?usp=sharing",
+  "categories": "eee",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a051"
+  },
+  "book_name": "Fundamentals Of Electric Circuits Practice Problem Solution",
+  "author": "Alexander Sadiku",
+  "edition": "",
+  "download_link": "https://drive.google.com/file/d/1cAPnnadGyfTAFECRPH7pVXMy_rCcH2tO/view?usp=sharing",
+  "categories": "eee",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a052"
+  },
+  "book_name": "Fundamentals Of Electric Circuits Solution",
+  "author": "Alexander Sadiku",
+  "edition": "4",
+  "download_link": "https://drive.google.com/file/d/1fXNKdGLH-FiBCDKam4yCXRmR74Tf-Xz-/view?usp=sharing",
+  "categories": "eee",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a053"
+  },
+  "book_name": "Fundamentals Of Electric Circuits Solution",
+  "author": "Alexander Sadiku",
+  "edition": "5",
+  "download_link": "https://drive.google.com/file/d/1w8ESGZ13LYOBvgTz2HGGZY2Y5MJhYm82/view?usp=sharing",
+  "categories": "eee",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a054"
+  },
+  "book_name": "Electronic Devices And Circuits Theory",
+  "author": "Robert Boylestad and Louis Nashelsky",
+  "edition": "7",
+  "download_link": "https://drive.google.com/file/d/1uU5yODrjBot0yyonUuCOfOJ-FRP9LtkV/view?usp=sharing",
+  "categories": "eee",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a055"
+  },
+  "book_name": "Calculus",
+  "author": "H. ANTON",
+  "edition": 10,
+  "download_link": "https://drive.google.com/file/d/1Z01niceeYUbqNJnWFlgSmtmM2OTkRxbg/view?usp=sharing",
+  "categories": "math",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a056"
+  },
+  "book_name": "Calculus Students Solution Manual",
+  "author": "Tamas Wiandt - H. ANTON",
+  "edition": "10",
+  "download_link": "https://drive.google.com/file/d/1rP-eC7duQmN1BiD79MtXFfqDZwgtkeI0/view?usp=sharing",
+  "categories": "math",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a057"
+  },
+  "book_name": "Ordinary and Partial Differential Equations",
+  "author": "Dr M. D. Raisinghania",
+  "edition": "15",
+  "download_link": "https://drive.google.com/file/d/1KqIVJJR9NbOzUfJ2gmrSkh9dy2BkN7ob/view?usp=sharing",
+  "categories": "math",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a058"
+  },
+  "book_name": "The Numerical Solution of Ordinary and Partial Differential Equations",
+  "author": "Granville Sewell",
+  "edition": "2",
+  "download_link": "https://drive.google.com/file/d/1HKwwuryW3Z-Kf2Ikg_iu6OK9TNSiOfJu/view?usp=sharing",
+  "categories": "math",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a059"
+  },
+  "book_name": "Linear Algebra Theory Of Matrices",
+  "author": "Professor Abdur Rahman",
+  "edition": "",
+  "download_link": "https://drive.google.com/file/d/1qh5Dc8wrlmTjLavBD5pvu_zfEtfFsINd/view?usp=sharing",
+  "categories": "math",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6290caa4b1e0bf212813a05a"
+  },
+  "book_name": "Vector Analysis and an introduction to TENSOR ANALYSIS SCHAUM'S ouTlines",
+  "author": "Murray R. Spiegel",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1uyncVks2Ii_G6Utwcb-zcflAOzbD-olP/view?usp=sharing",
+  "categories": "math",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "629a72958928718f6db6e8c5"
+  },
+  "book_name": "Basic Elements of Computational Statistics",
+  "author": "Wolfgang Karl Härdle, Ostap Okhrin, Yarema Okhrin",
+  "edition": "1",
+  "download_link": "https://drive.google.com/file/d/1Vv3X2YmSHt33RK4Rcb5Styf_Bw3JpKQU/view?usp=sharing",
+  "categories": "sta",
+  "status": true,
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "sub_categories": "book",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "62b09d03f7f6eab9aaa5e65b"
+  },
+  "book_name": "Cheat Sheet For Competitive Programming",
+  "author": "Elias Riedel Gårding",
+  "edition": "",
+  "download_link": "https://drive.google.com/file/d/11PZiNshGrlG4ekBpwzPU6Q_zESx7BXR6/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "62b0a096f7f6eab9aaa5e65c"
+  },
+  "book_name": "Digital Logic And Computer Design (old)",
+  "author": "M Morris Mano",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1YMGkjmgi9OhTzvqpv8O6YnfFy5oiZMOu/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "semester": [
+    "2.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6315f9edf20efe1c7af16f71"
+  },
+  "book_name": "Stochastic Processes",
+  "author": "J. Medhi",
+  "edition": "2",
+  "download_link": "https://drive.google.com/file/d/1EZ_1mBjae0qmd7Fo77s1ydPZVciKUK0B/view?usp=sharing",
+  "categories": "sta",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6342a5083603f5451d35e491"
+  },
+  "book_name": "Data Structures and Algorithms Made Easy Data Structures and Algorithmic Puzzles",
+  "author": "Narasimha Karumanchi",
+  "edition": 5,
+  "download_link": "https://drive.google.com/file/d/1d4zHdPivB7PVyMq0HqYWghIysRcCmuBj/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "admin@admin.com",
+  "semester": [
+    "2.1",
+    "2.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "6342fed23603f5451d35e492"
+  },
+  "book_name": "Data Structures SCHAUM'S ouTlines",
+  "author": "Seymour Lipschutz",
+  "edition": 1,
+  "download_link": "https://drive.google.com/file/d/1xIuc483TeU8hBzafImdwNa3RZscl1BLm/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "admin@admin.com",
+  "semester": [
+    "2.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "63468d623603f5451d35e497"
+  },
+  "book_name": "Data Structure Soft Note",
+  "author": "",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1U27krzAEJdyF6Tla59X2MyDYn3-agtTY/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6346b04c3603f5451d35e498"
+  },
+  "book_name": "DATA STRUCTURES DIGITAL NOTES",
+  "author": "",
+  "edition": "",
+  "download_link": "https://drive.google.com/file/d/1B8pUHP5vvPBqtHj5G_3qrn1lQRPnLydt/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "63496f293603f5451d35e49a"
+  },
+  "book_name": "Learn Java in One Day and Learn It Well",
+  "author": "Jamie Chan",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1vdowUKErsUJNBq44SpwO2zy2qbG2QxkU/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "semester": [
+    "2.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "63496f473603f5451d35e49b"
+  },
+  "book_name": "Head First Java",
+  "author": "Kathy Sierra, Bert Bates",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/11IKqjKlU9iU_oMXL_qvaIOxn5rORDNNV/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "semester": [
+    "2.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "63496fa83603f5451d35e49c"
+  },
+  "book_name": "Java The Complete Reference",
+  "author": "Herbert Schildt",
+  "edition": 11,
+  "download_link": "https://drive.google.com/file/d/1BI0F7Nei2neP5ZM7wTpKScB7kq0H23HX/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "semester": [
+    "2.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "635547a63603f5451d35e49d"
+  },
+  "book_name": "সিক্রেটস অব জায়োনিজম",
+  "author": "হেনরি ফোর্ড",
+  "edition": "",
+  "download_link": "https://drive.google.com/file/d/1WcyvG-ejXXmjh4m0dSiuykt20V9Jo5Ja/view?usp=sharing",
+  "categories": "nonacademic",
+  "sub_categories": "book",
+  "status": true,
+  "added_by": "admin@admin.com",
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6391a94575a0867693d0fec5"
+  },
+  "book_name": "Introduction to Algorithms",
+  "author": "Thomas H. Cormen, Charles E. Leiserson, Ronald L. Rivest, Clifford Stein",
+  "edition": 3,
+  "download_link": "https://drive.google.com/file/d/13W_t15ankHIfRUr2aok5p3z3CqPoWdrM/view?usp=share_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "63a9d7881fbcce7cc6c04c6f"
+  },
+  "book_name": "ঈমান সবার আগে",
+  "author": "মাওলানা মুহাম্মাদ আব্দুল মালেক",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1nKRCEBCitjo9uuIjXO_X5Y1swjhWuWbv/view?usp=drivesdk",
+  "categories": "islamic",
+  "sub_categories": "book",
+  "added_by": "rabiaakhter44@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "63b39d5cefcef24c14df41a5"
+  },
+  "book_name": "Digital Systems Principles And Applications",
+  "author": "Ronald Tocci",
+  "edition": 10,
+  "download_link": "https://drive.google.com/file/d/1MSC9UQZ0u2OHZr3Gw-hBSJsS2ufLyjtk/view?usp=share_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "admin@admin.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "2.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "63b526d7efcef24c14df41e8"
+  },
+  "book_name": "Introduction to Automata Theory Languages and Computations",
+  "author": "John Hopcroft",
+  "edition": 3,
+  "download_link": "https://drive.google.com/file/d/1ZujybplTe3PdQHRGu_OTMGjYCZpNae2F/view?usp=share_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "admin@admin.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "2.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "63b526feefcef24c14df41eb"
+  },
+  "book_name": "Theory of Computer Science (Automata Languages and Computation)",
+  "author": "K.L.P Mishra",
+  "edition": 3,
+  "download_link": "https://drive.google.com/file/d/1rcGD35UQbey0EZmOnbMtV1SJwlF4Ps2k/view?usp=share_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "admin@admin.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "2.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "63b9761fefcef24c14df4216"
+  },
+  "book_name": "Automata Computability and Complexity: Theory and Applications",
+  "author": "Elaine Rich",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1pKI2tQWaCdn_nw494SKPuY9ffw8PSSiH/view?usp=share_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "2.2"
+  ]
+},
+{
+  "_id": {
+    "$oid": "63fe0b7f730f82c7e041c06b"
+  },
+  "book_name": "তাসাওউফ ও আত্মশুদ্ধি",
+  "author": "শাইখুল ইসলাম মুফতী মুহাম্মাদ তাকী উসমানী",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1LmAeWl23S2SQRZHlOWjQgqMEefkMKFsB/view?usp=share_link",
+  "categories": "islamic",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "64053484730f82c7e041c16a"
+  },
+  "book_name": "Complex Variables SCHAUM'S ouTlines",
+  "author": "Murray R. Spiegel",
+  "edition": 2,
+  "download_link": "https://drive.google.com/file/d/1Wgqm8UrhVmWOTQB0_5lTUFYsVKZ8z7A6/view?usp=sharing",
+  "categories": "math",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "6472e21baa779df030cbeb5f"
+  },
+  "book_name": "Database System Concepts",
+  "author": "Abraham Silberschatz, Henry F. Korth, S. Sudarshan",
+  "edition": 6,
+  "download_link": "https://drive.google.com/file/d/1bV5n5-umgGgWfrmje3EIl3cMVJbtmMR-/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "3.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "647f119aaa779df030cbecd3"
+  },
+  "book_name": "Operating System Concepts",
+  "author": "Abraham Silberschatz",
+  "edition": 9,
+  "download_link": "https://drive.google.com/file/d/1F92KVkOcUtySay3ygzaZinNBiz4cyfj7/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "3.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "64817a98aa779df030cbecf8"
+  },
+  "book_name": "Modern Computer Architecture and Organization",
+  "author": "Jim Ledin",
+  "edition": 2,
+  "download_link": "https://drive.google.com/file/d/1b2Kt6jKMA0bVQd-16Vv169drYefhAR2y/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "3.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "64817ab1aa779df030cbecfb"
+  },
+  "book_name": "Computer Architecture and Organization",
+  "author": "John Patrick Hayes",
+  "edition": 3,
+  "download_link": "https://drive.google.com/file/d/1TahB2TnmdLN7luGRvlcqc__QN4QmtVAH/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "3.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "64817acaaa779df030cbecfe"
+  },
+  "book_name": "Computer Organization and Architecture",
+  "author": "William Stallings",
+  "edition": 8,
+  "download_link": "https://drive.google.com/file/d/1OxiUnMiK7KIx_gK7PAPEJFvMDmRiwRdT/view?usp=sharing",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "3.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "64878f57aa779df030cbed43"
+  },
+  "book_name": "Systems analysis and design methods",
+  "author": "Jeffrey, Lonnie",
+  "edition": 7,
+  "download_link": "https://drive.google.com/file/d/1M7cPAt0MeYkX2uMpn-_SOFYWQln_YyRO/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": [
+    "3.1"
+  ]
+},
+{
+  "_id": {
+    "$oid": "64a1ee70027728c35a22ee89"
+  },
+  "book_name": "PRINCIPLES OF POLYMERIZATION",
+  "author": "George Odian",
+  "edition": 4,
+  "download_link": "https://drive.google.com/file/d/1w_DOcBRlohFGNxGdvP9fXmFzCATr3BQp/view?usp=drive_link",
+  "categories": "acce",
+  "sub_categories": "book",
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0,
+  "semester": []
+},
+{
+  "_id": {
+    "$oid": "651b4dcd5b5ee835211a41f3"
+  },
+  "book_name": "A Guide to Salah",
+  "author": "Muhammad Abdul Rahim Saqib",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1Pd3qz2AUltgTn1WcFNBfiQK7dqG9tgL0/view?usp=drive_link",
+  "categories": "islamic",
+  "sub_categories": "book",
+  "semester": [],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "655603f9f186be71f2408ecd"
+  },
+  "book_name": "Schaum’s Outline of Computer Graphics",
+  "author": "Zhigang Xiang, Roy A. Plastock",
+  "edition": 2,
+  "download_link": "https://drive.google.com/file/d/12YypzngbOCBFF2sqe_aOhXVKqMHhKKTS/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "semester": [
+    "3.2"
+  ],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6556063af186be71f2408ed3"
+  },
+  "book_name": "Assembly Language Programming  Organization of the IBM PC",
+  "author": "Ytha.Yu, Charles.Marut",
+  "edition": null,
+  "download_link": "https://drive.google.com/file/d/1ZoJAxulIop5rv3C-DtO9hj6mLC_Zl6s4/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "semester": [
+    "3.2"
+  ],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "655606f2f186be71f2408ed6"
+  },
+  "book_name": "Computer Networks",
+  "author": "Andrew S. Tanenbaum",
+  "edition": 5,
+  "download_link": "https://drive.google.com/file/d/1e9afYNNJG1tXdx-_oz_Td7focCQb5uh6/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "semester": [
+    "3.2"
+  ],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6556079ef186be71f2408ed9"
+  },
+  "book_name": "Numerical Methods for Engineers",
+  "author": "Steven C. Chapra Dr.",
+  "edition": 7,
+  "download_link": "https://drive.google.com/file/d/109sSUh_6Dj1Z5XjsjNWJ6hObKgx7RlPB/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "semester": [
+    "3.2"
+  ],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "65560808f186be71f2408edc"
+  },
+  "book_name": "Software Engineering",
+  "author": "Ian Sommerville",
+  "edition": 9,
+  "download_link": "https://drive.google.com/file/d/1thxJJz8cvf5a2cHqF6VxRt1rndcZUpda/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "semester": [
+    "3.2"
+  ],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "655b992d187837c2e15240e6"
+  },
+  "book_name": "Computer Networks",
+  "author": "Andrew S. Tanenbaum, Nick Feamster",
+  "edition": 6,
+  "download_link": "https://drive.google.com/file/d/1KWkQpBgo90UHJk18DELlAsdHSpfNQB3e/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "semester": [
+    "3.2"
+  ],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "655cbb32a2d295f91212091e"
+  },
+  "book_name": "এক পলেক গিট ও গিটহাব",
+  "author": "জুনায়েদ আহেমদ | Zonayed Ahmed",
+  "edition": 1,
+  "download_link": "https://drive.google.com/file/d/1gmOlG14ykZ_pUbRjrAUznd9_8nTTRCd0/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "semester": [],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6561cf35654e23407df25fae"
+  },
+  "book_name": "The Intel microprocessors",
+  "author": "Barry B Brey",
+  "edition": 8,
+  "download_link": "https://drive.google.com/file/d/1nwCOFQtaFTc3sTyAZ3s5ar_N0gLe9aW9/view?usp=drive_link",
+  "categories": "cse",
+  "sub_categories": "book",
+  "semester": [
+    "3.2"
+  ],
+  "added_by": "mahmud.ponir.9800@gmail.com",
+  "status": true,
+  "__v": 0
+}]

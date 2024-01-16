@@ -1,0 +1,11 @@
+[{
+  "_id": {
+    "$oid": "63692d082d2ce34d0e167bd4"
+  },
+  "book_name": "CSE SYLLABUS - BSMRSTU - SESSION 19-20",
+  "download_link": "https://drive.google.com/file/d/14qdwzAREpor3pJZd-wD1k6GgdiwYuWBW/view?usp=sharing",
+  "categories": "cse",
+  "status": true,
+  "added_by": "ibuhossain3@gmail.com",
+  "sub_categories": "syllabus"
+}]
