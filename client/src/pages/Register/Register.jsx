@@ -10,17 +10,21 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../Hooks/useAuth';
-import { Alert, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Select, Tooltip } from '@mui/material';
+import { Alert, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Select, Tooltip, ListSubheader } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PageLayout from '../../Layout/PageLayout';
 import useUtility from '../../Hooks/useUtility';
 import { tagTitle } from '../../utility/tagTitle';
+import { semesterList } from '../../utility/semesterList';
 
 const Register = () => {
     const { signWithGoogle, name, setName, setEmail, setPassword, setUserExtraInfo, signUpWithEmail, isLoading, error, setError } = useAuth();
     const { getDepartments, deptLoading } = useUtility();
     const [emailWarning, setEmailWarning] = React.useState(" ");
     const [passwordWarning, setPasswordWarning] = React.useState(" ");
+    const [designation, setDesignation] = React.useState("");
+    const [semester, setSemester] = React.useState("");
+
 
     const onChangeWarning = (event) => {
         if (event.target.name === 'email') {
@@ -50,7 +54,6 @@ const Register = () => {
             })
         }
     };
-
     return (
         <PageLayout>
             <Container component="main" maxWidth="xs">
@@ -136,7 +139,7 @@ const Register = () => {
                                 name="designation"
                                 label="Designation"
                                 defaultValue=""
-                                onChange={handleSubmit}
+                                onChange={(e) => { handleSubmit(e); setDesignation(e.target.value) }}
                             >
                                 <MenuItem value="teacher">Teacher</MenuItem>
                                 <MenuItem value="student">Student</MenuItem>
@@ -161,6 +164,32 @@ const Register = () => {
                                 ))}
                             </Select>
                         </FormControl>
+                        {
+                            designation === "student" &&
+                            <FormControl fullWidth sx={{ mt: 2 }} required>
+                                <InputLabel htmlFor="semester-select">Semester</InputLabel>
+                                <Select
+                                    value={semester}
+                                    id="semester-select"
+                                    label="Semester"
+                                    name="semester"
+                                    onChange={(e) => { handleSubmit(e); setSemester(e.target.value) }}
+                                >
+                                    {
+                                        semesterList.map((sem) => {
+                                            if (sem?.title) {
+                                                return (
+                                                    <ListSubheader key={sem.title} sx={{ fontWeight: "700" }}>{sem.title}</ListSubheader>
+                                                )
+                                            }
+                                            return (
+                                                <MenuItem key={sem} value={sem} sx={{ ml: 1 }}>{sem}</MenuItem>
+                                            )
+                                        })
+                                    }
+                                </Select>
+                            </FormControl>
+                        }
                         <Button
                             type="submit"
                             fullWidth

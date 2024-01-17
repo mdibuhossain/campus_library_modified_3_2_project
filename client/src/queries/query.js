@@ -117,6 +117,7 @@ const GET_USER_STATUS = gql`
       isAdmin
       designation
       department
+      semester
     }
   }
 `;
@@ -227,6 +228,7 @@ const POST_USER = gql`
     $photoURL: String
     $designation: String
     $department: String
+    $semester: String
   ) {
     addUser(
       displayName: $displayName
@@ -236,6 +238,7 @@ const POST_USER = gql`
       photoURL: $photoURL
       designation: $designation
       department: $department
+      semester: $semester
     ) {
       _id
     }

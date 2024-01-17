@@ -38,6 +38,7 @@ const GraphQLSchemaForUser = {
   authType: { type: GraphQLString },
   designation: { type: GraphQLString },
   department: { type: GraphQLString },
+  semester: { type: GraphQLString },
   role: { type: GraphQLString, defaultValue: "regular" },
 };
 const GraphQLSchemaAuth = {
@@ -76,6 +77,7 @@ const UserStatus = new GraphQLObjectType({
     isAdmin: { type: GraphQLBoolean },
     designation: { type: GraphQLString },
     department: { type: GraphQLString },
+    semester: { type: GraphQLString },
   }),
 });
 const DepartmentType = new GraphQLObjectType({

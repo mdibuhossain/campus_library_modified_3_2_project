@@ -15,7 +15,7 @@ const useFirebase = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [userExtraInfo, setUserExtraInfo] = useState({ designation: "", department: "" });
+    const [userExtraInfo, setUserExtraInfo] = useState({ designation: "", department: "", semester: "" });
     const [updateTrack, setUpdateTrack] = useState(0);
     const [error, setError] = useState();
     const [token, setToken] = useState('');
@@ -49,7 +49,8 @@ const useFirebase = () => {
             getUserStatus: {
                 isAdmin: admin = false,
                 designation: userDesignation = "",
-                department: userDepartment = ""
+                department: userDepartment = "",
+                semester: userSemester = "",
             } = {}
         } = [],
         loading: userStatusLoading = true,
@@ -141,6 +142,7 @@ const useFirebase = () => {
                         photoURL: result?.user?.photoURL,
                         designation: userExtraInfo.designation,
                         department: userExtraInfo.department,
+                        semester: userExtraInfo.semester,
                         authType: result?.user?.providerData[0]?.providerId
                     }
                 })
@@ -197,6 +199,7 @@ const useFirebase = () => {
         password,
         isLoading,
         setPassword,
+        userSemester,
         userDepartment,
         userDesignation,
         userStatusLoading,

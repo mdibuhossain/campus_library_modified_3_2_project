@@ -8,6 +8,7 @@ const UserSchema = new mongoose.Schema({
     authType: { type: String },
     designation: { type: String },
     department: { type: String },
+    semester: { type: String },
     role: { type: String }
 })
 
