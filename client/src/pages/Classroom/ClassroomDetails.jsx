@@ -6,16 +6,20 @@ import axios from "axios";
 import { Dropdown } from '@mui/base/Dropdown';
 import { Menu } from '@mui/base/Menu';
 import { MenuButton } from '@mui/base/MenuButton';
-import { Button, Typography, FormControl, InputLabel, MenuItem, Select, ListSubheader } from '@mui/material';
+import { Button, Tooltip, FormControl, InputLabel, MenuItem, Select, ListSubheader } from '@mui/material';
 import { styled } from '@mui/system';
 import { semesterList } from "../../utility/semesterList";
+import useUtility from "../../Hooks/useUtility";
+import { tagTitle } from "../../utility/tagTitle";
 
 const ClassroomDetails = () => {
     const { rid } = useParams();
-    const { user } = useAuth();
+    const { user, userDesignation } = useAuth();
+    const { getDepartments, deptLoading } = useUtility()
     const [RoomInfo, setRoomInfo] = React.useState({});
     const [requestEmail, setRequestEmail] = React.useState('')
     const [semester, setSemester] = React.useState('')
+    const [department, setDepartment] = React.useState('')
 
     const handleFetchRoomDetails = () => {
         axios.get(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/${rid}`, {
@@ -27,7 +31,7 @@ const ClassroomDetails = () => {
         })
     }
 
-    const handleAddMemberDemo = (e) => {
+    const handleAddSingleMember = (e) => {
         e.preventDefault();
         axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/addmember`, { email: requestEmail, roomid: RoomInfo?._id })
             .then(result => {
@@ -40,6 +44,23 @@ const ClassroomDetails = () => {
                     alert(err?.response?.data?.message);
                 }
             })
+    }
+
+    const handleAddBulkMember = (e) => {
+        e.preventDefault();
+        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/addmember/bulk`, {
+            semester: semester,
+            department: department, roomid: RoomInfo?._id
+        }).then(result => {
+            if (result?.status === 200)
+                setRoomInfo(result?.data);
+        }).catch(err => {
+            if (err?.response?.status === 409) {
+                alert(err?.response?.data?.message);
+            } else if (err?.response?.status === 404) {
+                alert(err?.response?.data?.message);
+            }
+        })
     }
 
     React.useEffect(() => {
@@ -57,7 +78,7 @@ const ClassroomDetails = () => {
                         <div className="grid grid-cols-2">
                             <div>
                                 <p className="mb-2">Add specific member:</p>
-                                <form onSubmit={handleAddMemberDemo} className="flex items-center">
+                                <form onSubmit={handleAddSingleMember} className="flex items-center">
                                     <input
                                         type="text"
                                         placeholder="Enter email"
@@ -69,33 +90,67 @@ const ClassroomDetails = () => {
                                     >ADD</button>
                                 </form>
                             </div>
-                            <div>
-                                <p className="mb-2">Add the students of semester:</p>
-                                <div className="flex justify-end items-stretch h-[36px] ">
-                                    <FormControl fullWidth sx={{ height: '100%', m: 0, p: 0 }}>
-                                        <Select
-                                            value={semester}
-                                            name="semester"
-                                            sx={{ height: "100%", m: 0, p: 0, borderRadius: 2, borderTopRightRadius: 0, borderEndEndRadius: 0 }}
-                                            onChange={(e) => setSemester(e.target.value)}
-                                        >
-                                            {
-                                                semesterList.map((sem) => {
-                                                    if (sem?.title) {
+                            {
+                                userDesignation === 'teacher' && <div>
+                                    <p className="mb-2">Add the students of</p>
+                                    <form onSubmit={handleAddBulkMember} className="flex w-full justify-end items-stretch h-[36px]">
+                                        <FormControl size="small" fullWidth sx={{ height: '100%', mb: 2 }}>
+                                            <InputLabel id="department-selection">department</InputLabel>
+                                            <Select
+                                                value={department}
+                                                labelId="department-selection"
+                                                id="department-selection"
+                                                label="Department"
+                                                name="categories"
+                                                sx={{ height: "100%", borderRadius: 2, borderTopRightRadius: 0, borderEndEndRadius: 0 }}
+                                                onChange={(e) => setDepartment(e.target.value)}
+                                                required
+                                            >
+                                                {!deptLoading && getDepartments.map((item, index) => (
+                                                    item &&
+                                                    <MenuItem key={index} value={item}>
+                                                        <Tooltip title={tagTitle[item] || ''} placement="top-start" arrow>
+                                                            <div className="w-full">{item.toUpperCase()}</div>
+                                                        </Tooltip>
+                                                    </MenuItem>
+                                                ))}
+                                                <MenuItem value="others" sx={{ bgcolor: "orange", ":hover": { bgcolor: "skyblue" } }}>
+                                                    <Tooltip title="If not sure." placement="top-start" arrow>
+                                                        <div className="w-full">OTHERS</div>
+                                                    </Tooltip>
+                                                </MenuItem>
+                                            </Select>
+                                        </FormControl>
+                                        <FormControl fullWidth sx={{ height: '100%' }}>
+                                            <InputLabel size="small" htmlFor="semester-select">semester</InputLabel>
+                                            <Select
+                                                value={semester}
+                                                name="semester"
+                                                id="semester-select"
+                                                labelId="semester-select"
+                                                label="semester"
+                                                sx={{ height: "100%", height: "100%", borderRadius: 0 }}
+                                                onChange={(e) => setSemester(e.target.value)}
+                                                required
+                                            >
+                                                {
+                                                    semesterList.map((sem) => {
+                                                        if (sem?.title) {
+                                                            return (
+                                                                <ListSubheader key={sem.title} sx={{ fontWeight: "700" }}>{sem.title}</ListSubheader>
+                                                            )
+                                                        }
                                                         return (
-                                                            <ListSubheader key={sem.title} sx={{ fontWeight: "700" }}>{sem.title}</ListSubheader>
+                                                            <MenuItem key={sem} value={sem} sx={{ ml: 1 }}>{sem}</MenuItem>
                                                         )
-                                                    }
-                                                    return (
-                                                        <MenuItem key={sem} value={sem} sx={{ ml: 1 }}>{sem}</MenuItem>
-                                                    )
-                                                })
-                                            }
-                                        </Select>
-                                    </FormControl>
-                                    <Button sx={{ height: "100%", borderRadius: 2, borderTopLeftRadius: 0, borderEndStartRadius: 0, boxShadow: "none" }} variant="contained" >Add</Button>
+                                                    })
+                                                }
+                                            </Select>
+                                        </FormControl>
+                                        <Button type="submit" sx={{ height: "100%", borderRadius: 2, borderTopLeftRadius: 0, borderEndStartRadius: 0, boxShadow: "none" }} variant="contained" >Add</Button>
+                                    </form>
                                 </div>
-                            </div>
+                            }
                         </div>
                     }
                 </div>
@@ -117,11 +172,11 @@ const RoomBanner = ({ RoomInfo }) => {
         <>
             <div className='md:mt-10 mb-10 md:shadow-lg md:rounded-lg overflow-hidden bg-sky-200'>
                 <div className="px-4 py-5">
-                    <Typography variant="h3">{RoomInfo?.courseTitle}</Typography>
-
+                    <h3 className="text-4xl">{RoomInfo?.roomName}</h3>
+                    <h5 className="text-sm pt-2">course title: {RoomInfo?.courseTitle} ({RoomInfo?.courseCode})</h5>
                 </div>
                 <div className="bg-sky-50 px-4 py-2 flex justify-between md:items-center items-start md:flex-row flex-col">
-                    <Typography variant="caption">Created by {RoomInfo?.admin?.email}</Typography>
+                    <p className="text-xs">Created by {RoomInfo?.admin?.email}</p>
                     {
                         !RoomInfo?.isJoined ? <Button sx={{ my: 1 }} variant="contained" size="small">Join</Button> :
                             <Dropdown>

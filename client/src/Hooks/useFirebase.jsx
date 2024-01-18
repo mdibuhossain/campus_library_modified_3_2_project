@@ -166,7 +166,7 @@ const useFirebase = () => {
 
     useEffect(() => {
         refetchUserStatus();
-    }, [saveUserLoading])
+    }, [saveUserLoading, saveUserLoading])
 
     useEffect(() => {
         const unsubscribed = onAuthStateChanged(auth, user => {
