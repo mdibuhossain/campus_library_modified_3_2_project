@@ -13,6 +13,7 @@ apiRouter.get("/", (req, res) => {
 
 apiRouter.post("/classroom/create", classroomController.createClassroom);
 apiRouter.post("/classroom/addmember", classroomController.addMember);
+apiRouter.post("/classroom/addmember/bulk", classroomController.addBulkMember);
 apiRouter.post("/classroom/delete", classroomController.deleteClassroom);
 apiRouter.get("/classroom", classroomController.getRooms);
 apiRouter.get("/classroom/:roomid", classroomController.getRoomDetails)

@@ -46,9 +46,48 @@ module.exports.deleteClassroom = async (req, res) => {
   }
 };
 
-module.exports.addMember = async (req, res) => {
-  const { email, roomid } = req.body;
+module.exports.addBulkMember = async (req, res) => {
   try {
+    const { semester, department, roomid } = req.body;
+    let modifiedRoom = await Room.findById(roomid);
+    if (!modifiedRoom) {
+      res.status(404).json({ message: "Room not exist!" });
+    } else {
+      const filteredUsers = await User.find({ semester, department }).select(
+        "_id"
+      );
+      if (!filteredUsers.length) {
+        res.status(404).json({ message: "No such user found!" });
+      } else {
+        let userIDs = [
+          ...filteredUsers.map(({ _id }) => _id),
+          ...modifiedRoom.members,
+        ];
+        modifiedRoom.members = Array.from(new Set(userIDs));
+        modifiedRoom = await modifiedRoom.save();
+        await modifiedRoom.populate([
+          {
+            path: "members",
+            select: "displayName email designation department -_id",
+          },
+          {
+            path: "admin",
+            select: "displayName email -_id",
+          },
+        ]);
+        res.status(200).json({ ...modifiedRoom.toObject(), isJoined: true });
+      }
+    }
+  } catch {
+    res.status(500).json({
+      message: "Something went wrong!",
+    });
+  }
+};
+
+module.exports.addMember = async (req, res) => {
+  try {
+    const { email, roomid } = req.body;
     const findUser = await User.findOne({ email: email });
     if (findUser?._id) {
       const isUserAlreadyAdded = await Room.findOne({
@@ -71,18 +110,17 @@ module.exports.addMember = async (req, res) => {
           } else {
             modifiedRoom.members.push(findUser._id);
             modifiedRoom = await modifiedRoom.save();
-            res.status(200).json(
-              await modifiedRoom.populate([
-                {
-                  path: "members",
-                  select: "displayName email designation department -_id",
-                },
-                {
-                  path: "admin",
-                  select: "displayName email -_id",
-                },
-              ])
-            );
+            await modifiedRoom.populate([
+              {
+                path: "members",
+                select: "displayName email designation department -_id",
+              },
+              {
+                path: "admin",
+                select: "displayName email -_id",
+              },
+            ]);
+            res.status(200).json({ ...modifiedRoom.toObject, isJoined: true });
           }
         }
       }

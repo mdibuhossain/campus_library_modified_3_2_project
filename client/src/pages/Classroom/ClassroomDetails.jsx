@@ -35,8 +35,10 @@ const ClassroomDetails = () => {
         e.preventDefault();
         axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/addmember`, { email: requestEmail, roomid: RoomInfo?._id })
             .then(result => {
-                if (result?.status === 200)
+                if (result?.status === 200) {
                     setRoomInfo(result?.data);
+                    alert("User successfully added!");
+                }
             }).catch(err => {
                 if (err?.response?.status === 409) {
                     alert(err?.response?.data?.message);
@@ -62,7 +64,7 @@ const ClassroomDetails = () => {
             }
         })
     }
-
+    console.log(RoomInfo)
     React.useEffect(() => {
         handleFetchRoomDetails();
     }, []);
@@ -92,7 +94,7 @@ const ClassroomDetails = () => {
                             </div>
                             {
                                 userDesignation === 'teacher' && <div>
-                                    <p className="mb-2">Add the students of</p>
+                                    <p className="mb-2">Add the students of:</p>
                                     <form onSubmit={handleAddBulkMember} className="flex w-full justify-end items-stretch h-[36px]">
                                         <FormControl size="small" fullWidth sx={{ height: '100%', mb: 2 }}>
                                             <InputLabel id="department-selection">department</InputLabel>
@@ -129,7 +131,7 @@ const ClassroomDetails = () => {
                                                 id="semester-select"
                                                 labelId="semester-select"
                                                 label="semester"
-                                                sx={{ height: "100%", height: "100%", borderRadius: 0 }}
+                                                sx={{ height: "100%", borderRadius: 0 }}
                                                 onChange={(e) => setSemester(e.target.value)}
                                                 required
                                             >
