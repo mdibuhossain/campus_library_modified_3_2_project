@@ -120,7 +120,7 @@ module.exports.addMember = async (req, res) => {
                 select: "displayName email -_id",
               },
             ]);
-            res.status(200).json({ ...modifiedRoom.toObject, isJoined: true });
+            res.status(200).json({ ...modifiedRoom.toObject(), isJoined: true });
           }
         }
       }

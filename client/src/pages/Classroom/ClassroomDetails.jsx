@@ -76,12 +76,12 @@ const ShowMembers = ({ RoomInfo }) => {
                 {
                     RoomInfo?.members?.slice(0, 3)?.map((mem) => (
                         <>
-                            <button onClick={handleOpen} class="w-8 h-8 border-2 border-gray-400 rounded-full bg-gray-300 hover:bg-gray-200 flex justify-center items-center text-sm font-medium text-center text-slate-700">TW</button>
+                            <button onClick={handleOpen} class="w-8 h-8 border-2 border-gray-400 rounded-full bg-gray-300 hover:bg-gray-200 flex justify-center items-center text-sm font-medium text-center text-slate-700">{mem.displayName.slice(0, 2).toUpperCase()}</button>
                         </>
                     ))
                 }
                 {
-                    RoomInfo?.members?.length > 3 && <button onClick={handleOpen} class="flex items-center justify-center w-8 h-8 text-xs font-medium text-white bg-gray-700 border-2 border-white rounded-full hover:bg-gray-600 dark:border-gray-800" href="#">{RoomInfo?.members?.length - 3}+</button>
+                    RoomInfo?.members?.length > 3 && <button onClick={handleOpen} class="flex items-center justify-center w-8 h-8 text-xs font-medium text-white bg-gray-700 border-2 border-white rounded-full hover:bg-gray-600 dark:border-gray-800" href="#">{RoomInfo?.members?.length - 2}+</button>
                 }
             </div>
             <Modal
@@ -93,15 +93,20 @@ const ShowMembers = ({ RoomInfo }) => {
                     sx={{ ...ModalStyle, m: { md: "auto", xs: 'auto' }, p: 3, bgcolor: "white", borderRadius: 2, boxShadow: '0.65px 1.75px 10px rgb(0, 0, 0, 0.3)' }}
                 >
                     <h3>Members</h3>
-                    <ul>
-                        <li>Bal</li>
-                        <li>Bal</li>
-                        <li>Bal</li>
-                        <li>Bal</li>
-                        <li>Bal</li>
-                        <li>Bal</li>
-                        <li>Bal</li>
-                    </ul>
+                    <div className="flex flex-col gap-3 mt-3">
+                        <div className="flex justify-start items-center">
+                            <div onClick={handleOpen} class="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">{RoomInfo?.admin?.displayName.slice(0, 2).toUpperCase()}</div>
+                            <p className="ms-2">{RoomInfo?.admin?.displayName} (Admin) (You)</p>
+                        </div>
+                        {
+                            RoomInfo?.members?.map((member) => (
+                                <div className="flex justify-start items-center">
+                                    <div onClick={handleOpen} class="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-300 flex justify-center items-center text-xs font-medium text-center text-slate-700">{member.displayName.slice(0, 2).toUpperCase()}</div>
+                                    <p className="ms-2">{member.displayName}</p>
+                                </div>
+                            ))
+                        }
+                    </div>
                 </Box>
             </Modal >
         </>
