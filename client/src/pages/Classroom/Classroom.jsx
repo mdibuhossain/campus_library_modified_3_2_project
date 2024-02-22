@@ -51,7 +51,7 @@ const Classroom = () => {
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', my: 2 }}>
                             {
                                 myRoom?.map((room) => (
-                                    <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[270px] break-words">
+                                    <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[300px] break-words">
                                         <div className="py-2 bg-gray-300 px-4">
                                             <b className="">{room?.roomName}</b>
                                         </div>
@@ -74,7 +74,7 @@ const Classroom = () => {
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', my: 2 }}>
                             {
                                 joinedRoom?.map((room) => (
-                                    <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[270px] break-words">
+                                    <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[300px] break-words">
                                         <div className="py-2 bg-gray-300 px-4">
                                             <b className="">{room?.roomName}</b>
                                         </div>

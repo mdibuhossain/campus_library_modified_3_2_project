@@ -6,7 +6,7 @@ import axios from "axios";
 import { Dropdown } from '@mui/base/Dropdown';
 import { Menu } from '@mui/base/Menu';
 import { MenuButton } from '@mui/base/MenuButton';
-import { Button, Tooltip, FormControl, InputLabel, Box, Modal, MenuItem, Select, ListSubheader } from '@mui/material';
+import { ButtonBase, Button, Tooltip, FormControl, InputLabel, Box, Modal, MenuItem, Select, ListSubheader } from '@mui/material';
 import { styled } from '@mui/system';
 import { semesterList } from "../../utility/semesterList";
 import useUtility from "../../Hooks/useUtility";
@@ -72,16 +72,14 @@ const ShowMembers = ({ RoomInfo }) => {
     const handleClose = () => setOpen(false);
     return (
         <>
-            <div class="flex -space-x-3 rtl:space-x-reverse mb-5">
+            <div className="flex -space-x-3 rtl:space-x-reverse mb-5">
                 {
-                    RoomInfo?.members?.slice(0, 3)?.map((mem) => (
-                        <>
-                            <button onClick={handleOpen} class="w-8 h-8 border-2 border-gray-400 rounded-full bg-gray-300 hover:bg-gray-200 flex justify-center items-center text-sm font-medium text-center text-slate-700">{mem.displayName.slice(0, 2).toUpperCase()}</button>
-                        </>
+                    RoomInfo?.members?.slice(0, 3)?.map((mem, idx) => (
+                        <button key={idx} onClick={handleOpen} className="w-8 h-8 border-2 border-gray-400 rounded-full bg-gray-300 hover:bg-gray-200 flex justify-center items-center text-sm font-medium text-center text-slate-700">{mem.displayName.slice(0, 2).toUpperCase()}</button>
                     ))
                 }
                 {
-                    RoomInfo?.members?.length > 3 && <button onClick={handleOpen} class="flex items-center justify-center w-8 h-8 text-xs font-medium text-white bg-gray-700 border-2 border-white rounded-full hover:bg-gray-600 dark:border-gray-800" href="#">{RoomInfo?.members?.length - 2}+</button>
+                    RoomInfo?.members?.length > 3 && <button onClick={handleOpen} className="flex items-center justify-center w-8 h-8 text-xs font-medium text-white bg-gray-700 border-2 border-white rounded-full hover:bg-gray-600 dark:border-gray-800" href="#">{RoomInfo?.members?.length - 2}+</button>
                 }
             </div>
             <Modal
@@ -95,14 +93,14 @@ const ShowMembers = ({ RoomInfo }) => {
                     <h3>Members</h3>
                     <div className="flex flex-col gap-3 mt-3">
                         <div className="flex justify-start items-center">
-                            <div onClick={handleOpen} class="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">{RoomInfo?.admin?.displayName.slice(0, 2).toUpperCase()}</div>
-                            <p className="ms-2">{RoomInfo?.admin?.displayName} (Admin) (You)</p>
+                            <div onClick={handleOpen} className="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">{RoomInfo?.admin?.displayName.slice(0, 2).toUpperCase()}</div>
+                            <p className="ms-2">{RoomInfo?.admin?.displayName} (Admin) {user?.email === RoomInfo?.admin?.email && '(You)'}</p>
                         </div>
                         {
                             RoomInfo?.members?.map((member) => (
-                                <div className="flex justify-start items-center">
-                                    <div onClick={handleOpen} class="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-300 flex justify-center items-center text-xs font-medium text-center text-slate-700">{member.displayName.slice(0, 2).toUpperCase()}</div>
-                                    <p className="ms-2">{member.displayName}</p>
+                                <div key={member.email} className="flex justify-start items-center">
+                                    <div onClick={handleOpen} className="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-300 flex justify-center items-center text-xs font-medium text-center text-slate-700">{member.displayName.slice(0, 2).toUpperCase()}</div>
+                                    <p className="ms-2">{member.displayName} {user?.email === member.email && '(You)'}</p>
                                 </div>
                             ))
                         }
@@ -250,7 +248,7 @@ const RoomBanner = ({ RoomInfo }) => {
                         !RoomInfo?.isJoined ? <Button sx={{ my: 1 }} variant="contained" size="small">Join</Button> :
                             <Dropdown>
                                 <MenuButton>
-                                    <Button sx={{ my: 1 }} variant="outlined" size="small">Joined</Button>
+                                    <Box sx={{ my: 1, p: "6px", border: "1px solid #1565c0", color: "#1565c0", borderRadius: 2, fontSize: "0.9rem" }} size="small">Joined</Box>
                                 </MenuButton>
                                 <Menu slots={{ listbox: Listbox }}>
                                     {/* <MenuItem> */}

@@ -1,0 +1,231 @@
+[{
+  "_id": {
+    "$oid": "628ff236ea7d63ac74bfe464"
+  },
+  "email": "mahmud.ponir.9800@gmail.com",
+  "displayName": "Ponir Mahmud",
+  "role": "admin",
+  "authType": "google.com",
+  "photoURL": "https://firebasestorage.googleapis.com/v0/b/campuslb.appspot.com/o/avatar%2F4KSEJ302Aaf3Hgpnp63oex0DCQG3.png?alt=media&token=37393cd9-d4c4-4eec-9a7c-377c66142251"
+},
+{
+  "_id": {
+    "$oid": "629051bf668d3a20805ef74e"
+  },
+  "email": "mehzaben980@gmail.com",
+  "displayName": "Ananna",
+  "authType": "google.com",
+  "role": "regular"
+},
+{
+  "_id": {
+    "$oid": "6298bcaeaf6c2b2a0a2194bc"
+  },
+  "email": "hamidul40islam40@gmail.com",
+  "password": "",
+  "displayName": "Hamidul Islam",
+  "photoURL": "https://lh3.googleusercontent.com/a-/AOh14Gj0FCrAHVusnoJfdIVY8TfV24x3q1CoVhi4t54W=s96-c",
+  "authType": "google.com",
+  "role": "regular"
+},
+{
+  "_id": {
+    "$oid": "629909e0647e1b228eb6aa13"
+  },
+  "email": "admin@admin.com",
+  "password": "admin1234",
+  "displayName": "Captain Lufy",
+  "photoURL": "https://firebasestorage.googleapis.com/v0/b/campuslb.appspot.com/o/avatar%2FsTulGmjqOlbN8CPGqWlubRnflJN2.png?alt=media&token=ac6523ca-7d00-4b3f-9369-7d350cc49409",
+  "authType": "password",
+  "role": "admin"
+},
+{
+  "_id": {
+    "$oid": "629f83bc68ec050ccdf433ef"
+  },
+  "email": "ibuhossain3@gmail.com",
+  "password": "",
+  "displayName": "Md. Ibrahim Hossain",
+  "photoURL": "https://lh3.googleusercontent.com/a-/AOh14GgHJnQ9NRDYFqaDOs3q5kXy0nSfwxU7LhTljCIQ=s96-c",
+  "authType": "google.com",
+  "role": "regular"
+},
+{
+  "_id": {
+    "$oid": "62a2e370f1c9b6c50ba71569"
+  },
+  "email": "bsmrstu19cse063@gmail.com",
+  "password": "",
+  "displayName": "Md Muzahidul Islam",
+  "photoURL": "https://lh3.googleusercontent.com/a-/AOh14GgJP9DjSypWL0OqKGAWePo7jS1u070XVcao5_0s=s96-c",
+  "authType": "google.com",
+  "role": "regular"
+},
+{
+  "_id": {
+    "$oid": "62a2e468f1c9b6c50ba7156a"
+  },
+  "email": "imuzahid18@gmail.com",
+  "password": "",
+  "displayName": "Md Muzahidul Islam",
+  "photoURL": "https://firebasestorage.googleapis.com/v0/b/campuslb.appspot.com/o/avatar%2F0lYiutAnIidRpRiNDZZmUSQEKcn1.png?alt=media&token=b985af55-d502-4425-975d-a00893aff7db",
+  "authType": "google.com"
+},
+{
+  "_id": {
+    "$oid": "62a739054cf40c6875eeb71f"
+  },
+  "email": "chadninfo@gmail.com",
+  "password": "",
+  "displayName": "Moriom Bibi Chadni",
+  "photoURL": "https://lh3.googleusercontent.com/a/AATXAJzMdMk6tRid0hefLLpNnnGoz2Cyt6dXejEJ6vhF=s96-c",
+  "authType": "google.com"
+},
+{
+  "_id": {
+    "$oid": "636ffee81297e46623da3856"
+  },
+  "displayName": "Roronoa Xorro",
+  "email": "imxorro@gmail.com",
+  "photoURL": "https://lh3.googleusercontent.com/a/ALm5wu2_L-3IJ76KZTQGY2kusMzVjS17PpOli6sVRX-v=s96-c",
+  "authType": "google.com",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6371634728f8927b5a6d7101"
+  },
+  "displayName": "Testing 2nd",
+  "email": "testing@gmail.com",
+  "password": "123123",
+  "photoURL": null,
+  "authType": "password",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "63a9cd641fbcce7cc6c04b5d"
+  },
+  "displayName": "Rabia Akhter ",
+  "email": "rabiaakhter44@gmail.com",
+  "password": "Black100",
+  "photoURL": "https://firebasestorage.googleapis.com/v0/b/campuslb.appspot.com/o/avatar%2Fkxn8WtEo0SOoGKGHIKv8SKOC9fO2.png?alt=media&token=95899dc5-5171-4c16-bba0-c81d53e4b94c",
+  "authType": "password",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "63a9cdf11fbcce7cc6c04b70"
+  },
+  "displayName": "Ibrahim Hossain",
+  "email": "mohammad.ihakash@gmail.com",
+  "photoURL": "https://lh3.googleusercontent.com/a/AEdFTp7fubTKQo3his6mcMpuItnxqN5sjtJknn2lkN8t=s96-c",
+  "authType": "google.com",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "63d66f7a8436bcf3dc675189"
+  },
+  "displayName": "Ahnaf Nakib",
+  "email": "ahnafnakib100@gmail.com",
+  "photoURL": "https://firebasestorage.googleapis.com/v0/b/campuslb.appspot.com/o/avatar%2FDX2pQBWYD7eWDpELvw6BaHuNtlu1.png?alt=media&token=66ccaf5f-ba0b-4d50-83c8-a78ffa22b17b",
+  "authType": "google.com",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "63ebd5b28436bcf3dc67579e"
+  },
+  "displayName": "Tire",
+  "email": "hasan@mail.com",
+  "password": "123456",
+  "photoURL": null,
+  "authType": "password",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "640c0328730f82c7e041c411"
+  },
+  "displayName": "ajay sah",
+  "email": "ajaysah79196@gmail.com",
+  "photoURL": "https://lh3.googleusercontent.com/a/AGNmyxZpwGUzPbGWpvknqFNCjQ-gA0o59jQvMDEigr_J=s96-c",
+  "authType": "google.com",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "641711c3730f82c7e041ca86"
+  },
+  "displayName": "Rakibul Islam",
+  "email": "islamrakib987654@gmail.com",
+  "photoURL": "https://lh3.googleusercontent.com/a/AGNmyxYTppioP4KG3lWjCxITl0hpfzli94YYoXjPolk=s96-c",
+  "authType": "google.com",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6423cbbb0de93bd040eac1f6"
+  },
+  "displayName": "Inu Hossain",
+  "email": "inuhossain3@gmail.com",
+  "photoURL": "https://lh3.googleusercontent.com/a/AGNmyxZkV88edgx81mVK-PKZ7j_aOJRMWtj-YCX7j9xS=s96-c",
+  "authType": "google.com",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "64349b66b58c1b1b8c4c1e3e"
+  },
+  "displayName": "Ayman",
+  "email": "aymanoli777@gmail.com",
+  "password": "ayman1234",
+  "photoURL": null,
+  "authType": "password",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "647d82faaa779df030cbecb6"
+  },
+  "displayName": "A B Siddik",
+  "email": "asiddik736@gmail.com",
+  "photoURL": "https://lh3.googleusercontent.com/a/AAcHTtc5R3jGCDVuz1DEFY9Kk3WsjSu4dXBH13gPAImGZw=s96-c",
+  "authType": "google.com",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "6575994b5e2ffc35876ba0e6"
+  },
+  "displayName": "Abul",
+  "email": "abul@gmail.com",
+  "password": "123456",
+  "photoURL": null,
+  "authType": "password",
+  "role": "regular",
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "65bbcd21ffd4edda0a1f36c5"
+  },
+  "displayName": "Palarax dope palarax",
+  "email": "palaraxdopepalarax@gmail.com",
+  "photoURL": "https://lh3.googleusercontent.com/a/ACg8ocI2Dz7NfpMRwNwyQQTTL-ND7rjBn3nfnCNwM0puAj8=s96-c",
+  "authType": "google.com",
+  "role": "regular",
+  "__v": 0
+}]

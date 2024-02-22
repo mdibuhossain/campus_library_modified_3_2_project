@@ -123,7 +123,7 @@ const RootQuery = new GraphQLObjectType({
     getBooks: {
       type: new GraphQLList(BookType),
       resolve(_, args, req) {
-        return Book.find();
+        return Book.find().sort("book_name");
       },
     },
     getQuestion: {
@@ -136,7 +136,7 @@ const RootQuery = new GraphQLObjectType({
     getQuestions: {
       type: new GraphQLList(QuestionType),
       resolve(_, args) {
-        return Question.find();
+        return Question.find().sort("book_name");
       },
     },
     getSyllabus: {
@@ -149,7 +149,7 @@ const RootQuery = new GraphQLObjectType({
     getAllSyllabus: {
       type: new GraphQLList(SyllabusType),
       resolve(_, args) {
-        return Syllabus.find();
+        return Syllabus.find().sort("book_name");
       },
     },
     getUser: {
