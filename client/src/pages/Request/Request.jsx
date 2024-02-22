@@ -25,6 +25,7 @@ const Request = () => {
         categories: '',
         sub_categories: '',
         semester: [],
+        course_code: '',
         status: false,
         added_by: user?.email
     }
@@ -249,39 +250,53 @@ const Request = () => {
 
                                 {
                                     (dataStruct?.sub_categories === 'book') &&
-                                    <Tooltip title="only select if applicable" placement="top-end" arrow>
-                                        <FormControl fullWidth sx={{ mb: 2 }}>
-                                            <InputLabel htmlFor="semester-select">Semester</InputLabel>
-                                            <Select
-                                                value={semester ?? []}
-                                                multiple
-                                                id="semester-select"
-                                                label="Semester"
-                                                name="semester"
-                                                onChange={handleSemester}
-                                                renderValue={(selected) => (
-                                                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                                        {selected.map((value) => (
-                                                            <Chip key={value} label={value} />
-                                                        ))}
-                                                    </Box>
-                                                )}
-                                            >
-                                                {
-                                                    semesterList.map((sem) => {
-                                                        if (sem?.title) {
+                                    <>
+                                        <Tooltip title="only select if applicable" placement="top-end" arrow>
+                                            <FormControl fullWidth sx={{ mb: 2 }}>
+                                                <InputLabel htmlFor="semester-select">Semester</InputLabel>
+                                                <Select
+                                                    value={semester ?? []}
+                                                    multiple
+                                                    id="semester-select"
+                                                    label="Semester"
+                                                    name="semester"
+                                                    onChange={handleSemester}
+                                                    renderValue={(selected) => (
+                                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                            {selected.map((value) => (
+                                                                <Chip key={value} label={value} />
+                                                            ))}
+                                                        </Box>
+                                                    )}
+                                                >
+                                                    {
+                                                        semesterList.map((sem) => {
+                                                            if (sem?.title) {
+                                                                return (
+                                                                    <ListSubheader key={sem.title} sx={{ fontWeight: "700" }}>{sem.title}</ListSubheader>
+                                                                )
+                                                            }
                                                             return (
-                                                                <ListSubheader key={sem.title} sx={{ fontWeight: "700" }}>{sem.title}</ListSubheader>
+                                                                <MenuItem key={sem} value={sem} sx={{ ml: 1 }}>{sem}</MenuItem>
                                                             )
-                                                        }
-                                                        return (
-                                                            <MenuItem key={sem} value={sem} sx={{ ml: 1 }}>{sem}</MenuItem>
-                                                        )
-                                                    })
-                                                }
-                                            </Select>
-                                        </FormControl>
-                                    </Tooltip>
+                                                        })
+                                                    }
+                                                </Select>
+                                            </FormControl>
+                                        </Tooltip>
+                                        <Tooltip title="if applicable" placement="top-end" arrow>
+                                            <TextField
+                                                sx={{ mb: 2 }}
+                                                id="outlined-basic"
+                                                label="Course code"
+                                                name="course_code"
+                                                variant="outlined"
+                                                onChange={handleFormFillUp}
+                                                fullWidth
+                                                disabled={!user?.email}
+                                            />
+                                        </Tooltip>
+                                    </>
                                 }
 
                                 <TextField

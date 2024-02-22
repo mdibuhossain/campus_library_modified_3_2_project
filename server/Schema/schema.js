@@ -28,6 +28,7 @@ const GraphQLSchemaTemplateForBook = {
   author: { type: GraphQLString },
   edition: { type: GraphQLString },
   semester: { type: new GraphQLList(GraphQLString) },
+  course_code: { type: GraphQLString }
 };
 const GraphQLSchemaForUser = {
   _id: { type: GraphQLID },

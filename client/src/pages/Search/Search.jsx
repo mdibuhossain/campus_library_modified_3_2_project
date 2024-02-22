@@ -16,6 +16,7 @@ const Search = () => {
         const tmp_res = allData?.filter(info => (
             (info?.book_name?.toLowerCase()?.includes(search_text.toLowerCase()) ||
                 info?.author?.toLowerCase()?.includes(search_text.toLowerCase()) ||
+                info?.course_code?.includes(search_text.toLowerCase()) ||
                 info?.categories?.includes(search_text.toLowerCase()) ||
                 info?.subcategories?.includes(search_text.toLowerCase())) && (search_text.length > 0)
         ))
@@ -56,7 +57,7 @@ const Search = () => {
                                         <a href={item?.download_link} key={index} target="_blank" rel="noreferrer">
                                             <Paper sx={{ my: 2, p: 2, color: 'rgba(0, 0, 0, 0.7)' }}>
                                                 <strong>{item?.book_name}</strong>
-                                                <p className='text-blue-500 font-semibold text-sm'>{item?.edition ? item?.edition + 'E' : ''} <em>{item?.author ? ' - ' + item?.author : ''}</em> <span style={{ color: 'rgba(0, 0, 0, 0.7)' }}>({item?.categories})</span></p>
+                                                <p className='text-blue-500 font-semibold text-sm'>{item?.edition ? item?.edition + 'E' : ''} <em>{item?.author ? ' - ' + item?.author : ''}</em> <span style={{ color: 'rgba(0, 0, 0, 0.7)' }}>({item?.sub_categories?.toUpperCase()}) ({item?.categories?.toUpperCase()}) {item?.course_code && `(${item?.course_code?.toUpperCase()})`}</span></p>
                                             </Paper>
                                         </a>
                                     ))

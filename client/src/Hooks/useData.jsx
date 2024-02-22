@@ -142,7 +142,7 @@ const initNav = [
 const useData = () => {
     const [allData, setAllData] = useState([]);
     const [deptNavList, setDeptNavList] = useState(initNav);
-
+    console.log(allData)
     const {
         data: { getBooks: books = [], getQuestions: questions = [], getAllSyllabus: syllabus = [] } = {},
         loading: dataLoading,

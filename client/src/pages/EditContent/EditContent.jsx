@@ -160,33 +160,80 @@ const EditContent = () => {
 
                     {
                         (dataStruct?.sub_categories === 'book') &&
-                        <Grid container spacing={{ md: 2 }} sx={{ transition: '0.5s ease-in-out' }}>
-                            <Grid item md={8} xs={12} sx={{ transition: '0.5s ease-in-out' }}>
+                        <>
+                            <Grid container spacing={{ md: 2 }} sx={{ transition: '0.5s ease-in-out' }}>
+                                <Grid item md={8} xs={12} sx={{ transition: '0.5s ease-in-out' }}>
+                                    <TextField
+                                        sx={{ mb: 2 }}
+                                        id="outlined-basic"
+                                        label="Author"
+                                        value={dataStruct?.author}
+                                        name="author"
+                                        variant="outlined"
+                                        onChange={handleSubmit}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item md={4} xs={12} sx={{ transition: '0.5s ease-in-out' }}>
+                                    <TextField
+                                        sx={{ mb: 2 }}
+                                        id="outlined-basic"
+                                        label="Edition"
+                                        value={dataStruct?.edition}
+                                        name="edition"
+                                        variant="outlined"
+                                        type="number"
+                                        onChange={handleSubmit}
+                                        fullWidth
+                                    />
+                                </Grid>
+                            </Grid>
+                            <Tooltip title="only select if applicable" placement="top-end" arrow>
+                                <FormControl fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel htmlFor="semester-select">Semester</InputLabel>
+                                    <Select
+                                        value={semester ?? []}
+                                        multiple
+                                        id="semester-select"
+                                        label="Semester"
+                                        name="semester"
+                                        onChange={handleSemester}
+                                        renderValue={(selected) => (
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                {selected.map((value) => (
+                                                    <Chip key={value} label={value} />
+                                                ))}
+                                            </Box>
+                                        )}
+                                    >
+                                        {
+                                            semesterList.map((sem) => {
+                                                if (sem?.title) {
+                                                    return (
+                                                        <ListSubheader key={sem.title} sx={{ fontWeight: "700" }}>{sem.title}</ListSubheader>
+                                                    )
+                                                }
+                                                return (
+                                                    <MenuItem key={sem} value={sem} sx={{ ml: 1 }}>{sem}</MenuItem>
+                                                )
+                                            })
+                                        }
+                                    </Select>
+                                </FormControl>
+                            </Tooltip>
+                            <Tooltip title="if applicable" placement="top-end" arrow>
                                 <TextField
                                     sx={{ mb: 2 }}
                                     id="outlined-basic"
-                                    label="Author"
-                                    value={dataStruct?.author}
-                                    name="author"
+                                    label="Course code"
+                                    name="course_code"
                                     variant="outlined"
+                                    value={dataStruct?.course_code}
                                     onChange={handleSubmit}
                                     fullWidth
                                 />
-                            </Grid>
-                            <Grid item md={4} xs={12} sx={{ transition: '0.5s ease-in-out' }}>
-                                <TextField
-                                    sx={{ mb: 2 }}
-                                    id="outlined-basic"
-                                    label="Edition"
-                                    value={dataStruct?.edition}
-                                    name="edition"
-                                    variant="outlined"
-                                    type="number"
-                                    onChange={handleSubmit}
-                                    fullWidth
-                                />
-                            </Grid>
-                        </Grid>
+                            </Tooltip>
+                        </>
                     }
 
                     <FormControl fullWidth sx={{ mb: 2 }}>
@@ -226,38 +273,6 @@ const EditContent = () => {
                         /> : null
                     }
 
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                        <InputLabel htmlFor="semester-select">Semester</InputLabel>
-                        <Select
-                            value={semester ?? []}
-                            multiple
-                            id="semester-select"
-                            label="Semester"
-                            name="semester"
-                            onChange={handleSemester}
-                            renderValue={(selected) => (
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                    {selected.map((value) => (
-                                        <Chip key={value} label={value} />
-                                    ))}
-                                </Box>
-                            )}
-                        >
-                            {
-                                semesterList.map((sem) => {
-                                    if (sem?.title) {
-                                        return (
-                                            <ListSubheader key={sem.title} sx={{ fontWeight: "700" }}>{sem.title}</ListSubheader>
-                                        )
-                                    }
-                                    return (
-                                        <MenuItem key={sem} value={sem} sx={{ ml: 1 }}>{sem}</MenuItem>
-                                    )
-                                })
-                            }
-                        </Select>
-                    </FormControl>
-
                     <TextField
                         sx={{ mb: 2 }}
                         id="outlined-basic"
@@ -283,7 +298,7 @@ const EditContent = () => {
                     }
                 </form>
             </Box>
-        </PageLayout>
+        </PageLayout >
     );
 };
 

@@ -19,6 +19,7 @@ const GET_ALL_DATA = gql`
       author
       edition
       semester
+      course_code
     }
     getQuestions {
       _id
@@ -53,6 +54,7 @@ const GET_BOOKS = gql`
       author
       edition
       semester
+      course_code
     }
   }
 `;
@@ -134,6 +136,7 @@ const POST_BOOK = gql`
     $author: String
     $edition: String
     $semester: [String]
+    $course_code: String
     $token: String
   ) {
     addBook(
@@ -146,6 +149,7 @@ const POST_BOOK = gql`
       author: $author
       edition: $edition
       semester: $semester
+      course_code: $course_code
       token: $token
     ) {
       _id
@@ -158,6 +162,7 @@ const POST_BOOK = gql`
       author
       edition
       semester
+      course_code
     }
   }
 `;
@@ -255,6 +260,7 @@ const UPDATE_BOOK = gql`
     $sub_categories: String
     $author: String
     $semester: [String]
+    $course_code: String
     $edition: String
     $token: String
   ) {
@@ -266,6 +272,7 @@ const UPDATE_BOOK = gql`
       sub_categories: $sub_categories
       author: $author
       semester: $semester
+      course_code: $course_code
       edition: $edition
       token: $token
     ) {

@@ -178,7 +178,7 @@ const ListOfRequest = ({ content, title, status }) => {
 
                                             {(admin || !item?.status || status) && <NavLink to={`/edit/${item?._id}`} className="bg-green-500 hover:bg-green-600 rounded-full px-2 py-0.5 font-semibold text-gray-50 hover:text-gray-50 text-xs mr-2">edit</NavLink>}
 
-                                            <span className="mr-2 inline-block">( {item?.categories} )</span>
+                                            <span className="mr-2 inline-block">( {item?.categories} ) <b>{item?.course_code && `(${item?.course_code?.toUpperCase()})`}</b></span>
 
                                             ( {item?.added_by} ){admin && (item?.added_by === user?.email) && <span style={{ color: 'red' }}> ( Admin )</span>}
                                         </Typography>

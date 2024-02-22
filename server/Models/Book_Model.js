@@ -8,6 +8,7 @@ const BookSchema = new mongoose.Schema({
     categories: { type: String },
     sub_categories: { type: String },
     semester: { type: [String] },
+    course_code: { type: String },
     added_by: { type: String },
     status: { type: Boolean }
 })
