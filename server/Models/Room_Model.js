@@ -20,11 +20,17 @@ const RoomSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  assignments: [
+  tasks: [
     {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Task",
     },
   ],
+  // assignments: [
+  //   {
+  //     type: String,
+  //   },
+  // ],
   iat: {
     type: Date,
     default: new Date(),
