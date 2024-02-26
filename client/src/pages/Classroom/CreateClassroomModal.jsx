@@ -71,7 +71,6 @@ const CreateClassroomModal = ({ setMyRoom }) => {
                         <TextField
                             id="component-course"
                             label="Course title"
-                            multiline
                             variant="standard"
                             name="courseTitle"
                             onChange={handleOnChangeForm}
@@ -80,7 +79,6 @@ const CreateClassroomModal = ({ setMyRoom }) => {
                         <TextField
                             id="component-course-code"
                             label="Course code"
-                            multiline
                             variant="standard"
                             name="courseCode"
                             onChange={handleOnChangeForm}

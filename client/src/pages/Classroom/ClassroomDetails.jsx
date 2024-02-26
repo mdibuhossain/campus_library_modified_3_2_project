@@ -6,7 +6,7 @@ import axios from "axios";
 import { Dropdown } from '@mui/base/Dropdown';
 import { Menu } from '@mui/base/Menu';
 import { MenuButton } from '@mui/base/MenuButton';
-import { ButtonBase, Button, Tooltip, FormControl, InputLabel, Box, Modal, MenuItem, Select, ListSubheader } from '@mui/material';
+import { ButtonBase, Button, Tooltip, FormControl, InputLabel, Box, Modal, MenuItem, Select, Tab, Tabs, ListSubheader } from '@mui/material';
 import { styled } from '@mui/system';
 import { semesterList } from "../../utility/semesterList";
 import useUtility from "../../Hooks/useUtility";
@@ -27,6 +27,7 @@ const ClassroomDetails = () => {
     const { rid } = useParams();
     const { user } = useAuth();
     const [RoomInfo, setRoomInfo] = React.useState({});
+    const [tabIndex, setTabIndex] = React.useState(0);
 
     const handleFetchRoomDetails = () => {
         axios.get(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/${rid}`, {
@@ -46,11 +47,7 @@ const ClassroomDetails = () => {
         return (
             <PageLayout>
                 <div className="md:w-3/5 w-full m-auto">
-                    <RoomBanner RoomInfo={RoomInfo} />
-                    <div className="max-md:w-[95%] mx-auto">
-                        {RoomInfo?.members?.length > 0 && <ShowMembers RoomInfo={RoomInfo} />}
-                        <MemberAddingSection RoomInfo={RoomInfo} setRoomInfo={setRoomInfo} />
-                    </div>
+                    <RoomBanner RoomInfo={RoomInfo} tabIndex={tabIndex} setTabIndex={setTabIndex} setRoomInfo={setRoomInfo} />
                 </div>
             </PageLayout>
         )
@@ -58,7 +55,7 @@ const ClassroomDetails = () => {
         return (
             <PageLayout>
                 <div className="md:w-3/5 w-full m-auto">
-                    <RoomBanner RoomInfo={RoomInfo} />
+                    <RoomBanner RoomInfo={RoomInfo} tabIndex={tabIndex} setTabIndex={setTabIndex} setRoomInfo={setRoomInfo} />
                 </div>
             </PageLayout>
         )
@@ -86,28 +83,34 @@ const ShowMembers = ({ RoomInfo }) => {
                 open={open}
                 onClose={handleClose}
             >
-                <Box
-
-                    sx={{ ...ModalStyle, m: { md: "auto", xs: 'auto' }, p: 3, bgcolor: "white", borderRadius: 2, boxShadow: '0.65px 1.75px 10px rgb(0, 0, 0, 0.3)' }}
-                >
-                    <h3>Members</h3>
-                    <div className="flex flex-col gap-3 mt-3">
-                        <div className="flex justify-start items-center">
-                            <div onClick={handleOpen} className="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">{RoomInfo?.admin?.displayName.slice(0, 2).toUpperCase()}</div>
-                            <p className="ms-2">{RoomInfo?.admin?.displayName} (Admin) {user?.email === RoomInfo?.admin?.email && '(You)'}</p>
-                        </div>
-                        {
-                            RoomInfo?.members?.map((member) => (
-                                <div key={member.email} className="flex justify-start items-center">
-                                    <div onClick={handleOpen} className="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-300 flex justify-center items-center text-xs font-medium text-center text-slate-700">{member.displayName.slice(0, 2).toUpperCase()}</div>
-                                    <p className="ms-2">{member.displayName} {user?.email === member.email && '(You)'}</p>
-                                </div>
-                            ))
-                        }
-                    </div>
-                </Box>
+                <MemberList RoomInfo={RoomInfo} user={user} isModal={true} />
             </Modal >
         </>
+    )
+}
+
+const MemberList = ({ RoomInfo, user, isModal }) => {
+    return (
+        <Box
+
+            sx={{ ...(isModal && ModalStyle), m: { md: "auto", xs: 'auto' }, p: isModal ? 3 : 0, bgcolor: "white", borderRadius: 2, boxShadow: isModal === true ? '0.65px 1.75px 10px rgb(0, 0, 0, 0.3)' : '' }}
+        >
+            <h3>Members</h3>
+            <div className="flex flex-col gap-3 mt-3">
+                <div className="flex justify-start items-center">
+                    <div className="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">{RoomInfo?.admin?.displayName.slice(0, 2).toUpperCase()}</div>
+                    <p className="ms-2">{RoomInfo?.admin?.displayName} (Admin) {user?.email === RoomInfo?.admin?.email && '(You)'}</p>
+                </div>
+                {
+                    RoomInfo?.members?.map((member) => (
+                        <div key={member.email} className="flex justify-start items-center">
+                            <div className="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-300 flex justify-center items-center text-xs font-medium text-center text-slate-700">{member.displayName.slice(0, 2).toUpperCase()}</div>
+                            <p className="ms-2">{member.displayName} {user?.email === member.email && '(You)'}</p>
+                        </div>
+                    ))
+                }
+            </div>
+        </Box >
     )
 }
 
@@ -234,13 +237,14 @@ const MemberAddingSection = ({ RoomInfo, setRoomInfo }) => {
     )
 }
 
-const RoomBanner = ({ RoomInfo }) => {
+const RoomBanner = ({ RoomInfo, tabIndex, setTabIndex, setRoomInfo }) => {
+    const { user } = useAuth();
     return (
         <>
             <div className='md:mt-10 mb-10 md:shadow-lg md:rounded-lg overflow-hidden bg-sky-200'>
                 <div className="px-4 py-5">
                     <h3 className="text-4xl">{RoomInfo?.roomName}</h3>
-                    <h5 className="text-sm pt-2">course title: {RoomInfo?.courseTitle} ({RoomInfo?.courseCode})</h5>
+                    <h5 className="text-sm pt-2">Course title: {RoomInfo?.courseTitle} ({RoomInfo?.courseCode?.toUpperCase()})</h5>
                 </div>
                 <div className="bg-sky-50 px-4 py-2 flex justify-between md:items-center items-start md:flex-row flex-col">
                     <p className="text-xs">Created by {RoomInfo?.admin?.email}</p>
@@ -258,10 +262,46 @@ const RoomBanner = ({ RoomInfo }) => {
                             </Dropdown>
                     }
                 </div>
+                <div className="bg-stone-100">
+                    <Tabs value={tabIndex} onChange={(event, newIndex) => setTabIndex(newIndex)}>
+                        <Tab label="Stream" sx={{ fontWeight: 600, textTransform: "capitalize" }} />
+                        <Tab label="Classwork" sx={{ fontWeight: 600, textTransform: "capitalize" }} />
+                        <Tab label="People" sx={{ fontWeight: 600, textTransform: "capitalize" }} />
+                    </Tabs>
+                </div>
+                <div className="bg-white pt-5 md:p-8">
+                    <TabViewPanel value={tabIndex} index={0}>
+                        <div className="max-md:w-[95%] mx-auto">
+                            {RoomInfo?.members?.length > 0 && <ShowMembers RoomInfo={RoomInfo} />}
+                            <MemberAddingSection RoomInfo={RoomInfo} setRoomInfo={setRoomInfo} />
+                        </div>
+                    </TabViewPanel>
+                    <TabViewPanel value={tabIndex} index={1}>
+                        cal
+                    </TabViewPanel>
+                    <TabViewPanel value={tabIndex} index={2}>
+                        <MemberList RoomInfo={RoomInfo} user={user} isModal={false} />
+                    </TabViewPanel>
+                </div>
             </div>
         </>
     )
+}
 
+const TabViewPanel = (props) => {
+    const { children, value, index, ...other } = props;
+
+    return (
+        <div
+            role="tabpanel"
+            hidden={value !== index}
+            id={`simple-tabpanel-${index}`}
+            aria-labelledby={`simple-tab-${index}`}
+            {...other}
+        >
+            {value === index && children}
+        </div>
+    );
 }
 
 const Listbox = styled('ul')(
