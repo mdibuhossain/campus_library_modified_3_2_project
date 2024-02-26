@@ -120,7 +120,9 @@ module.exports.addMember = async (req, res) => {
                 select: "displayName email -_id",
               },
             ]);
-            res.status(200).json({ ...modifiedRoom.toObject(), isJoined: true });
+            res
+              .status(200)
+              .json({ ...modifiedRoom.toObject(), isJoined: true });
           }
         }
       }
@@ -176,6 +178,12 @@ module.exports.getRoomDetails = async (req, res) => {
               path: "admin",
               select: "displayName email -_id",
             },
+            {
+              path: "tasks",
+              select: checkRoom.admin.equals(checkUser._id)
+                ? "-__v -createdAt -room -updatedAt"
+                : "-submission -__v -createdAt -room -updatedAt",
+            },
           ]);
           res.status(200).json({ ...checkRoom.toObject(), isJoined: true });
         } else {
@@ -189,7 +197,7 @@ module.exports.getRoomDetails = async (req, res) => {
         }
       } else {
         res.status(404).json({
-          message: "Group doesn't exist!",
+          message: "Room doesn't exist!",
         });
       }
     } else {

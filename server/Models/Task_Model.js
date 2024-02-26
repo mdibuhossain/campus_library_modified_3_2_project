@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { type } = require("os");
 
 const commonConfig = {
   type: String,
@@ -13,6 +14,10 @@ const TaskSchema = new mongoose.Schema(
     deadline: {
       type: Date,
       require: true,
+    },
+    room: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Room",
     },
     submission: [
       {
