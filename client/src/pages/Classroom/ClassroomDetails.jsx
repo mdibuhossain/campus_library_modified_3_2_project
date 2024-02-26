@@ -46,7 +46,7 @@ const ClassroomDetails = () => {
     if (RoomInfo?.isJoined) {
         return (
             <PageLayout>
-                <div className="md:w-3/5 w-full m-auto">
+                <div className="md:w-4/6 w-full m-auto">
                     <RoomBanner RoomInfo={RoomInfo} tabIndex={tabIndex} setTabIndex={setTabIndex} setRoomInfo={setRoomInfo} />
                 </div>
             </PageLayout>
