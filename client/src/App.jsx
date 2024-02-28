@@ -78,8 +78,8 @@ const client = new ApolloClient({
 const theme = createTheme({
   typography: {
     fontFamily: [
-      "'Encode Sans SC'",
       "sans-serif",
+      "'Encode Sans SC'",
       "'Secular One'",
       "'Poppins'",
     ].join(","),
