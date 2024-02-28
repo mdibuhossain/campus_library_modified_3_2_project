@@ -24,7 +24,7 @@ const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
     const [formInfo, setFormInfo] = React.useState({ title: "", description: "", deadline: "" });
     const [date, setDate] = React.useState('');
     const [time, setTime] = React.useState('');
-    console.log(formInfo)
+
     const handleOnChangeForm = (e) => {
         const tmpFormInfo = { ...formInfo };
         tmpFormInfo[e.target.name] = e.target.value;
@@ -32,9 +32,10 @@ const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
     }
 
     const handleOnChangeTime = (e) => {
-        setTime(e.target.value);
+        const changedTime = e.target.value;
+        setTime(changedTime);
         if (date.length > 0) {
-            const isoTime = new Date(date + ' ' + time).toISOString();
+            const isoTime = new Date(date + ' ' + changedTime).toUTCString();
             const tmpFormInfo = { ...formInfo };
             tmpFormInfo["deadline"] = isoTime;
             setFormInfo(tmpFormInfo);
@@ -42,9 +43,9 @@ const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
     }
 
     const handleOnChangeDate = (e) => {
-        const content = e.target.value;
-        setDate(content);
-        const isoTime = new Date(content + ' ' + time).toISOString();
+        const changedDate = e.target.value;
+        setDate(changedDate);
+        const isoTime = new Date(changedDate + ' ' + time).toUTCString();
         const tmpFormInfo = { ...formInfo };
         tmpFormInfo["deadline"] = isoTime;
         setFormInfo(tmpFormInfo);
