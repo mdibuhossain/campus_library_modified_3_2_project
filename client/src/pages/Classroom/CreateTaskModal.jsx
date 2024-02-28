@@ -16,12 +16,14 @@ const style = {
     p: 4,
 };
 
-const CreateTaskModal = ({ setMyRoom }) => {
+const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
     const { user } = useAuth();
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
     const [formInfo, setFormInfo] = React.useState({ title: "", description: "", deadline: "" });
+    const [date, setDate] = React.useState('');
+    const [time, setTime] = React.useState('');
     console.log(formInfo)
     const handleOnChangeForm = (e) => {
         const tmpFormInfo = { ...formInfo };
@@ -29,14 +31,38 @@ const CreateTaskModal = ({ setMyRoom }) => {
         setFormInfo(tmpFormInfo);
     }
 
+    const handleOnChangeTime = (e) => {
+        setTime(e.target.value);
+        if (date.length > 0) {
+            const isoTime = new Date(date + ' ' + time).toISOString();
+            const tmpFormInfo = { ...formInfo };
+            tmpFormInfo["deadline"] = isoTime;
+            setFormInfo(tmpFormInfo);
+        }
+    }
+
+    const handleOnChangeDate = (e) => {
+        const content = e.target.value;
+        setDate(content);
+        const isoTime = new Date(content + ' ' + time).toISOString();
+        const tmpFormInfo = { ...formInfo };
+        tmpFormInfo["deadline"] = isoTime;
+        setFormInfo(tmpFormInfo);
+    }
+
     const handleCreateClassroom = (e) => {
         e.preventDefault();
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/create`, {
+        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/task/create`, {
             ...formInfo,
-            email: user?.email
+            email: user?.email,
+            roomid: RoomInfo?._id
         }).then(result => {
             if (result?.status === 200) {
-                setMyRoom(pre => [...pre, result?.data])
+                setRoomInfo(pre => {
+                    const newData = { ...pre }
+                    newData.tasks.push(result?.data)
+                    return newData;
+                })
             }
         }).catch(err => {
             console.log(err)
@@ -77,8 +103,21 @@ const CreateTaskModal = ({ setMyRoom }) => {
                             onChange={handleOnChangeForm}
                             required
                         />
-                        <input type='date'></input>
-                        <input type='time'></input>
+
+                        <input
+                            required
+                            type='date'
+                            name='date'
+                            onChange={handleOnChangeDate}
+                            className='border-2 p-2 rounded-md'
+                        />
+                        <input
+                            required
+                            type='time'
+                            name='time'
+                            onChange={handleOnChangeTime}
+                            className='border-2 p-2 rounded-md'
+                        />
                         <div className="flex flex-row-reverse gap-x-3">
                             <Button className='self-end w-0' variant="text" color='error' onClick={handleClose}>Close</Button>
                             <Button type='submit' className='self-end w-0' variant="text">Assign</Button>

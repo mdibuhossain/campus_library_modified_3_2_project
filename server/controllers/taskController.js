@@ -22,7 +22,14 @@ module.exports.createTask = async (req, res) => {
       const result = await newTask.save();
       theRoom.tasks.push(result._id);
       await theRoom.save();
-      res.status(200).json(result);
+      res.status(200).json({
+        _id: result._id,
+        title: result.title,
+        description: result.description,
+        deadline: result.deadline,
+        submission: result.submission,
+        iat: result.iat,
+      });
     } else {
       res.status(401).json({
         message: "Unauthorized",

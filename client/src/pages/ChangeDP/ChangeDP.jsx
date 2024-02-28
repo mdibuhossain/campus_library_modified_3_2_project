@@ -54,8 +54,8 @@ const ChangeDP = () => {
                         <div className="flex justify-center">
                             <dir className="relative p-0">
                                 {(isLoading || updateProfileLoading) ?
-                                    <div class="flex items-center justify-center space-x-2 animate-pulse">
-                                        <div class="w-40 h-40 bg-gray-400 rounded-full"></div>
+                                    <div className="flex items-center justify-center space-x-2 animate-pulse">
+                                        <div className="w-40 h-40 bg-gray-400 rounded-full"></div>
                                     </div> :
                                     <>
                                         <img className="w-40 rounded-full" src={user.photoURL} alt="profile" />
