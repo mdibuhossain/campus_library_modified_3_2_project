@@ -26,11 +26,6 @@ const RoomSchema = new mongoose.Schema({
       ref: "Task",
     },
   ],
-  // assignments: [
-  //   {
-  //     type: String,
-  //   },
-  // ],
   iat: {
     type: Date,
     default: new Date().toUTCString(),
