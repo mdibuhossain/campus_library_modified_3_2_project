@@ -21,6 +21,7 @@
     "apollo-upload-client": "^17.0.0",
     "autoprefixer": "^10.4.5",
     "axios": "^0.27.2",
+    "dompurify": "^3.0.9",
     "firebase": "^9.8.1",
     "graphql": "^16.6.0",
     "init": "^0.1.2",
@@ -30,6 +31,8 @@
     "react-dom": "^18.1.0",
     "react-router-dom": "^6.3.0",
     "react-swipeable-views": "^0.14.0",
+    "suneditor": "^2.45.1",
+    "suneditor-react": "^3.6.1",
     "tailwindcss": "^3.0.24",
     "vite": "^5.0.10",
     "web-vitals": "^2.1.4"

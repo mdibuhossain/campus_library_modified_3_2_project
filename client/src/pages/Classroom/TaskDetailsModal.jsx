@@ -3,8 +3,8 @@ import { Box, Button, Modal, TextField } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import ClearIcon from '@mui/icons-material/Clear';
 import axios from 'axios';
+import dompurify from 'dompurify';
 import { useAuth } from '../../Hooks/useAuth';
-
 
 const style = {
     position: 'absolute',
@@ -12,18 +12,58 @@ const style = {
     left: '50%',
     transform: 'translate(-50%, -50%)',
     width: "95%",
-    height: 600,
+    maxHeight: "90vh",
     bgcolor: 'background.paper',
     boxShadow: 24,
     borderRadius: 3,
+    overflowY: "auto",
     p: 1,
+    pb: 3,
 };
+
+const divmod = (n, m) => [Math.trunc(n / m), n % m];
+const
+    MS_DAYS = 8.64e7,
+    MS_HOURS = 3.6e6,
+    MS_MINUTES = 6e4,
+    MS_SECONDS = 1e3;
 
 const TaskDetailsModal = ({ task }) => {
     const { user } = useAuth();
+    const senitizer = dompurify.sanitize;
     const [open, setOpen] = React.useState(false);
+    const [rmDays, setRmDays] = React.useState(0);
+    const [rmHours, setRmHours] = React.useState(0);
+    const [rmMinutes, setRmMinutes] = React.useState(0);
+    const [rmSeconds, setRmSeconds] = React.useState(0);
+    const [remainingTime, setRemainingTime] = React.useState(new Date(task?.deadline).getTime() - new Date().getTime());
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
+
+    React.useEffect(() => {
+        if (typeof remainingTime === 'number' && remainingTime >= 0) {
+            const [days, daysMS] = divmod(remainingTime, MS_DAYS)
+            const [hours, hoursMS] = divmod(daysMS, MS_HOURS)
+            const [minutes, minutesMS] = divmod(hoursMS, MS_MINUTES)
+            const [seconds, secondsMS] = divmod(minutesMS, MS_SECONDS)
+            setRmDays(days);
+            setRmHours(hours);
+            setRmMinutes(minutes);
+            setRmSeconds(seconds);
+        }
+    }, [remainingTime])
+
+    React.useEffect(() => {
+        const countDown = () => {
+            const interval = setInterval(() => {
+                setRemainingTime(pre => pre - 1000)
+            }, 1000)
+            return () => clearInterval(interval)
+        }
+        if ((remainingTime / 1000) >= 1 && remainingTime >= 0) {
+            return countDown()
+        }
+    }, [])
 
     return (
         <>
@@ -37,7 +77,7 @@ const TaskDetailsModal = ({ task }) => {
                     </div>
                     <div className="w-full flex align-center justify-between">
                         <p>{task?.title}</p>
-                        <p className="text-xs text-gray-400">Posted {new Date(task?.iat).toDateString()}</p>
+                        <p className="text-xs text-gray-400">Due {new Date(task?.deadline).toLocaleString()}</p>
                     </div>
                 </div>
             </Box>
@@ -48,12 +88,58 @@ const TaskDetailsModal = ({ task }) => {
                     <div className='flex justify-end mb-2' onClick={handleClose}>
                         <IconButton><ClearIcon /></IconButton>
                     </div>
-                    <Box sx={{ border: "1px solid black" }}>
-                        {task.description} <br />
-                        {new Date(task.deadline).toLocaleString()}
-                    </Box>
+                    <div className='flex gap-5 md:flex-row flex-col justify-between items-start'>
+                        <div className='flex-1 w-full'>
+                            <div className='shadow-slate-400 p-3 shadow-inner rounded-md w-full max-h-[400px] min-h-[350px] overflow-auto'>
+                                <div dangerouslySetInnerHTML={{ __html: senitizer(task?.description) }} />
+                            </div>
+                        </div>
+                        <div className='flex flex-col shadow-md shadow-slate-400 p-3 rounded-lg mx-auto'>
+                            <p>Remaining submission time</p>
+                            <div className='inline-block border-2 rounded-lg p-2 mx-auto'>
+                                <div className={`flex justify-center gap-1 text-md font-bold ${(rmDays || rmHours || rmMinutes || rmSeconds) ? 'text-gray-600' : 'text-gray-300'}`}>
+                                    <div className='flex flex-col justify-center items-center text-center'>
+                                        <span>{rmDays >= 10 ? rmDays : `0${rmDays}`}</span>
+                                        <span className='text-sm font-medium'>Days</span>
+                                    </div>
+                                    <span>:</span>
+                                    <div className='flex flex-col justify-center items-center text-center'>
+                                        <span>{rmHours >= 10 ? rmHours : `0${rmHours}`}</span>
+                                        <span className='text-sm font-medium'>Hours</span>
+                                    </div>
+                                    <span>:</span>
+                                    <div className='flex flex-col justify-center items-center text-center'>
+                                        <span>{rmMinutes >= 10 ? rmMinutes : `0${rmMinutes}`}</span>
+                                        <span className='text-sm font-medium'>Minutes</span>
+                                    </div>
+                                    <span>:</span>
+                                    <div className='flex flex-col justify-center items-center text-center'>
+                                        <span>{rmSeconds >= 10 ? rmSeconds : `0${rmSeconds}`}</span>
+                                        <span className='text-sm font-medium'>Seconds</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className='mt-4'>
+                                <p className='font-medium'>Your work</p>
+                                <label class="block bg-gray-50 rounded-full mt-2">
+                                    <input
+                                        disabled={!(rmDays || rmHours || rmMinutes || rmSeconds)}
+                                        type="file"
+                                        class={`block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold ${(rmDays || rmHours || rmMinutes || rmSeconds) ? 'file:bg-violet-50 file:text-violet-600 hover:file:bg-violet-100' : ''} `}
+                                    />
+                                </label>
+                                <button
+                                    disabled={!(rmDays || rmHours || rmMinutes || rmSeconds)}
+                                    className={`mt-3 rounded-md   text-white py-1 w-full ${(rmDays || rmHours || rmMinutes || rmSeconds) ? 'bg-violet-600 hover:bg-violet-700 hover:shadow-md' : 'bg-gray-300'}`}
+                                >
+                                    Turn in
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
                 </Box>
-            </Modal>
+            </Modal >
         </>
     )
 }

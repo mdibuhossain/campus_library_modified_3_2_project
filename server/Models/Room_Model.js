@@ -33,7 +33,7 @@ const RoomSchema = new mongoose.Schema({
   // ],
   iat: {
     type: Date,
-    default: new Date(),
+    default: new Date().toUTCString(),
   },
 });
 

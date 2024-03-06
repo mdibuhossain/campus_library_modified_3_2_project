@@ -15,7 +15,7 @@ const SubmissionSchema = new mongoose.Schema(
     },
     submittedAt: {
       type: Date,
-      default: new Date(),
+      default: new Date().toUTCString(),
     },
   },
   {
