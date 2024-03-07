@@ -19,6 +19,10 @@ const TaskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Room",
     },
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     submission: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -27,12 +31,9 @@ const TaskSchema = new mongoose.Schema(
     ],
     iat: {
       type: Date,
-      default: new Date().toUTCString(),
+      default: Date.now,
     },
   },
-  {
-    timestamps: true,
-  }
 );
 
 module.exports = mongoose.model("Task", TaskSchema);

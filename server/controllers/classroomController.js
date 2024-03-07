@@ -181,8 +181,11 @@ module.exports.getRoomDetails = async (req, res) => {
             {
               path: "tasks",
               select: checkRoom.admin.equals(checkUser._id)
-                ? "-__v -createdAt -room -updatedAt"
-                : "-submission -__v -createdAt -room -updatedAt",
+                ? "-__v -room"
+                : "-submission -__v -room",
+              options: {
+                sort: { 'iat': -1 }
+              }
             },
           ]);
           res.status(200).json({ ...checkRoom.toObject(), isJoined: true });

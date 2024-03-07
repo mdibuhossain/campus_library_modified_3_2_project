@@ -69,7 +69,7 @@ const TaskDetailsModal = ({ task }) => {
         <>
             <Box
                 onClick={handleOpen}
-                sx={{ "&:hover": { boxShadow: "0px 0px 5px #d9d9d9" }, p: 2, borderRadius: 2, cursor: "pointer" }}
+                sx={{ "&:hover": { boxShadow: "0px 0px 5px #d9d9d9" }, p: 2, borderRadius: 2, cursor: "pointer", background: (rmDays || rmHours || rmMinutes || rmSeconds) ? "none" : "#f8f8f8", boxShadow: (rmDays || rmHours || rmMinutes || rmSeconds) ? "none" : "inset 0 0 8px #e0dede" }}
             >
                 <div className="flex align-center items-center gap-2">
                     <div className="bg-sky-500 rounded-full p-2 fill-white">
@@ -80,7 +80,7 @@ const TaskDetailsModal = ({ task }) => {
                         <p className="text-xs text-gray-400">Due {new Date(task?.deadline).toLocaleString()}</p>
                     </div>
                 </div>
-            </Box>
+            </Box >
             <Modal
                 open={open}
             >

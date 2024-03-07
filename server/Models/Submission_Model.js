@@ -15,12 +15,9 @@ const SubmissionSchema = new mongoose.Schema(
     },
     submittedAt: {
       type: Date,
-      default: new Date().toUTCString(),
+      default: Date.now,
     },
   },
-  {
-    timestamps: true,
-  }
 );
 
 module.exports = mongoose.model("Submission", SubmissionSchema);

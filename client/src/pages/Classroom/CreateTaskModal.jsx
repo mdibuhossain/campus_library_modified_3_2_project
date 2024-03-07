@@ -66,7 +66,7 @@ const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
             if (result?.status === 200) {
                 setRoomInfo(pre => {
                     const newData = { ...pre }
-                    newData.tasks.push(result?.data)
+                    newData.tasks = [result?.data, ...newData.tasks]
                     return newData;
                 })
             }
