@@ -8,12 +8,14 @@ import { Menu } from '@mui/base/Menu';
 import { MenuButton } from '@mui/base/MenuButton';
 import { ButtonBase, Button, Tooltip, FormControl, InputLabel, Box, Modal, MenuItem, Select, Tab, Tabs, ListSubheader } from '@mui/material';
 import { styled } from '@mui/system';
+import { useNavigate } from 'react-router-dom'
 import AddIcon from '@mui/icons-material/Add';
 import { semesterList } from "../../utility/semesterList";
 import useUtility from "../../Hooks/useUtility";
 import { tagTitle } from "../../utility/tagTitle";
 import CreateTaskModal from "./CreateTaskModal";
 import TaskDetailsModal from "./TaskDetailsModal";
+import CircularLoading from "../../components/Circular_Loading/CircularLoading";
 
 const ModalStyle = {
     position: 'absolute',
@@ -29,7 +31,9 @@ const ModalStyle = {
 const ClassroomDetails = () => {
     const { rid } = useParams();
     const { user } = useAuth();
+    const history = useNavigate();
     const [RoomInfo, setRoomInfo] = React.useState({});
+    const [roomLoading, setRoomLoading] = React.useState(true);
     const [tabIndex, setTabIndex] = React.useState(0);
 
     const handleFetchRoomDetails = () => {
@@ -39,10 +43,13 @@ const ClassroomDetails = () => {
             setRoomInfo(result?.data);
         }).catch(err => {
             console.error(err)
+        }).finally(() => {
+            setRoomLoading(false)
         })
     }
     console.log(RoomInfo)
     React.useEffect(() => {
+        setRoomLoading(true);
         handleFetchRoomDetails();
     }, []);
 
@@ -54,14 +61,10 @@ const ClassroomDetails = () => {
                 </div>
             </PageLayout>
         )
+    } else if (roomLoading) {
+        return <CircularLoading />
     } else {
-        return (
-            <PageLayout>
-                <div className="md:w-3/5 w-full m-auto">
-                    <RoomBanner RoomInfo={RoomInfo} tabIndex={tabIndex} setTabIndex={setTabIndex} setRoomInfo={setRoomInfo} />
-                </div>
-            </PageLayout>
-        )
+        history('/')
     }
 }
 
@@ -273,19 +276,19 @@ const RoomBanner = ({ RoomInfo, tabIndex, setTabIndex, setRoomInfo }) => {
                     </Tabs>
                 </div>
                 <div className="bg-white pt-5 md:p-8">
+                    {/* Stream */}
                     <TabViewPanel value={tabIndex} index={0}>
-                        {/* Stream */}
                         <div className="max-md:w-[95%] mx-auto">
                             {RoomInfo?.members?.length > 0 && <ShowMembers RoomInfo={RoomInfo} />}
                             <MemberAddingSection RoomInfo={RoomInfo} setRoomInfo={setRoomInfo} />
                         </div>
                     </TabViewPanel>
+                    {/* Classwork */}
                     <TabViewPanel value={tabIndex} index={1}>
-                        {/* Classwork */}
                         <Classwork RoomInfo={RoomInfo} setRoomInfo={setRoomInfo} />
                     </TabViewPanel>
+                    {/* People */}
                     <TabViewPanel value={tabIndex} index={2}>
-                        {/* People */}
                         <MemberList RoomInfo={RoomInfo} user={user} isModal={false} />
                     </TabViewPanel>
                 </div>

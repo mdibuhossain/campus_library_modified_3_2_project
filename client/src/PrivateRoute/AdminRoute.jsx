@@ -7,7 +7,7 @@ const AdminRoute = ({ children }) => {
     const { admin, user, isLoading, userStatusLoading } = useAuth()
     const location = useLocation();
     if (isLoading || userStatusLoading)
-        return <Typography variant='h4'>Wait babu</Typography>
+        return <Typography variant='h4'>Loading...</Typography>
     if (!((user?.email || user?.displayName) && admin))
         return <Navigate to="/" state={{ from: location }} />
     if ((user?.email || user?.displayName) && admin)
