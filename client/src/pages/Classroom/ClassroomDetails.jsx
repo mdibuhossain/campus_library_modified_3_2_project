@@ -37,7 +37,7 @@ const ClassroomDetails = () => {
     const [tabIndex, setTabIndex] = React.useState(0);
 
     const handleFetchRoomDetails = () => {
-        axios.get(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/${rid}`, {
+        axios.get(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/${rid}`, {
             params: { email: user?.email }
         }).then(result => {
             setRoomInfo(result?.data);
@@ -47,12 +47,12 @@ const ClassroomDetails = () => {
             setRoomLoading(false)
         })
     }
-    console.log(RoomInfo)
+
     React.useEffect(() => {
         setRoomLoading(true);
         handleFetchRoomDetails();
     }, []);
-
+    console.log(RoomInfo)
     if (RoomInfo?.isJoined) {
         return (
             <PageLayout>
@@ -129,7 +129,7 @@ const MemberAddingSection = ({ RoomInfo, setRoomInfo }) => {
 
     const handleAddSingleMember = (e) => {
         e.preventDefault();
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/addmember`, { email: requestEmail, roomid: RoomInfo?._id })
+        axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/addmember`, { email: requestEmail, roomid: RoomInfo?._id })
             .then(result => {
                 if (result?.status === 200) {
                     setRoomInfo(result?.data);
@@ -146,7 +146,7 @@ const MemberAddingSection = ({ RoomInfo, setRoomInfo }) => {
 
     const handleAddBulkMember = (e) => {
         e.preventDefault();
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/addmember/bulk`, {
+        axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/addmember/bulk`, {
             semester: semester,
             department: department, roomid: RoomInfo?._id
         }).then(result => {
@@ -303,7 +303,7 @@ const Classwork = ({ RoomInfo, setRoomInfo }) => {
             <CreateTaskModal RoomInfo={RoomInfo} setRoomInfo={setRoomInfo} />
             {
                 RoomInfo?.tasks?.map((task) => (
-                    <TaskDetailsModal key={task._id} task={task} />
+                    <TaskDetailsModal key={task._id} task={task} admin={RoomInfo?.admin} />
                 ))
             }
         </div >

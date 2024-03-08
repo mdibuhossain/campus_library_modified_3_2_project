@@ -180,11 +180,18 @@ module.exports.getRoomDetails = async (req, res) => {
             },
             {
               path: "tasks",
-              select: checkRoom.admin.equals(checkUser._id)
-                ? "-__v -room"
-                : "-submission -__v -room",
               options: {
                 sort: { 'iat': -1 }
+              },
+              populate: {
+                path: "submission",
+                match: checkRoom.members.includes(checkUser._id) ? {
+                  user: checkUser._id
+                } : {},
+                populate: {
+                  path: "user",
+                  select: "_id department designation email displayName photoURL semester"
+                }
               }
             },
           ]);

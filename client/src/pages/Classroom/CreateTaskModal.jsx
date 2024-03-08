@@ -60,7 +60,7 @@ const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
             roomid: RoomInfo?._id
         }
         console.log(payload)
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/task/create`, {
+        axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/task/create`, {
             ...payload
         }).then(result => {
             if (result?.status === 200) {
@@ -74,79 +74,81 @@ const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
             console.log(err)
         })
     }
-
-    return (
-        <>
-            <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                sx={{ borderRadius: 7, mb: 2, py: 1 }}
-                onClick={handleOpen}
-            >Create</Button>
-            <Modal
-                open={open}
-            >
-                <Box
-
-                    sx={{ ...style, p: { md: 5, xs: 2 }, bgcolor: "white", borderRadius: 2, boxShadow: '0.65px 1.75px 10px rgb(0, 0, 0, 0.3)' }}
+    if (RoomInfo?.admin?.email === user?.email)
+        return (
+            <>
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    sx={{ borderRadius: 7, mb: 2, py: 1 }}
+                    onClick={handleOpen}
+                >Create</Button>
+                <Modal
+                    open={open}
                 >
-                    <h5 className="mb-5 text-lg">Assignment</h5>
-                    <form onSubmit={handleCreateClassroom} className='flex flex-col gap-y-5'>
-                        <TextField
-                            id="component-task-title"
-                            label="Title"
-                            variant="standard"
-                            name="title"
-                            required
-                        />
-                        <Editor
-                            name="description"
-                            getSunEditorInstance={getSunEditorInstance}
-                            placeholder="Write description"
-                            height='180px'
-                            setOptions={{
-                                buttonList: [[
-                                    "undo", "redo",
-                                    "bold", "underline", "italic", "strike", "subscript", "superscript",
-                                    "blockquote",
-                                    "align",
-                                    "font",
-                                    "fontColor",
-                                    "fontSize",
-                                    "hiliteColor",
-                                    "horizontalRule",
-                                    "lineHeight",
-                                    "list",
-                                    "paragraphStyle",
-                                    "table",
-                                    "textStyle",
-                                ]]
-                            }}
-                        />
+                    <Box
 
-                        <input
-                            className='border-2 p-2 rounded-md'
-                            type='date'
-                            name='date'
-                            onChange={handleOnChangeDate}
-                            required
-                        />
-                        <input
-                            className='border-2 p-2 rounded-md'
-                            type='time'
-                            name='time'
-                            onChange={handleOnChangeTime}
-                            required
-                        />
-                        <div className="flex flex-row-reverse gap-x-3">
-                            <Button className='self-end w-0' variant="text" color='error' onClick={handleClose}>Close</Button>
-                            <Button type='submit' className='self-end w-0' variant="text">Assign</Button>
-                        </div>
-                    </form>
-                </Box>
-            </Modal>
-        </>
-    )
+                        sx={{ ...style, p: { md: 5, xs: 2 }, bgcolor: "white", borderRadius: 2, boxShadow: '0.65px 1.75px 10px rgb(0, 0, 0, 0.3)' }}
+                    >
+                        <h5 className="mb-5 text-lg">Assignment</h5>
+                        <form onSubmit={handleCreateClassroom} className='flex flex-col gap-y-5'>
+                            <TextField
+                                id="component-task-title"
+                                label="Title"
+                                variant="standard"
+                                name="title"
+                                required
+                            />
+                            <Editor
+                                name="description"
+                                getSunEditorInstance={getSunEditorInstance}
+                                placeholder="Write description"
+                                height='180px'
+                                setOptions={{
+                                    buttonList: [[
+                                        "undo", "redo",
+                                        "bold", "underline", "italic", "strike", "subscript", "superscript",
+                                        "blockquote",
+                                        "align",
+                                        "font",
+                                        "fontColor",
+                                        "fontSize",
+                                        "hiliteColor",
+                                        "horizontalRule",
+                                        "lineHeight",
+                                        "list",
+                                        "paragraphStyle",
+                                        "table",
+                                        "textStyle",
+                                    ]]
+                                }}
+                            />
+
+                            <input
+                                className='border-2 p-2 rounded-md'
+                                type='date'
+                                name='date'
+                                onChange={handleOnChangeDate}
+                                required
+                            />
+                            <input
+                                className='border-2 p-2 rounded-md'
+                                type='time'
+                                name='time'
+                                onChange={handleOnChangeTime}
+                                required
+                            />
+                            <div className="flex flex-row-reverse gap-x-3">
+                                <Button className='self-end w-0' variant="text" color='error' onClick={handleClose}>Close</Button>
+                                <Button type='submit' className='self-end w-0' variant="text">Assign</Button>
+                            </div>
+                        </form>
+                    </Box>
+                </Modal>
+            </>
+        )
+    else
+        return null;
 }
 
 export default CreateTaskModal;

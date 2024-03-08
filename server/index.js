@@ -6,9 +6,9 @@ const { graphqlHTTP } = require("express-graphql");
 const { connectDB } = require("./Config/db");
 const schema = require("./Schema/schema");
 const admin = require("firebase-admin");
-const multer = require("multer");
 const path = require("path");
 const apiRouter = require("./routes/api");
+const multer = require("multer");
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
@@ -23,35 +23,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(PUBLIC_STATIC));
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(PUBLIC_STATIC, "image"))
-  },
-  filename: (req, file, cb) => {
-    const fileExt = path.extname(file.originalname)
-    cb(null, file.fieldname + fileExt)
-  }
-})
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 1000000 // 1MB
-  },
-  fileFilter: (req, file, cb) => {
-    if (
-      file.mimetype === 'image/png' ||
-      file.mimetype === 'image/jpg' ||
-      file.mimetype === 'image/jpeg' ||
-      file.mimetype === 'image/webp'
-    ) {
-      cb(null, true)
-    } else {
-      cb(new Error("Only png, jpg, jpeg and webp is allowed!"))
-    }
-  }
-})
-
 app.use(
   "/graphql",
   graphqlHTTP({
@@ -61,10 +32,6 @@ app.use(
 );
 
 app.use("/api", apiRouter);
-
-app.post('/test', upload.any(), (req, res) => {
-  res.status(200).json({ "status": "Success" })
-})
 
 app.use((err, req, res, next) => {
   if (err) {

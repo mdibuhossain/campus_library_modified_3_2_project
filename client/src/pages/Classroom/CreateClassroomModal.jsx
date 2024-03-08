@@ -31,7 +31,7 @@ const CreateClassroomModal = ({ setMyRoom }) => {
 
     const handleCreateClassroom = (e) => {
         e.preventDefault();
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/create`, {
+        axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/create`, {
             ...formInfo,
             email: user?.email
         }).then(result => {

@@ -10,7 +10,10 @@ const SubmissionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Task",
     },
-    fileUrl: {
+    fileId: {
+      type: String,
+    },
+    originalFilename: {
       type: String,
     },
     submittedAt: {

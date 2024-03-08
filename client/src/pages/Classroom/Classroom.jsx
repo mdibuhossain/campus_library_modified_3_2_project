@@ -13,7 +13,7 @@ const Classroom = () => {
     const [joinedRoom, setJoinedRoom] = React.useState([])
 
     const handleFetchClassroomFromDB = () => {
-        axios.get(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom`, {
+        axios.get(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom`, {
             params: { email: user?.email }
         }).then(result => {
             setMyRoom(result?.data?.myRoom)
@@ -25,7 +25,7 @@ const Classroom = () => {
 
     const handleDeleteClassroom = (id) => {
         if (window.confirm("Are you sure want to delete your classroom?")) {
-            axios.post(`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/classroom/delete`, { roomid: id, email: user?.email })
+            axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/delete`, { roomid: id, email: user?.email })
                 .then(result => {
                     if (result?.data?.deletedCount)
                         setMyRoom(pre => pre.filter(room => room?._id !== id));

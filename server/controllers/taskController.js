@@ -18,7 +18,7 @@ module.exports.createTask = async (req, res) => {
         description,
         deadline,
         room: roomid,
-        author: checkAdmin._id
+        author: checkAdmin._id,
       });
       const result = await newTask.save();
       theRoom.tasks.push(result._id);

@@ -3,6 +3,8 @@ const User = require("../Models/User_Model");
 const Group = require("../Models/Room_Model");
 const classroomController = require("../controllers/classroomController");
 const taskController = require("../controllers/taskController");
+const submissionController = require("../controllers/submissionController");
+const upload = require("../MiddleWare/multer.middleware");
 
 const apiRouter = express.Router();
 
@@ -20,5 +22,8 @@ apiRouter.get("/classroom", classroomController.getRooms);
 apiRouter.get("/classroom/:roomid", classroomController.getRoomDetails);
 
 apiRouter.post("/task/create", taskController.createTask);
+
+apiRouter.post("/task/:taskid/submit", upload.single("assignment"), submissionController.submitTask)
+apiRouter.patch("/task/unsubmit/:submissionid", submissionController.unSubmitTask)
 
 module.exports = apiRouter;
