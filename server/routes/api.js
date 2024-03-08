@@ -20,6 +20,7 @@ apiRouter.post("/classroom/addmember/bulk", classroomController.addBulkMember);
 apiRouter.post("/classroom/delete", classroomController.deleteClassroom);
 apiRouter.get("/classroom", classroomController.getRooms);
 apiRouter.get("/classroom/:roomid", classroomController.getRoomDetails);
+apiRouter.get("/material", classroomController.getMaterial);
 
 apiRouter.post("/task/create", taskController.createTask);
 

@@ -242,58 +242,32 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
           {
             admin?.email === user?.email ? (
               <div className="mt-10">
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
-                <p>bal</p>
+                <h3 className="text-xl font-semibold mb-2">Student work</h3>
+                <div className="flex flex-col gap-3">
+                  {
+                    task?.submission?.map((work) => (
+                      <a
+                        key={work._id}
+                        target="_blank" href={`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/assignments/${work.fileId}`}
+                        className="max-w-[400px] bg-neutral-100 hover:bg-neutral-200 p-3 rounded-full hover:shadow-none shadow-md shadow-gray-300 duration-100"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-11 h-11 border-2 border-gray-400 rounded-full overflow-hidden bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">
+                            {
+                              work.user.photoURL ?
+                                <img src={work.user.photoURL} alt="avatar" /> :
+                                <p className="text-base">{work.user.displayName.slice(0, 2).toUpperCase()}</p>
+                            }
+                          </div>
+                          <div className="overflow-hidden text-ellipsis">
+                            <p className="text-base p-0 m-0">{work.user.displayName}</p>
+                            <p className="text-xs">{work.user.email}</p>
+                          </div>
+                        </div>
+                      </a>
+                    ))
+                  }
+                </div>
               </div>
             ) : null
           }

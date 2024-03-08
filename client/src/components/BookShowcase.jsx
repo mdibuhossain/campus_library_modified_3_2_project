@@ -32,11 +32,11 @@ const BookShowcase = ({ department }) => {
                     <Tab label={`books (${academic.length})`} sx={{ fontWeight: 600 }} />
                     <Tab label={`questions (${questions.length})`} sx={{ fontWeight: 600 }} />
                 </Tabs>
-                <Box sx={{ textAlign: 'center', color: 'red', mt: 4, letterSpacing: 0.3 }}>
+                {/* <Box sx={{ textAlign: 'center', color: 'red', mt: 4, letterSpacing: 0.3 }}>
                     <p>Working on 3rd year project</p>
                     <p>So, data may not visible on this live site</p>
                     <span>Original site:</span> <a className="text-indigo-600 font-semibold" href="https://campuslib.web.app/" target="_black">campuslib.web.app</a>
-                </Box>
+                </Box> */}
                 <div className="pt-5">
                     <SwipeableViews
                         index={value}

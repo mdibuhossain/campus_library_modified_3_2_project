@@ -1,6 +1,6 @@
-const express = require("express");
 const User = require("../Models/User_Model");
 const Room = require("../Models/Room_Model");
+const Book = require("../Models/Book_Model");
 
 module.exports.createClassroom = async (req, res) => {
   const { roomName, courseTitle, courseCode, email } = req.body;
@@ -207,3 +207,13 @@ module.exports.getRoomDetails = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong!" });
   }
 };
+
+module.exports.getMaterial = async (req, res) => {
+  try {
+    const { courseCode } = req.query;
+    const findBook = await Book.find({ course_code: courseCode.toLowerCase() });
+    return res.status(200).json(findBook);
+  } catch (error) {
+    return res.status(500).json({ message: error.message })
+  }
+}

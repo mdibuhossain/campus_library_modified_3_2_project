@@ -1,4 +1,4 @@
-import React from "react"
+import React, { lazy } from "react"
 import PageLayout from "../../Layout/PageLayout"
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../Hooks/useAuth";
@@ -16,6 +16,7 @@ import { tagTitle } from "../../utility/tagTitle";
 import CreateTaskModal from "./CreateTaskModal";
 import TaskDetailsModal from "./TaskDetailsModal";
 import CircularLoading from "../../components/Circular_Loading/CircularLoading";
+const Accordionlist = lazy(() => import("../../components/Accordionlist"));
 
 const ModalStyle = {
     position: 'absolute',
@@ -295,6 +296,7 @@ const RoomBanner = ({ RoomInfo, tabIndex, setTabIndex, setRoomInfo }) => {
                         <div className="">
                             {RoomInfo?.members?.length > 0 && <ShowMembers RoomInfo={RoomInfo} />}
                             <MemberAddingSection RoomInfo={RoomInfo} setRoomInfo={setRoomInfo} />
+                            {RoomInfo?._id ? <RelatedMaterial RoomInfo={RoomInfo} /> : null}
                         </div>
                     </TabViewPanel>
                     {/* Classwork */}
@@ -309,6 +311,30 @@ const RoomBanner = ({ RoomInfo, tabIndex, setTabIndex, setRoomInfo }) => {
             </div>
         </>
     )
+}
+
+const RelatedMaterial = ({ RoomInfo }) => {
+    const [material, setMaterial] = React.useState([]);
+    React.useEffect(() => {
+        axios.get(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/material?courseCode=${RoomInfo?.courseCode}`)
+            .then(result => {
+                if (result?.status === 200) {
+                    setMaterial(result?.data)
+                }
+            }).catch(err => {
+                console.error(err.message)
+            })
+    }, [RoomInfo?._id])
+    if (material.length > 0) {
+        return (
+            <div>
+                <h2 className="mt-8 text-xl font-semibold">Materials:</h2>
+                <Accordionlist title="Material" contents={material} />
+            </div>
+        );
+    } else {
+        return null;
+    }
 }
 
 const Classwork = ({ RoomInfo, setRoomInfo }) => {
