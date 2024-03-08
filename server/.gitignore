@@ -6,3 +6,5 @@ Procfile
 campuslb-firebase-adminsdk.json
 
 /node_modules
+
+/public/assignments/*
