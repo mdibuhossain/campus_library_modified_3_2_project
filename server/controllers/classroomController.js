@@ -13,14 +13,12 @@ module.exports.createClassroom = async (req, res) => {
         courseCode: courseCode,
         admin: findUser._id,
       }).save();
-      res.status(200).json(savedRoom);
+      return res.status(200).json(savedRoom);
     } else {
-      res.status(404).json({ message: "User not exist!" });
+      return res.status(404).json({ message: "User not exist!" });
     }
   } catch {
-    res.status(500).json({
-      message: "Something went wrong!",
-    });
+    return res.status(500).json({ message: "Something went wrong!" });
   }
 };
 
@@ -29,20 +27,18 @@ module.exports.deleteClassroom = async (req, res) => {
   try {
     const checkAdmin = await User.findOne({ email });
     if (!checkAdmin) {
-      res.status(404).json({ message: "User not exist!" });
+      return res.status(404).json({ message: "User not exist!" });
     }
     const theRoom = await Room.findById(roomid);
     if (theRoom.admin.equals(checkAdmin._id)) {
-      res.status(200).json(await Room.deleteOne({ _id: theRoom._id }));
+      return res.status(200).json(await Room.deleteOne({ _id: theRoom._id }));
     } else {
-      res.status(401).json({
+      return res.status(401).json({
         message: "Unauthorized",
       });
     }
   } catch {
-    res.status(500).json({
-      message: "Something went wrong!",
-    });
+    return res.status(500).json({ message: "Something went wrong!" });
   }
 };
 
@@ -51,13 +47,13 @@ module.exports.addBulkMember = async (req, res) => {
     const { semester, department, roomid } = req.body;
     let modifiedRoom = await Room.findById(roomid);
     if (!modifiedRoom) {
-      res.status(404).json({ message: "Room not exist!" });
+      return res.status(404).json({ message: "Room not exist!" });
     } else {
       const filteredUsers = await User.find({ semester, department }).select(
         "_id"
       );
       if (!filteredUsers.length) {
-        res.status(404).json({ message: "No such user found!" });
+        return res.status(404).json({ message: "No such user found!" });
       } else {
         let userIDs = [
           ...filteredUsers.map(({ _id }) => _id),
@@ -75,13 +71,11 @@ module.exports.addBulkMember = async (req, res) => {
             select: "displayName email -_id",
           },
         ]);
-        res.status(200).json({ ...modifiedRoom.toObject(), isJoined: true });
+        return res.status(200).json({ ...modifiedRoom.toObject(), isJoined: true });
       }
     }
   } catch {
-    res.status(500).json({
-      message: "Something went wrong!",
-    });
+    return res.status(500).json({ message: "Something went wrong!" });
   }
 };
 
@@ -95,16 +89,16 @@ module.exports.addMember = async (req, res) => {
         members: findUser._id,
       });
       if (isUserAlreadyAdded) {
-        res.status(409).json({
+        return res.status(409).json({
           message: "User is alraedy added in this room!",
         });
       } else {
         let modifiedRoom = await Room.findById(roomid);
         if (!modifiedRoom) {
-          res.status(404).json({ message: "Room not exist!" });
+          return res.status(404).json({ message: "Room not exist!" });
         } else {
           if (modifiedRoom.admin.equals(findUser._id)) {
-            res.status(409).json({
+            return res.status(409).json({
               message: "User is alraedy added in this room!",
             });
           } else {
@@ -127,12 +121,10 @@ module.exports.addMember = async (req, res) => {
         }
       }
     } else {
-      res.status(404).json({ message: "User not exist!" });
+      return res.status(404).json({ message: "User not exist!" });
     }
   } catch {
-    res.status(500).json({
-      message: "Something went wrong!",
-    });
+    return res.status(500).json({ message: "Something went wrong!" });
   }
 };
 
@@ -143,17 +135,15 @@ module.exports.getRooms = async (req, res) => {
     if (findUser?._id) {
       const ownRoom = await Room.find({ admin: findUser._id });
       const joinedRoom = await Room.find({ members: findUser._id });
-      res.status(200).json({
+      return res.status(200).json({
         myRoom: ownRoom,
         joinedRoom: joinedRoom,
       });
     } else {
-      res.status(404).json({ message: "User not exist!" });
+      return res.status(404).json({ message: "User not exist!" });
     }
   } catch {
-    res.status(500).json({
-      message: "Something went wrong!",
-    });
+    return res.status(500).json({ message: "Something went wrong!" });
   }
 };
 
@@ -195,9 +185,9 @@ module.exports.getRoomDetails = async (req, res) => {
               }
             },
           ]);
-          res.status(200).json({ ...checkRoom.toObject(), isJoined: true });
+          return res.status(200).json({ ...checkRoom.toObject(), isJoined: true });
         } else {
-          res.status(200).json({
+          return res.status(200).json({
             roomName: checkRoom.roomName,
             courseTitle: checkRoom.courseTitle,
             courseCode: checkRoom.courseCode,
@@ -206,16 +196,14 @@ module.exports.getRoomDetails = async (req, res) => {
           });
         }
       } else {
-        res.status(404).json({
+        return res.status(404).json({
           message: "Room doesn't exist!",
         });
       }
     } else {
-      res.status(404).json({ message: "User not exist!" });
+      return res.status(404).json({ message: "User not exist!" });
     }
   } catch {
-    res.status(500).json({
-      message: "Something went wrong!",
-    });
+    return res.status(500).json({ message: "Something went wrong!" });
   }
 };

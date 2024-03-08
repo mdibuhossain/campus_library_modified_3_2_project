@@ -9,7 +9,7 @@ module.exports.createTask = async (req, res) => {
     const { title, description, deadline, roomid, email } = req.body;
     const checkAdmin = await User.findOne({ email });
     if (!checkAdmin) {
-      res.status(404).json({ message: "User not exist!" });
+      return res.status(404).json({ message: "User not exist!" });
     }
     const theRoom = await Room.findById(roomid);
     if (theRoom.admin.equals(checkAdmin._id)) {
@@ -23,7 +23,7 @@ module.exports.createTask = async (req, res) => {
       const result = await newTask.save();
       theRoom.tasks.push(result._id);
       await theRoom.save();
-      res.status(200).json({
+      return res.status(200).json({
         _id: result._id,
         title: result.title,
         description: result.description,
@@ -32,13 +32,9 @@ module.exports.createTask = async (req, res) => {
         iat: result.iat,
       });
     } else {
-      res.status(401).json({
-        message: "Unauthorized",
-      });
+      return res.status(401).json({ message: "Unauthorized" });
     }
   } catch (e) {
-    res.status(500).json({
-      message: e.message,
-    });
+    return res.status(500).json({ message: e.message });
   }
 };

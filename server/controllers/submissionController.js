@@ -8,8 +8,9 @@ const Submission = require("../Models/Submission_Model");
 
 
 module.exports.submitTask = async (req, res) => {
+    const { filename, originalname } = req.file
+    const localFilePath = path.join("./public/assignments/", filename);
     try {
-        const { filename, originalname } = req.file
         const { email } = req.body
         const { taskid } = req.params
         const checkUser = await User.findOne({ email });
@@ -40,21 +41,24 @@ module.exports.submitTask = async (req, res) => {
                         const result = { ...checkTask.toObject(), submission: [{ ...newSubmission.toObject() }] }
                         return res.status(200).json(result)
                     } else {
+                        fs.unlinkSync(localFilePath);
                         return res.status(401).json({ message: "Submission time exceeded." })
                     }
                 } else {
+                    fs.unlinkSync(localFilePath);
                     return res.status(404).json({ message: "No such task exist" })
                 }
             } else {
+                fs.unlinkSync(localFilePath);
                 return res.status(404).json({ message: "No such classroom exist" })
             }
         } else {
+            fs.unlinkSync(localFilePath);
             return res.status(401).json({ message: "Unauthorized user" })
         }
     } catch (e) {
-        res.status(500).json({
-            message: e.message,
-        });
+        fs.unlinkSync(localFilePath);
+        return res.status(500).json({ message: e.message });
     }
 };
 
@@ -93,6 +97,6 @@ module.exports.unSubmitTask = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized user" })
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
     }
 }
