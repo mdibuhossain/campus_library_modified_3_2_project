@@ -78,7 +78,9 @@ const ShowMembers = ({ RoomInfo }) => {
             <div className="flex -space-x-3 rtl:space-x-reverse mb-5">
                 {
                     RoomInfo?.members?.slice(0, 3)?.map((mem, idx) => (
-                        <button key={idx} onClick={handleOpen} className="w-8 h-8 border-2 border-gray-400 rounded-full bg-gray-300 hover:bg-gray-200 flex justify-center items-center text-sm font-medium text-center text-slate-700">{mem.displayName.slice(0, 2).toUpperCase()}</button>
+                        <button key={idx} onClick={handleOpen} className="w-8 h-8 border-2 border-gray-400 rounded-full overflow-hidden bg-gray-300 hover:bg-gray-200 flex justify-center items-center text-sm font-medium text-center text-slate-700">
+                            {mem.photoURL ? <img src={mem.photoURL} alt="avatar" /> : <div>{mem.displayName.slice(0, 2).toUpperCase()}</div>}
+                        </button>
                     ))
                 }
                 {
@@ -104,13 +106,25 @@ const MemberList = ({ RoomInfo, user, isModal }) => {
             <h3>Members</h3>
             <div className="flex flex-col gap-3 mt-3">
                 <div className="flex justify-start items-center">
-                    <div className="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">{RoomInfo?.admin?.displayName.slice(0, 2).toUpperCase()}</div>
+                    <div className="w-7 h-7 border-2 border-gray-400 rounded-full overflow-hidden bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">
+                        {
+                            RoomInfo?.admin?.photoURL ?
+                                <img src={RoomInfo?.admin?.photoURL} alt="avatar" /> :
+                                <div>{RoomInfo?.admin?.displayName.slice(0, 2).toUpperCase()}</div>
+                        }
+                    </div>
                     <p className="ms-2">{RoomInfo?.admin?.displayName} (Admin) {user?.email === RoomInfo?.admin?.email && '(You)'}</p>
                 </div>
                 {
                     RoomInfo?.members?.map((member) => (
                         <div key={member.email} className="flex justify-start items-center">
-                            <div className="w-7 h-7 border-2 border-gray-400 rounded-full bg-gray-300 flex justify-center items-center text-xs font-medium text-center text-slate-700">{member.displayName.slice(0, 2).toUpperCase()}</div>
+                            <div className="w-7 h-7 border-2 border-gray-400 rounded-full overflow-hidden bg-gray-300 flex justify-center items-center text-xs font-medium text-center text-slate-700">
+                                {
+                                    member.photoURL ?
+                                        <img src={member.photoURL} alt="avatar" /> :
+                                        <div>{member.displayName.slice(0, 2).toUpperCase()}</div>
+                                }
+                            </div>
                             <p className="ms-2">{member.displayName} {user?.email === member.email && '(You)'}</p>
                         </div>
                     ))
@@ -275,10 +289,10 @@ const RoomBanner = ({ RoomInfo, tabIndex, setTabIndex, setRoomInfo }) => {
                         <Tab label="People" sx={{ fontWeight: 600, textTransform: "capitalize" }} />
                     </Tabs>
                 </div>
-                <div className="bg-white pt-5 md:p-8">
+                <div className="bg-white pt-5 px-2 md:p-8">
                     {/* Stream */}
                     <TabViewPanel value={tabIndex} index={0}>
-                        <div className="max-md:w-[95%] mx-auto">
+                        <div className="">
                             {RoomInfo?.members?.length > 0 && <ShowMembers RoomInfo={RoomInfo} />}
                             <MemberAddingSection RoomInfo={RoomInfo} setRoomInfo={setRoomInfo} />
                         </div>

@@ -64,11 +64,11 @@ module.exports.addBulkMember = async (req, res) => {
         await modifiedRoom.populate([
           {
             path: "members",
-            select: "displayName email designation department -_id",
+            select: "displayName email designation department photoURL -_id",
           },
           {
             path: "admin",
-            select: "displayName email -_id",
+            select: "displayName email photoURL -_id",
           },
         ]);
         return res.status(200).json({ ...modifiedRoom.toObject(), isJoined: true });
@@ -107,11 +107,11 @@ module.exports.addMember = async (req, res) => {
             await modifiedRoom.populate([
               {
                 path: "members",
-                select: "displayName email designation department -_id",
+                select: "displayName email designation department photoURL -_id",
               },
               {
                 path: "admin",
-                select: "displayName email -_id",
+                select: "displayName email photoURL -_id",
               },
             ]);
             res
@@ -162,11 +162,11 @@ module.exports.getRoomDetails = async (req, res) => {
           await checkRoom.populate([
             {
               path: "members",
-              select: "displayName email designation department -_id",
+              select: "displayName email designation department photoURL -_id",
             },
             {
               path: "admin",
-              select: "displayName email -_id",
+              select: "displayName email photoURL -_id",
             },
             {
               path: "tasks",

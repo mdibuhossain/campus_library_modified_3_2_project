@@ -136,12 +136,15 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
       </Box>
       <Modal open={open}>
         <Box sx={{ ...style }}>
+          {/* Modal close button */}
           <div className="flex justify-end mb-2" onClick={handleClose}>
             <IconButton>
               <ClearIcon />
             </IconButton>
           </div>
+          {/* Main body */}
           <div className="flex gap-5 md:flex-row flex-col justify-between items-start">
+            {/* Rich text - Task Description */}
             <div className="flex-1 w-full">
               <div className="shadow-slate-400 p-3 shadow-inner rounded-md w-full max-h-[400px] min-h-[350px] overflow-auto">
                 <div
@@ -151,8 +154,10 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
                 />
               </div>
             </div>
+            {/* Timmer & submission form */}
             <div className="flex flex-col shadow-md shadow-slate-400 p-3 rounded-lg mx-auto max-w-[300px]">
               <p>Remaining submission time</p>
+              {/* Timmer */}
               <div className="inline-block border-2 rounded-lg p-2 mx-auto">
                 <div
                   className={`flex justify-center gap-1 text-md font-bold ${rmDays || rmHours || rmMinutes || rmSeconds
@@ -182,11 +187,13 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
                 </div>
               </div>
               {
-                !(admin?.email === user?.email) ?
+                !(admin?.email === user?.email) ? (
+                  // Submission form & unsubmission button
                   <div className="mt-4">
                     <p className="font-medium">Your work</p>
                     {
                       !(task?.submission?.[0]) ? (
+                        // Submission form
                         <form onSubmit={handleSubmittingWork}>
                           <label className="block bg-gray-50 rounded-full mt-2">
                             <input
@@ -208,7 +215,9 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
                           >
                             Turn in
                           </button>
-                        </form>) : (
+                        </form>
+                      ) : (
+                        // unsubmission button
                         <div>
                           <div className="flex flex-row justify-between ">
                             <a className="w-10/12 flex-1" target="_blank" href={`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/assignments/${task?.submission?.[0]?.fileId}`}>
@@ -222,12 +231,72 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
                               </svg>
                             </button>
                           </div>
-                        </div>)
+                        </div>
+                      )
                     }
-                  </div> : null
+                  </div>
+                ) : null
               }
             </div>
           </div>
+          {
+            admin?.email === user?.email ? (
+              <div className="mt-10">
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+                <p>bal</p>
+              </div>
+            ) : null
+          }
         </Box>
       </Modal>
     </>
