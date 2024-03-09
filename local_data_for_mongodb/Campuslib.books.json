@@ -4,13 +4,16 @@
   },
   "book_name": "Fundamentals of Mathematical Statistics",
   "author": "S.C. Gupta, V.K. Kapoor",
-  "edition": "10",
+  "edition": 10,
   "download_link": "https://drive.google.com/file/d/1l99bIgm8ez8RsQL2ef_dRwkDFDkoKtQ_/view?usp=sharing",
   "categories": "math",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "2.1"
+  ],
+  "course_code": "sta205"
 },
 {
   "_id": {
@@ -26,7 +29,8 @@
   "sub_categories": "book",
   "semester": [
     "2.1"
-  ]
+  ],
+  "course_code": "cse203"
 },
 {
   "_id": {
@@ -42,7 +46,8 @@
   "sub_categories": "book",
   "semester": [
     "1.1"
-  ]
+  ],
+  "course_code": "cse103"
 },
 {
   "_id": {
@@ -58,7 +63,8 @@
   "sub_categories": "book",
   "semester": [
     "1.1"
-  ]
+  ],
+  "course_code": "cse101"
 },
 {
   "_id": {
@@ -74,7 +80,8 @@
   "sub_categories": "book",
   "semester": [
     "1.1"
-  ]
+  ],
+  "course_code": "cse101"
 },
 {
   "_id": {
@@ -90,7 +97,8 @@
   "sub_categories": "book",
   "semester": [
     "1.2"
-  ]
+  ],
+  "course_code": "cse153"
 },
 {
   "_id": {
@@ -106,7 +114,8 @@
   "sub_categories": "book",
   "semester": [
     "1.2"
-  ]
+  ],
+  "course_code": "cse153"
 },
 {
   "_id": {
@@ -122,7 +131,8 @@
   "sub_categories": "book",
   "semester": [
     "1.2"
-  ]
+  ],
+  "course_code": "cse153"
 },
 {
   "_id": {
@@ -138,7 +148,8 @@
   "sub_categories": "book",
   "semester": [
     "1.2"
-  ]
+  ],
+  "course_code": "cse151"
 },
 {
   "_id": {
@@ -170,7 +181,8 @@
   "sub_categories": "book",
   "semester": [
     "1.2"
-  ]
+  ],
+  "course_code": "cse151"
 },
 {
   "_id": {
@@ -239,13 +251,16 @@
   },
   "book_name": "Fundamentals Of Electric Circuits",
   "author": "Alexander Sadiku",
-  "edition": "4",
+  "edition": 4,
   "download_link": "https://drive.google.com/file/d/1g1xAmkzhxGyTBbcdctipEBnP4S0K9SU7/view?usp=sharing",
   "categories": "eee",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "1.1"
+  ],
+  "course_code": "eee105"
 },
 {
   "_id": {
@@ -253,13 +268,16 @@
   },
   "book_name": "Fundamentals Of Electric Circuits",
   "author": "Alexander Sadiku",
-  "edition": "5",
+  "edition": 5,
   "download_link": "https://drive.google.com/file/d/18pTexxzkFO4Kf10HFMCw5yAIKVTiNb08/view?usp=sharing",
   "categories": "eee",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "1.1"
+  ],
+  "course_code": "eee105"
 },
 {
   "_id": {
@@ -267,13 +285,16 @@
   },
   "book_name": "Fundamentals Of Electric Circuits Practice Problem Solution",
   "author": "Alexander Sadiku",
-  "edition": "",
+  "edition": null,
   "download_link": "https://drive.google.com/file/d/1cAPnnadGyfTAFECRPH7pVXMy_rCcH2tO/view?usp=sharing",
   "categories": "eee",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "1.1"
+  ],
+  "course_code": "eee105"
 },
 {
   "_id": {
@@ -281,13 +302,16 @@
   },
   "book_name": "Fundamentals Of Electric Circuits Solution",
   "author": "Alexander Sadiku",
-  "edition": "4",
+  "edition": 4,
   "download_link": "https://drive.google.com/file/d/1fXNKdGLH-FiBCDKam4yCXRmR74Tf-Xz-/view?usp=sharing",
   "categories": "eee",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "1.1"
+  ],
+  "course_code": "eee105"
 },
 {
   "_id": {
@@ -295,13 +319,16 @@
   },
   "book_name": "Fundamentals Of Electric Circuits Solution",
   "author": "Alexander Sadiku",
-  "edition": "5",
+  "edition": 5,
   "download_link": "https://drive.google.com/file/d/1w8ESGZ13LYOBvgTz2HGGZY2Y5MJhYm82/view?usp=sharing",
   "categories": "eee",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "1.1"
+  ],
+  "course_code": "eee105"
 },
 {
   "_id": {
@@ -309,13 +336,16 @@
   },
   "book_name": "Electronic Devices And Circuits Theory",
   "author": "Robert Boylestad and Louis Nashelsky",
-  "edition": "7",
+  "edition": 7,
   "download_link": "https://drive.google.com/file/d/1uU5yODrjBot0yyonUuCOfOJ-FRP9LtkV/view?usp=sharing",
   "categories": "eee",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "1.2"
+  ],
+  "course_code": "eee155"
 },
 {
   "_id": {
@@ -329,7 +359,10 @@
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "1.1"
+  ],
+  "course_code": "mat105"
 },
 {
   "_id": {
@@ -365,13 +398,16 @@
   },
   "book_name": "The Numerical Solution of Ordinary and Partial Differential Equations",
   "author": "Granville Sewell",
-  "edition": "2",
+  "edition": 2,
   "download_link": "https://drive.google.com/file/d/1HKwwuryW3Z-Kf2Ikg_iu6OK9TNSiOfJu/view?usp=sharing",
   "categories": "math",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "3.2"
+  ],
+  "course_code": "cse355"
 },
 {
   "_id": {
@@ -379,13 +415,16 @@
   },
   "book_name": "Linear Algebra Theory Of Matrices",
   "author": "Professor Abdur Rahman",
-  "edition": "",
+  "edition": null,
   "download_link": "https://drive.google.com/file/d/1qh5Dc8wrlmTjLavBD5pvu_zfEtfFsINd/view?usp=sharing",
   "categories": "math",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "2.1"
+  ],
+  "course_code": "mat205"
 },
 {
   "_id": {
@@ -407,13 +446,16 @@
   },
   "book_name": "Basic Elements of Computational Statistics",
   "author": "Wolfgang Karl Härdle, Ostap Okhrin, Yarema Okhrin",
-  "edition": "1",
+  "edition": 1,
   "download_link": "https://drive.google.com/file/d/1Vv3X2YmSHt33RK4Rcb5Styf_Bw3JpKQU/view?usp=sharing",
   "categories": "sta",
   "status": true,
   "added_by": "mahmud.ponir.9800@gmail.com",
   "sub_categories": "book",
-  "semester": []
+  "semester": [
+    "2.1"
+  ],
+  "course_code": "sta205"
 },
 {
   "_id": {
@@ -443,7 +485,8 @@
   "added_by": "mahmud.ponir.9800@gmail.com",
   "semester": [
     "2.1"
-  ]
+  ],
+  "course_code": "cse203"
 },
 {
   "_id": {
@@ -474,7 +517,8 @@
   "semester": [
     "2.1",
     "2.2"
-  ]
+  ],
+  "course_code": "cse251"
 },
 {
   "_id": {
@@ -490,7 +534,8 @@
   "added_by": "admin@admin.com",
   "semester": [
     "2.1"
-  ]
+  ],
+  "course_code": "cse201"
 },
 {
   "_id": {
@@ -504,7 +549,10 @@
   "sub_categories": "book",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
-  "semester": []
+  "semester": [
+    "2.1"
+  ],
+  "course_code": "cse201"
 },
 {
   "_id": {
@@ -512,13 +560,16 @@
   },
   "book_name": "DATA STRUCTURES DIGITAL NOTES",
   "author": "",
-  "edition": "",
+  "edition": null,
   "download_link": "https://drive.google.com/file/d/1B8pUHP5vvPBqtHj5G_3qrn1lQRPnLydt/view?usp=sharing",
   "categories": "cse",
   "sub_categories": "book",
   "status": true,
   "added_by": "ibuhossain3@gmail.com",
-  "semester": []
+  "semester": [
+    "2.1"
+  ],
+  "course_code": "cse201"
 },
 {
   "_id": {
@@ -534,7 +585,8 @@
   "added_by": "ibuhossain3@gmail.com",
   "semester": [
     "2.1"
-  ]
+  ],
+  "course_code": "cse205"
 },
 {
   "_id": {
@@ -550,7 +602,8 @@
   "added_by": "ibuhossain3@gmail.com",
   "semester": [
     "2.1"
-  ]
+  ],
+  "course_code": "cse205"
 },
 {
   "_id": {
@@ -566,7 +619,8 @@
   "added_by": "ibuhossain3@gmail.com",
   "semester": [
     "2.1"
-  ]
+  ],
+  "course_code": "cse205"
 },
 {
   "_id": {
@@ -627,7 +681,8 @@
   "__v": 0,
   "semester": [
     "2.2"
-  ]
+  ],
+  "course_code": "cse253"
 },
 {
   "_id": {
@@ -644,7 +699,8 @@
   "__v": 0,
   "semester": [
     "2.2"
-  ]
+  ],
+  "course_code": "cse255"
 },
 {
   "_id": {
@@ -661,7 +717,8 @@
   "__v": 0,
   "semester": [
     "2.2"
-  ]
+  ],
+  "course_code": "cse255"
 },
 {
   "_id": {
@@ -678,7 +735,8 @@
   "__v": 0,
   "semester": [
     "2.2"
-  ]
+  ],
+  "course_code": "cse255"
 },
 {
   "_id": {
@@ -708,7 +766,10 @@
   "added_by": "mahmud.ponir.9800@gmail.com",
   "status": true,
   "__v": 0,
-  "semester": []
+  "semester": [
+    "2.2"
+  ],
+  "course_code": "mat255"
 },
 {
   "_id": {
@@ -725,7 +786,8 @@
   "__v": 0,
   "semester": [
     "3.1"
-  ]
+  ],
+  "course_code": "cse309"
 },
 {
   "_id": {
@@ -742,7 +804,8 @@
   "__v": 0,
   "semester": [
     "3.1"
-  ]
+  ],
+  "course_code": "cse303"
 },
 {
   "_id": {
@@ -759,7 +822,8 @@
   "__v": 0,
   "semester": [
     "3.1"
-  ]
+  ],
+  "course_code": "cse305"
 },
 {
   "_id": {
@@ -776,7 +840,8 @@
   "__v": 0,
   "semester": [
     "3.1"
-  ]
+  ],
+  "course_code": "cse305"
 },
 {
   "_id": {
@@ -793,7 +858,8 @@
   "__v": 0,
   "semester": [
     "3.1"
-  ]
+  ],
+  "course_code": "cse305"
 },
 {
   "_id": {
@@ -810,7 +876,8 @@
   "__v": 0,
   "semester": [
     "3.1"
-  ]
+  ],
+  "course_code": "cse301"
 },
 {
   "_id": {
@@ -857,7 +924,8 @@
   ],
   "added_by": "mahmud.ponir.9800@gmail.com",
   "status": true,
-  "__v": 0
+  "__v": 0,
+  "course_code": "cse351"
 },
 {
   "_id": {
@@ -891,7 +959,8 @@
   ],
   "added_by": "mahmud.ponir.9800@gmail.com",
   "status": true,
-  "__v": 0
+  "__v": 0,
+  "course_code": "cse353"
 },
 {
   "_id": {
@@ -908,7 +977,8 @@
   ],
   "added_by": "mahmud.ponir.9800@gmail.com",
   "status": true,
-  "__v": 0
+  "__v": 0,
+  "course_code": "cse355"
 },
 {
   "_id": {
@@ -925,7 +995,8 @@
   ],
   "added_by": "mahmud.ponir.9800@gmail.com",
   "status": true,
-  "__v": 0
+  "__v": 0,
+  "course_code": "cse359"
 },
 {
   "_id": {
@@ -942,7 +1013,8 @@
   ],
   "added_by": "mahmud.ponir.9800@gmail.com",
   "status": true,
-  "__v": 0
+  "__v": 0,
+  "course_code": "cse353"
 },
 {
   "_id": {
@@ -974,5 +1046,6 @@
   ],
   "added_by": "mahmud.ponir.9800@gmail.com",
   "status": true,
-  "__v": 0
+  "__v": 0,
+  "course_code": "cse357"
 }]
