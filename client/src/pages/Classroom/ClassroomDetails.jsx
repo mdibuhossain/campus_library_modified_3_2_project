@@ -262,7 +262,7 @@ const RoomBanner = ({ RoomInfo, tabIndex, setTabIndex, setRoomInfo }) => {
     const { user } = useAuth();
     return (
         <>
-            <div className='md:mt-10 mb-10 md:shadow-lg md:rounded-lg overflow-hidden bg-sky-200'>
+            <div className='md:mt-10 mb-10 md:shadow-2xl md:rounded-lg overflow-hidden bg-sky-200'>
                 <div className="px-4 py-5">
                     <h3 className="text-4xl">{RoomInfo?.roomName}</h3>
                     <h5 className="text-sm pt-2">Course title: {RoomInfo?.courseTitle} ({RoomInfo?.courseCode?.toUpperCase()})</h5>
@@ -328,8 +328,10 @@ const RelatedMaterial = ({ RoomInfo }) => {
     if (material.length > 0) {
         return (
             <div>
-                <h2 className="mt-8 text-xl font-semibold">Materials:</h2>
-                <Accordionlist title="Material" contents={material} />
+                <h3 className="mt-8 text-lg font-medium">Materials:</h3>
+                <div className="font-light text-[#1565c0]">
+                    <Accordionlist title="Material" contents={material} />
+                </div>
             </div>
         );
     } else {

@@ -1,6 +1,6 @@
 import DeleteIcon from '@mui/icons-material/Delete';
 import { BookOpenIcon } from '@heroicons/react/outline';
-import { Avatar, CircularProgress, IconButton, LinearProgress, List, ListItem, ListItemAvatar, Typography } from '@mui/material';
+import { Avatar, CircularProgress, IconButton, LinearProgress, List, ListItem, ListItemAvatar, Pagination, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 import { NavLink } from 'react-router-dom';
 import styled from '@emotion/styled';
@@ -8,6 +8,7 @@ import { useAuth } from '../Hooks/useAuth';
 import { DELETE_BOOK, DELETE_QUESTION, DELETE_SYLLABUS, GET_BOOKS, GET_QUESTIONS, GET_SYLLABUS, UPDATE_STATUS_BOOK, UPDATE_STATUS_QUESTION, UPDATE_STATUS_SYLLABUS } from '../queries/query';
 import { useMutation } from '@apollo/client';
 import useUtility from '../Hooks/useUtility';
+import { useState } from 'react';
 
 const Demo = styled('div')(({ theme }) => ({
     backgroundColor: theme.palette.background.paper,
@@ -25,6 +26,7 @@ const Demo = styled('div')(({ theme }) => ({
 const ListOfRequest = ({ content, title, status }) => {
     const { user, admin, token } = useAuth();
     const { dataLoading } = useUtility();
+    const [page, setPage] = useState(1);
 
     const updateContentStatusFromCache = (arg, comp) => {
         const res = [...arg]
@@ -151,7 +153,7 @@ const ListOfRequest = ({ content, title, status }) => {
             {
                 dataLoading ? <CircularProgress color="info" /> :
                     <List >
-                        {content?.map(item => (
+                        {content?.slice((page - 1) * 6, ((page - 1) * 6) + 6)?.map(item => (
                             (admin || ((item?.status === status) && (item?.added_by === user?.email))) &&
                             <ListItem
                                 key={item?._id}
@@ -189,6 +191,10 @@ const ListOfRequest = ({ content, title, status }) => {
                         }
                     </List >
             }
+            <div className='flex justify-center'>
+                < Pagination count={Math.ceil(content?.length / 10)} sx={{ mt: 3, mb: 1 }}
+                    shape="rounded" color="warning" showFirstButton showLastButton onChange={(e, value) => setPage(value)} />
+            </div>
             <Box sx={{ height: 5 }}>
                 {((updateStatusSyllabusloading ||
                     updateStatusQuestionloading ||

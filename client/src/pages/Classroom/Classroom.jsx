@@ -74,14 +74,16 @@ const Classroom = () => {
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', my: 2 }}>
                             {
                                 joinedRoom?.map((room) => (
-                                    <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[300px] break-words">
+                                    <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[300px] break-words flex flex-col">
                                         <div className="py-2 bg-gray-300 px-4">
                                             <b className="">{room?.roomName}</b>
                                         </div>
-                                        <div className="py-3 px-4">
-                                            <p><em>Course Title</em>: {room?.courseTitle}</p>
-                                            <p><em>Course Code</em>: {room?.courseCode}</p>
-                                            <p><em>Admin</em>: {user?.email}</p>
+                                        <div className="py-3 px-4 flex flex-col justify-between h-full">
+                                            <div>
+                                                <p><em>Course Title</em>: {room?.courseTitle}</p>
+                                                <p><em>Course Code</em>: {room?.courseCode}</p>
+                                                <p><em>Admin</em>: {user?.email}</p>
+                                            </div>
                                             <div className="flex justify-between mt-4">
                                                 <NavLink to={`${room?._id}`}><Button size="small" variant="contained">View</Button></NavLink>
                                             </div>

@@ -28,7 +28,7 @@ const GraphQLSchemaTemplateForBook = {
   author: { type: GraphQLString },
   edition: { type: GraphQLString },
   semester: { type: new GraphQLList(GraphQLString) },
-  course_code: { type: GraphQLString }
+  course_code: { type: GraphQLString },
 };
 const GraphQLSchemaForUser = {
   _id: { type: GraphQLID },
@@ -199,12 +199,14 @@ const mutation = new GraphQLObjectType({
       type: BookType,
       args: { ...GraphQLSchemaTemplateForBook, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        console.log(args);
         const decodedEmail = await verifyToken(args?.token);
         if (!decodedEmail) {
           throw new Error("Unauthenticated!");
         }
-        const newBook = new Book({ ...args });
+        const newBook = new Book({
+          ...args,
+          course_code: args?.course_code.toLowerCase(),
+        });
         return newBook.save();
       },
     },
@@ -296,7 +298,7 @@ const mutation = new GraphQLObjectType({
         if (!decodedEmail) {
           throw new Error("Unauthenticated!");
         }
-        const tmp = { ...args };
+        const tmp = { ...args, course_code: args?.course_code.toLowerCase() };
         delete tmp._id;
         return Book.findByIdAndUpdate(args?._id, { $set: tmp }, { new: true });
       },

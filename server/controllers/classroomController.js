@@ -49,9 +49,11 @@ module.exports.addBulkMember = async (req, res) => {
     if (!modifiedRoom) {
       return res.status(404).json({ message: "Room not exist!" });
     } else {
-      const filteredUsers = await User.find({ semester, department }).select(
-        "_id"
-      );
+      const filteredUsers = await User.find({
+        semester,
+        department,
+        designation: "student",
+      }).select("_id");
       if (!filteredUsers.length) {
         return res.status(404).json({ message: "No such user found!" });
       } else {
@@ -71,7 +73,9 @@ module.exports.addBulkMember = async (req, res) => {
             select: "displayName email photoURL -_id",
           },
         ]);
-        return res.status(200).json({ ...modifiedRoom.toObject(), isJoined: true });
+        return res
+          .status(200)
+          .json({ ...modifiedRoom.toObject(), isJoined: true });
       }
     }
   } catch {
@@ -107,7 +111,8 @@ module.exports.addMember = async (req, res) => {
             await modifiedRoom.populate([
               {
                 path: "members",
-                select: "displayName email designation department photoURL -_id",
+                select:
+                  "displayName email designation department photoURL -_id",
               },
               {
                 path: "admin",
@@ -171,21 +176,26 @@ module.exports.getRoomDetails = async (req, res) => {
             {
               path: "tasks",
               options: {
-                sort: { 'iat': -1 }
+                sort: { iat: -1 },
               },
               populate: {
                 path: "submission",
-                match: checkRoom.members.includes(checkUser._id) ? {
-                  user: checkUser._id
-                } : {},
+                match: checkRoom.members.includes(checkUser._id)
+                  ? {
+                      user: checkUser._id,
+                    }
+                  : {},
                 populate: {
                   path: "user",
-                  select: "_id department designation email displayName photoURL semester"
-                }
-              }
+                  select:
+                    "_id department designation email displayName photoURL semester",
+                },
+              },
             },
           ]);
-          return res.status(200).json({ ...checkRoom.toObject(), isJoined: true });
+          return res
+            .status(200)
+            .json({ ...checkRoom.toObject(), isJoined: true });
         } else {
           return res.status(200).json({
             roomName: checkRoom.roomName,
@@ -212,8 +222,9 @@ module.exports.getMaterial = async (req, res) => {
   try {
     const { courseCode } = req.query;
     const findBook = await Book.find({ course_code: courseCode.toLowerCase() });
+    console.log(findBook);
     return res.status(200).json(findBook);
   } catch (error) {
-    return res.status(500).json({ message: error.message })
+    return res.status(500).json({ message: error.message });
   }
-}
+};

@@ -10,6 +10,7 @@ import { useState } from "react";
 const MakeAdmin = () => {
     const { user, token } = useAuth();
     const [page, setPage] = useState(1);
+    
     const updateAdmin = (arg, comp) => {
         const res = [...arg];
         const indx = res.findIndex((tmp) => tmp?._id === comp?._id);

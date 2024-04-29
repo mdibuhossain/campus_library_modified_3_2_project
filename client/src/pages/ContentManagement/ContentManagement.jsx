@@ -51,7 +51,7 @@ const ContentManagement = ({ isMyContent = false, pageTitle }) => {
             {
                 _isActive["_syllabus"] && <ListOfRequest content={syllabus} status={isMyContent} title="Syllabus" />
             }
-            <TabSection _isActive={_isActive} activeHandler={activeHandler} />
+            {/* <TabSection _isActive={_isActive} activeHandler={activeHandler} /> */}
         </PageLayout>
     );
 };
