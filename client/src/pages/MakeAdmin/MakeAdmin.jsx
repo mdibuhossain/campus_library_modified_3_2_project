@@ -70,10 +70,10 @@ const MakeAdmin = () => {
                                     </div>
                                     <div className="flex flex-col justify-start w-full">
                                         <h5 className="text-sm font-medium leading-tight mr-2">
-                                            {item?.email}
+                                            {item?.displayName} <span className="text-xs">({item?.designation})</span>
                                         </h5>
                                         <p className="text-xs text-gray-500">
-                                            {item?.displayName} {user.email === item?.email && "( me )"}{" "}
+                                            {item?.email} {user.email === item?.email && "( me )"}{" "}
                                             (by-{item?.authType})
                                         </p>
                                     </div>
