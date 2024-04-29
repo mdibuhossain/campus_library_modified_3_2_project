@@ -107,16 +107,16 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
       <Box
         onClick={handleOpen}
         sx={{
-          "&:hover": { boxShadow: "0px 0px 5px #d9d9d9" },
+          "&:hover": { boxShadow: "0px 0px 5px #919191" },
           p: 2,
           borderRadius: 2,
           cursor: "pointer",
           background:
             rmDays || rmHours || rmMinutes || rmSeconds ? "none" : "#f8f8f8",
-          boxShadow:
+          bgcolor:
             rmDays || rmHours || rmMinutes || rmSeconds
               ? "none"
-              : "inset 0 0 8px #e0dede",
+              : "#dcdcdc",
         }}
       >
         <div className="flex align-center items-center gap-2">
