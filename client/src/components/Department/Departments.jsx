@@ -11,7 +11,7 @@ const Departments = () => {
         variant="h4"
         sx={{ fontWeight: 600, textAlign: "center", py: 5, color: "#707af4" }}
       >
-        departments
+        Departments
       </Typography>
       <div className="flex flex-wrap justify-center">
         {deptLoading ? (

@@ -249,7 +249,7 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
                       <a
                         key={work._id}
                         target="_blank" href={`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/assignments/${work.fileId}`}
-                        className="max-w-[400px] bg-neutral-100 hover:bg-neutral-200 p-3 rounded-full hover:shadow-none shadow-md shadow-gray-300 duration-100"
+                        className="max-w-[400px] bg-neutral-100 hover:bg-neutral-200 p-3 rounded-full hover:shadow-none shadow-lg shadow-gray-300 duration-100"
                       >
                         <div className="flex items-start gap-3">
                           <div className="flex-shrink-0 w-11 h-11 border-2 border-gray-400 rounded-full overflow-hidden bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">
