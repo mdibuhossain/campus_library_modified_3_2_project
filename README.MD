@@ -1,4 +1,15 @@
 # [Campus Classroom](https://ccroom.web.app/)
+#### <u>Student's account: (Demo for live site)<u>
+```
+email: ibrahim@cc.com
+password: 123123
+```
+
+#### <u>Teacher's account: (Demo for live site)<u>
+```
+email: teacher@cc.com
+password: 123123
+```
 
 ## How to run this project:
 `Client`
