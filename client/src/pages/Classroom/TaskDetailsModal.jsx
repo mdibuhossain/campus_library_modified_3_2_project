@@ -80,8 +80,11 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
         if (result?.status === 200) {
           setTask(result?.data)
           console.log(result?.data)
+        } else {
+          alert("Something went wrong! Maybe hosting server error!")
         }
       }).catch(err => {
+        alert("Something went wrong! Maybe hosting server error!")
         console.log(err)
       })
     } else {

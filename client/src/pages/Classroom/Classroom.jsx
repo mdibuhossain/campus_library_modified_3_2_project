@@ -6,13 +6,16 @@ import CreateClassroomModal from "./CreateClassroomModal";
 import { useAuth } from "../../Hooks/useAuth";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
+import ClassroomLoading from "../../components/Loading/ClassroomLoading";
 
 const Classroom = () => {
     const { user } = useAuth();
     const [myRoom, setMyRoom] = React.useState([])
     const [joinedRoom, setJoinedRoom] = React.useState([])
+    const [loading, setLoading] = React.useState(false)
 
     const handleFetchClassroomFromDB = () => {
+        setLoading(true);
         axios.get(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom`, {
             params: { email: user?.email }
         }).then(result => {
@@ -20,6 +23,8 @@ const Classroom = () => {
             setJoinedRoom(result?.data?.joinedRoom)
         }).catch(err => {
             console.log(err)
+        }).finally(() => {
+            setLoading(false)
         })
     }
 
@@ -50,22 +55,25 @@ const Classroom = () => {
                         <h3 className="text-xl">Classrooms you manage ({myRoom?.length})</h3>
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', my: 2 }}>
                             {
-                                myRoom?.map((room) => (
-                                    <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[300px] break-words">
-                                        <div className="py-2 bg-gray-300 px-4">
-                                            <b className="">{room?.roomName}</b>
-                                        </div>
-                                        <div className="py-3 px-4">
-                                            <p><em>Course Title</em>: {room?.courseTitle}</p>
-                                            <p><em>Course Code</em>: {room?.courseCode}</p>
-                                            <p><em>Admin</em>: {user?.email} (You)</p>
-                                            <div className="flex justify-between mt-4">
-                                                <NavLink to={`${room?._id}`}><Button size="small" variant="contained">View</Button></NavLink>
-                                                <IconButton onClick={() => handleDeleteClassroom(room?._id)} size="small"><DeleteIcon /></IconButton>
+                                loading ? (
+                                    [1, 2, 3].map((_, index) => <ClassroomLoading key={index} />)
+                                ) :
+                                    myRoom?.map((room) => (
+                                        <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[300px] break-words">
+                                            <div className="py-2 bg-gray-300 px-4">
+                                                <b className="">{room?.roomName}</b>
+                                            </div>
+                                            <div className="py-3 px-4">
+                                                <p><em>Course Title</em>: {room?.courseTitle}</p>
+                                                <p><em>Course Code</em>: {room?.courseCode}</p>
+                                                <p><em>Admin</em>: {user?.email} (You)</p>
+                                                <div className="flex justify-between mt-4">
+                                                    <NavLink to={`${room?._id}`}><Button size="small" variant="contained">View</Button></NavLink>
+                                                    <IconButton onClick={() => handleDeleteClassroom(room?._id)} size="small"><DeleteIcon /></IconButton>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))
+                                    ))
                             }
                         </Box>
                     </Box>
@@ -73,23 +81,26 @@ const Classroom = () => {
                         <h3 className="text-xl">All classrooms you've joined ({joinedRoom?.length})</h3>
                         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', my: 2 }}>
                             {
-                                joinedRoom?.map((room) => (
-                                    <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[300px] break-words flex flex-col">
-                                        <div className="py-2 bg-gray-300 px-4">
-                                            <b className="">{room?.roomName}</b>
-                                        </div>
-                                        <div className="py-3 px-4 flex flex-col justify-between h-full">
-                                            <div>
-                                                <p><em>Course Title</em>: {room?.courseTitle}</p>
-                                                <p><em>Course Code</em>: {room?.courseCode}</p>
-                                                <p><em>Admin</em>: {user?.email}</p>
+                                loading ? (
+                                    [1, 2, 3].map((_, index) => <ClassroomLoading key={index} />)
+                                ) :
+                                    joinedRoom?.map((room) => (
+                                        <div key={room?._id} className="rounded-xl border-2 border-gray-300 overflow-hidden w-[300px] break-words flex flex-col">
+                                            <div className="py-2 bg-gray-300 px-4">
+                                                <b className="">{room?.roomName}</b>
                                             </div>
-                                            <div className="flex justify-between mt-4">
-                                                <NavLink to={`${room?._id}`}><Button size="small" variant="contained">View</Button></NavLink>
+                                            <div className="py-3 px-4 flex flex-col justify-between h-full">
+                                                <div>
+                                                    <p><em>Course Title</em>: {room?.courseTitle}</p>
+                                                    <p><em>Course Code</em>: {room?.courseCode}</p>
+                                                    <p><em>Admin</em>: {user?.email}</p>
+                                                </div>
+                                                <div className="flex justify-between mt-4">
+                                                    <NavLink to={`${room?._id}`}><Button size="small" variant="contained">View</Button></NavLink>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))
+                                    ))
                             }
                         </Box>
                     </Box>

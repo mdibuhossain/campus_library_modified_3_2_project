@@ -69,6 +69,8 @@ const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
                     newData.tasks = [result?.data, ...newData.tasks]
                     return newData;
                 })
+                handleClose();
+                alert('Task created successfully');
             }
         }).catch(err => {
             console.log(err)
