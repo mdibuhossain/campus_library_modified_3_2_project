@@ -33,7 +33,17 @@ password: 123123
 
 
 > [!NOTE]  
-> To run this project locally, you need MongoDB compass installed in your system
+> To run this project locally, you need [MongoDB compass](https://www.mongodb.com/products/tools/compass) installed in your system
+
+### Technologies:
+- Node.js
+- Express
+- GraphQL
+- RESTful
+- MongoDB
+- ReactJS
+- Material UI
+- TailwindCSS
 
 
 ## Some screenshots of the project
