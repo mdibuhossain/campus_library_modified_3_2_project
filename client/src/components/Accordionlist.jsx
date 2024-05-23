@@ -98,7 +98,7 @@ export default function Accordionlist({ title, contents }) {
                     {IndividualAccordion("3rd year 2nd semester", data_3_2, handleChange)}
                     {IndividualAccordion("4th year 1st semester", data_4_1, handleChange)}
                     {IndividualAccordion("4th year 2nd semester", data_4_2, handleChange)}
-                    {IndividualAccordion("Undefine", other_data, handleChange)}
+                    {IndividualAccordion("Untitled", other_data, handleChange)}
                 </div>
             )
         } else {

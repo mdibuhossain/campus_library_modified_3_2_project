@@ -4,7 +4,8 @@
 `Client`
 1. go to client folder
 1. run command `yarn` in CMD
-1. after complete the installation 
+1. after complete the installation
+1. setup your own `.env.local` file
 1. run command `yarn dev`
 1. then localhost server link will be provided in the CMD
 
@@ -12,9 +13,38 @@
 1. go to server folder
 1. run command `yarn` in CMD
 1. after complete the installation 
-1. run command `yarn dev`
-1. then localhost server link will be provided in the CMD
+2. setup your own `.env` file
+3. run command `yarn dev`
+4. then localhost server link will be provided in the CMD
 
 
 > [!NOTE]  
-> For run this project locally, you need MongoDB compass installed in your system
+> To run this project locally, you need MongoDB compass installed in your system
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-all-departments.png>)
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-upload-content.png>)
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-search.png>)
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-content-management.png>)
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-create-classroom.png>)
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-student-classroom.png>)
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-details.png>)
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-task-submit.png>)
+
+
+![](<https://raw.githubusercontent.com/mdibuhossain/campus_library_modified_3_2_project/main/documentations/screenshots/classroom-user-list.png>)
+
