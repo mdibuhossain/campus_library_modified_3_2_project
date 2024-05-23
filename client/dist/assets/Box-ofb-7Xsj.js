@@ -1,1 +1,0 @@
-import{g as s,E as e}from"./index-GKI_nvxQ.js";import{c as o}from"./createBox-aGKtu-i3.js";const a=s("MuiBox",["root"]),t=a,r=o({defaultClassName:t.root,generateClassName:e.generate}),m=r;export{m as B};
