@@ -1,16 +1,18 @@
 # [Campus Classroom](https://ccroom.web.app/)
 <h3><u>Student's account:<u></h3>
 
-email: ```ibrahim@cc.com```
-
-password: ```123123```
+```
+email: ibrahim@cc.com
+password: 123123
+```
 
 
 <h3><u>Teacher's account:<u></h3>
 
-email: ```teacher@cc.com```
-
-password: ```123123```
+```
+email: teacher@cc.com
+password: 123123
+```
 
 ## How to run this project:
 `Client`
