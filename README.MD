@@ -1,4 +1,11 @@
 # [Campus Classroom](https://ccroom.web.app/)
+<h3><u>Admin's account:<u></h3>
+
+```
+email: admin@cc.com
+password: admin1234
+```
+
 <h3><u>Student's account:<u></h3>
 
 ```
