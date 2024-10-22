@@ -6,7 +6,7 @@ import Banner from './Home.style';
 const Home = () => {
     return (
         <PageLayout>
-            <Banner src="home" title="CAMPUS CLASSROOM" />
+            {/* <Banner src="home" title="CAMPUS CLASSROOM" /> */}
             <Departments />
         </PageLayout>
     );
