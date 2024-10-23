@@ -1,43 +1,95 @@
-import { CircularProgress, TextField, Typography } from "@mui/material";
+import {
+  Autocomplete,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  TextField,
+} from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { DepartmentCard, DepartmentStyle } from "./Department.style";
 import { NavLink } from "react-router-dom";
 import useUtility from "../../Hooks/useUtility";
-import { DepartmentCard, DepartmentStyle } from "./Department.style";
+import { tagTitle } from "../../utility/tagTitle";
 
 const Departments = () => {
-  const { getDepartments, deptLoading } = useUtility();
+  const { getDepartments, setGetDepartments, deptLoading } = useUtility();
+
+  const handleChange = (event, newValue) => {
+    if (newValue?.trim() === "" || newValue === null) {
+      setGetDepartments(Object.keys(tagTitle));
+    }
+    // Trigger only when an option is selected from the list
+    if (["click", "keydown"].includes(event.type) && newValue) {
+      const dept = newValue?.split(" - ")[0]?.toLowerCase();
+      const filteredDept = Object.keys(tagTitle).filter(
+        (item) => item === dept
+      );
+      setGetDepartments(filteredDept);
+    }
+  };
+
+  const handleResetSearch = (e) => {
+    setGetDepartments(Object.keys(tagTitle));
+  };
+
   return (
     <>
       <div className="w-full m-auto mb-5">
         <div className="w-[90vw] mx-auto flex justify-center py-5">
-          <TextField
+          <Autocomplete
+            freeSolo
             fullWidth
-            placeholder="Search for departments"
-            variant="outlined"
-            InputProps={{
-              style: {
-                borderRadius: "100px",
-                padding: "0rem 0.5rem",
-                boxShadow: "0px 0px 10px 0px rgba(184, 185, 190, 0.5)",
-                transition: "0.2s ease-in-out",
-                fontWeight: 600,
-                maxWidth: "32rem",
-                margin: "auto",
-              },
-            }}
-            InputLabelProps={{
-              shrink: false,
-            }}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                "&.Mui-focused": {
-                  boxShadow:
-                    "0px 0px 15px 0px rgba(112, 122, 244, 0.5) !important",
-                },
-                "&.Mui-focused": {
-                  maxWidth: "100% !important",
-                },
-              },
-            }}
+            disableClearable
+            selectOnFocus={true}
+            id="free-solo-2-demo"
+            options={Object.keys(tagTitle).map(
+              (option) => `${option.toUpperCase()} - ${tagTitle[option]}`
+            )}
+            onInputChange={handleChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                fullWidth
+                placeholder={`Search for departments...`}
+                variant="outlined"
+                InputLabelProps={{
+                  shrink: false,
+                }}
+                InputProps={{
+                  ...params.InputProps,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <IconButton onClick={handleChange}>
+                        <SearchIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={handleResetSearch}>
+                        <RestartAltIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiInputBase-root": {
+                    borderRadius: "100px",
+                    maxWidth: "32rem",
+                    margin: "auto",
+                  },
+                  "& .MuiOutlinedInput-root": {
+                    fontWeight: 600,
+                    transition: "0.2s ease-in-out",
+                    boxShadow: "0px 0px 10px 0px rgba(184, 185, 190, 0.25)",
+                    "&.Mui-focused": {
+                      maxWidth: "100% !important",
+                    },
+                  },
+                }}
+              />
+            )}
           />
         </div>
         {/* <Typography
