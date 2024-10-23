@@ -11,9 +11,17 @@ import { DepartmentCard, DepartmentStyle } from "./Department.style";
 import { NavLink } from "react-router-dom";
 import useUtility from "../../Hooks/useUtility";
 import { tagTitle } from "../../utility/tagTitle";
+import { useState } from "react";
 
 const Departments = () => {
-  const { getDepartments, setGetDepartments, deptLoading } = useUtility();
+  const {
+    getDepartments,
+    setGetDepartments,
+    searchedValue,
+    setSearchedValue,
+    deptLoading,
+  } = useUtility();
+  const [inputValue, setInputValue] = useState("");
 
   const handleChange = (event, newValue) => {
     if (newValue?.trim() === "" || newValue === null) {
@@ -25,12 +33,19 @@ const Departments = () => {
       const filteredDept = Object.keys(tagTitle).filter(
         (item) => item === dept
       );
+      setSearchedValue(newValue);
       setGetDepartments(filteredDept);
     }
   };
 
   const handleResetSearch = (e) => {
-    setGetDepartments(Object.keys(tagTitle));
+    setInputValue(() => "");
+    setSearchedValue(() => "");
+    setGetDepartments(() => Object.keys(tagTitle));
+  };
+
+  const handleInputValueChange = (e, newValue) => {
+    setInputValue(newValue);
   };
 
   return (
@@ -38,7 +53,6 @@ const Departments = () => {
       <div className="w-full m-auto mb-5">
         <div className="w-[90vw] mx-auto flex justify-center py-5">
           <Autocomplete
-            freeSolo
             fullWidth
             disableClearable
             selectOnFocus={true}
@@ -46,7 +60,24 @@ const Departments = () => {
             options={Object.keys(tagTitle).map(
               (option) => `${option.toUpperCase()} - ${tagTitle[option]}`
             )}
-            onInputChange={handleChange}
+            value={searchedValue}
+            inputValue={inputValue}
+            onChange={handleChange}
+            onInputChange={handleInputValueChange}
+            isOptionEqualToValue={(option, value) => {
+              // Show all options when input is empty
+              if (value === "") return true;
+              return option === value;
+            }}
+            sx={{
+              "&.MuiAutocomplete-root": {
+                maxWidth: "32rem",
+                transition: "0.2s ease-in-out",
+                "&.Mui-focused": {
+                  maxWidth: "100%",
+                },
+              },
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -72,21 +103,7 @@ const Departments = () => {
                       </IconButton>
                     </InputAdornment>
                   ),
-                }}
-                sx={{
-                  "& .MuiInputBase-root": {
-                    borderRadius: "100px",
-                    maxWidth: "32rem",
-                    margin: "auto",
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    fontWeight: 600,
-                    transition: "0.2s ease-in-out",
-                    boxShadow: "0px 0px 10px 0px rgba(184, 185, 190, 0.25)",
-                    "&.Mui-focused": {
-                      maxWidth: "100% !important",
-                    },
-                  },
+                  style: { borderRadius: "100px", width: "100%" },
                 }}
               />
             )}
