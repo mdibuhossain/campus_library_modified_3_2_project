@@ -8,7 +8,7 @@ const Departments = () => {
   return (
     <>
       <div className="w-full m-auto mb-5">
-        <div className="sm:max-w-lg w-[90vw] mx-auto flex justify-center py-5">
+        <div className="w-[90vw] mx-auto flex justify-center py-5">
           <TextField
             fullWidth
             placeholder="Search for departments"
@@ -18,8 +18,10 @@ const Departments = () => {
                 borderRadius: "100px",
                 padding: "0rem 0.5rem",
                 boxShadow: "0px 0px 10px 0px rgba(184, 185, 190, 0.5)",
-                transition: "0.12s ease-in-out",
+                transition: "0.2s ease-in-out",
                 fontWeight: 600,
+                maxWidth: "32rem",
+                margin: "auto",
               },
             }}
             InputLabelProps={{
@@ -30,6 +32,9 @@ const Departments = () => {
                 "&.Mui-focused": {
                   boxShadow:
                     "0px 0px 15px 0px rgba(112, 122, 244, 0.5) !important",
+                },
+                "&.Mui-focused": {
+                  maxWidth: "100% !important",
                 },
               },
             }}
