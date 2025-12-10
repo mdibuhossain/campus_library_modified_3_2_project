@@ -138,13 +138,13 @@ const LinkTitle = (prop) => {
       className={({ isActive }) =>
         isActive
           ? `bg-gray-900 text-white ${classNames(
-              prop.list ? "text-blue-400" : "text-gray-300",
-              "px-3 py-2 rounded-md text-sm font-medium block text-center"
-            )}`
+            prop.list ? "text-blue-400" : "text-gray-300",
+            "px-3 py-2 rounded-md text-sm font-medium block text-center"
+          )}`
           : `text-gray-300 hover:bg-gray-700 hover:text-white ${classNames(
-              prop.list ? "text-blue-400" : "text-gray-300",
-              "px-3 py-2 rounded-md text-sm font-medium block text-center"
-            )}`
+            prop.list ? "text-blue-400" : "text-gray-300",
+            "px-3 py-2 rounded-md text-sm font-medium block text-center"
+          )}`
       }
       aria-current={prop.current ? "page" : undefined}
     >
@@ -218,6 +218,10 @@ export default function Navigation() {
   const { deptNavList, deptLoading } = useUtility();
   const navigation = [
     {
+      name: "Reader",
+      to: "/reader",
+    },
+    {
       name: "Home",
       to: "/",
     },
@@ -251,10 +255,10 @@ export default function Navigation() {
                       >
                         <img
                           className="w-14"
-                          src="assets/images/logo.webp"
-                          alt="campuslib logo"
+                          src="/assets/images/logo.webp"
+                          alt="logo"
                         />
-                        <span className="hidden lg:block">CAMPUS LIBRARY</span>
+                        <span className="hidden lg:block">CAMPUS CLASSROOM</span>
                       </NavLink>
                     </div>
                     <div

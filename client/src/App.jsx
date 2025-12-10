@@ -15,6 +15,7 @@ const Home = lazy(() => import("./pages/Home/Home"));
 const Search = lazy(() => import("./pages/Search/Search"));
 const Request = lazy(() => import("./pages/Request/Request"));
 const Login = lazy(() => import("./pages/Login/Login"));
+const Reader = lazy(() => import("./pages/Reader/Reader"));
 const Register = lazy(() => import("./pages/Register/Register"));
 const RequireAuth = lazy(() => import("./PrivateRoute/RequireAuth"));
 const AdminRoute = lazy(() => import("./PrivateRoute/AdminRoute"));
@@ -99,6 +100,7 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                   <Route exact path="" element={<Home />} />
                   <Route exact path="/" element={<Home />} />
+                  <Route exact path="/reader" element={<Reader />} />
                   <Route exact path="search" element={<Search />} />
                   <Route exact path="request" element={<Request />} />
                   <Route exact path="test" element={<Test />} />
