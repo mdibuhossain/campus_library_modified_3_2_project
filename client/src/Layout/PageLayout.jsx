@@ -4,10 +4,10 @@ import LinearLoadin from '../components/Linear_Loading/LinearLoadin';
 // import FooterBar from '../components/FooterBar';
 const FooterBar = lazy(() => import('../components/FooterBar'))
 
-const PageLayout = ({ children }) => {
+const PageLayout = ({ children, className }) => {
     return (
         <Suspense fallback={<LinearLoadin />}>
-            <div style={{ "height": "calc(100vh - 64px)" }}>
+            <div style={{ "height": "calc(100vh - 64px)" }} className={className}>
                 {children}
                 <FooterBar />
             </div>

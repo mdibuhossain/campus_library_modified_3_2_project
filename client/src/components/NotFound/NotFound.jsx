@@ -5,7 +5,7 @@ import NotFoundStyle from './NotFoundStyle.module.css';
 
 const NotFound = () => {
     return (
-        <PageLayout>
+        <PageLayout className="flex flex-col">
             <div id="notfound" className="flex-1 flex items-center justify-center overflow-hidden px-4">
                 <div className="text-center max-w-md">
                     <h1 className="text-8xl sm:text-9xl font-extrabold tracking-tight text-gray-900 relative inline-block">

@@ -24,6 +24,8 @@ const EditContent = lazy(() => import("./pages/EditContent/EditContent"));
 const ChangeDP = lazy(() => import("./pages/ChangeDP/ChangeDP"));
 const Classroom = lazy(() => import("./pages/Classroom/Classroom"));
 const ClassroomDetails = lazy(() => import("./pages/Classroom/ClassroomDetails"));
+const ContentViewer = lazy(() => import("./pages/ContentViewer/ContentViewer"));
+
 const ContentManagement = lazy(() =>
   import("./pages/ContentManagement/ContentManagement")
 );
@@ -178,6 +180,7 @@ function App() {
                   />
                   <Route exact path="/login" element={<Login />} />
                   <Route exact path="/signup" element={<Register />} />
+                  <Route path="/content/:id" element={<ContentViewer />} />
                   <Route exact path="/department/:dept" element={<Department />} />
                 </Routes>
               </AuthProvider>
