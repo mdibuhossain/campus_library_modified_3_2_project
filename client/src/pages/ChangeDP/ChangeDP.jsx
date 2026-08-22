@@ -59,7 +59,8 @@ const ChangeDP = () => {
                                     </div> :
                                     <>
                                         <img className="w-40 rounded-full" src={user.photoURL} alt="profile" />
-                                        <div className="flex space-x-2 justify-center absolute right-0 bottom-4">
+                                        {/* Firebase upload quota exceeded */}
+                                        {/* <div className="flex space-x-2 justify-center absolute right-0 bottom-4">
                                             <div>
                                                 <label htmlFor='avatarSelect' className="flex rounded-full bg-gray-500 text-white leading-normal uppercase shadow-md hover:bg-gray-600 hover:shadow-lg focus:bg-gray-700 focus:shadow-lg focus:outline-none focus:ring-0 active:bg-gray-800 active:shadow-lg transition duration-150 ease-in-out w-9 h-9">
                                                     <svg aria-hidden="true" focusable="false" data-prefix="fas" data-icon="download"
@@ -71,7 +72,7 @@ const ChangeDP = () => {
                                                     <input onChange={handleSelectImg} onClick={handleWhileSelectImg} accept="image/*" type="file" id="avatarSelect" className="hidden" />
                                                 </label>
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </>
                                 }
                             </dir>

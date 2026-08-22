@@ -100,7 +100,7 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                   <Route exact path="" element={<Home />} />
                   <Route exact path="/" element={<Home />} />
-                  <Route exact path="/reader" element={<Reader />} />
+                  {/* <Route exact path="/reader" element={<Reader />} /> */}
                   <Route exact path="search" element={<Search />} />
                   <Route exact path="request" element={<Request />} />
                   <Route exact path="test" element={<Test />} />

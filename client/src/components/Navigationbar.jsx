@@ -217,10 +217,10 @@ export default function Navigation() {
   const { user, isLoading } = useAuth();
   const { deptNavList, deptLoading } = useUtility();
   const navigation = [
-    {
-      name: "Reader",
-      to: "/reader",
-    },
+    // {
+    //   name: "Reader",
+    //   to: "/reader",
+    // },
     {
       name: "Home",
       to: "/",

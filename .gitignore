@@ -1,7 +1,11 @@
 /**/node_modules
 
 /**/.env
-
 /**/.local.env
 
 /**/dist
+
+yarn.lock
+package-lock.json
+/**/package-lock.json
+/**/yarn.lock
