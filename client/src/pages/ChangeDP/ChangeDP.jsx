@@ -1,19 +1,58 @@
 import { LoadingButton } from '@mui/lab';
-import { TextField, Typography } from '@mui/material';
+import { Alert, Divider, TextField, Typography } from '@mui/material';
 import { Stack } from '@mui/system';
 import React from 'react';
 import AvatarEditor from 'react-avatar-editor';
 import { useAuth } from '../../Hooks/useAuth';
 import PageLayout from '../../Layout/PageLayout';
 
+const emptyPasswordForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
+
 const ChangeDP = () => {
-    const { user, isLoading, uploadAvatar, updateProfileSettings, updateProfileLoading } = useAuth();
+    const {
+        user, isLoading, uploadAvatar, updateProfileSettings, updateProfileLoading,
+        changeUserPassword, passwordError, passwordMessage, passwordLoading,
+        setPasswordError, setPasswordMessage,
+        resendVerification, verifyError, verifyMessage, verifyLoading,
+    } = useAuth();
     const [selectedImg, setSelectedImg] = React.useState(null);
     const [showModal, setShowModal] = React.useState(false);
     const [scale, setScale] = React.useState(1);
     const [rotate, setRotate] = React.useState(0);
     const [updateData, setUpdateData] = React.useState({ displayName: user?.displayName });
+    const [passwordForm, setPasswordForm] = React.useState(emptyPasswordForm);
     const EditorRef = React.useRef(null);
+
+    // Google accounts have no password to change. Check every linked provider
+    // rather than providerData[0] -- an account can have both Google and
+    // password linked, in either order.
+    const isPasswordAccount = !!user?.providerData?.some(
+        ({ providerId }) => providerId === "password"
+    );
+
+    React.useEffect(() => {
+        setPasswordError('')
+        setPasswordMessage('')
+    }, [])
+
+    const { currentPassword, newPassword, confirmPassword } = passwordForm;
+    const tooShort = newPassword.length > 0 && newPassword.length < 6;
+    const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+    const sameAsCurrent = newPassword.length > 0 && newPassword === currentPassword;
+    const canSubmitPassword = currentPassword && newPassword && confirmPassword
+        && !tooShort && !mismatch && !sameAsCurrent;
+
+    const passwordHandler = (e) => {
+        setPasswordError('')
+        setPasswordMessage('')
+        setPasswordForm({ ...passwordForm, [e.target.name]: e.target.value })
+    }
+
+    const submitPassword = async () => {
+        if (!canSubmitPassword) return
+        const changed = await changeUserPassword(currentPassword, newPassword)
+        changed && setPasswordForm(emptyPasswordForm)
+    }
 
     const updateHandler = (e) => {
         const tmpData = updateData
@@ -93,6 +132,94 @@ const ChangeDP = () => {
                             update
                         </LoadingButton>
                     </Stack>
+
+                    {/* Email verification notice start */}
+                    {isPasswordAccount && user?.email && user?.emailVerified === false &&
+                        <Stack spacing={1} sx={{ mt: 4, width: '100%', maxWidth: 320 }}>
+                            <Alert severity="warning">
+                                Your email is not verified yet. Until you verify it, signing
+                                in with Google using this address would replace your password.
+                            </Alert>
+                            {verifyError && <Alert severity="error">{verifyError}</Alert>}
+                            {verifyMessage && <Alert severity="success">{verifyMessage}</Alert>}
+                            <LoadingButton
+                                loading={verifyLoading}
+                                onClick={resendVerification}
+                                variant="outlined"
+                                size="small"
+                            >
+                                resend verification email
+                            </LoadingButton>
+                        </Stack>
+                    }
+                    {/* Email verification notice end */}
+
+                    {/* Change password start */}
+                    {isPasswordAccount &&
+                        <Stack spacing={2} sx={{ mt: 5, width: '100%', maxWidth: 320 }}>
+                            <Divider />
+                            <Typography variant='h6' sx={{ fontWeight: 600, textAlign: 'center' }}>Change Password</Typography>
+                            {passwordError &&
+                                <Alert severity="error">{passwordError}</Alert>
+                            }
+                            {passwordMessage &&
+                                <Alert severity="success">{passwordMessage}</Alert>
+                            }
+                            <TextField
+                                label="Current Password"
+                                name="currentPassword"
+                                type="password"
+                                variant="outlined"
+                                autoComplete="current-password"
+                                value={currentPassword}
+                                onChange={passwordHandler}
+                            />
+                            <TextField
+                                label="New Password"
+                                name="newPassword"
+                                type="password"
+                                variant="outlined"
+                                autoComplete="new-password"
+                                value={newPassword}
+                                onChange={passwordHandler}
+                                error={tooShort || sameAsCurrent}
+                                helperText={
+                                    tooShort ? 'At least 6 characters'
+                                        : sameAsCurrent ? 'New password must differ from the current one'
+                                            : ' '
+                                }
+                            />
+                            <TextField
+                                label="Confirm New Password"
+                                name="confirmPassword"
+                                type="password"
+                                variant="outlined"
+                                autoComplete="new-password"
+                                value={confirmPassword}
+                                onChange={passwordHandler}
+                                error={mismatch}
+                                helperText={mismatch ? 'Passwords do not match' : ' '}
+                            />
+                            <LoadingButton
+                                loading={passwordLoading}
+                                disabled={!canSubmitPassword}
+                                onClick={submitPassword}
+                                variant="contained"
+                            >
+                                update password
+                            </LoadingButton>
+                        </Stack>
+                    }
+                    {!isPasswordAccount && user?.email &&
+                        <Stack spacing={2} sx={{ mt: 5, width: '100%', maxWidth: 320 }}>
+                            <Divider />
+                            <Alert severity="info">
+                                You signed in with Google, so your password is managed by
+                                your Google account.
+                            </Alert>
+                        </Stack>
+                    }
+                    {/* Change password end */}
 
                     {/* Modal Start */}
                     {showModal ? (

@@ -10,20 +10,15 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../Hooks/useAuth';
-import { Alert, CircularProgress, FormControl, IconButton, InputLabel, MenuItem, Select, Tooltip, ListSubheader } from '@mui/material';
+import { Alert, CircularProgress, Divider, IconButton } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
 import CloseIcon from '@mui/icons-material/Close';
 import PageLayout from '../../Layout/PageLayout';
-import useUtility from '../../Hooks/useUtility';
-import { tagTitle } from '../../utility/tagTitle';
-import { semesterList } from '../../utility/semesterList';
 
 const Register = () => {
-    const { signWithGoogle, name, setName, setEmail, setPassword, setUserExtraInfo, signUpWithEmail, isLoading, error, setError } = useAuth();
-    const { getDepartments, deptLoading } = useUtility();
+    const { signWithGoogle, name, setName, setEmail, setPassword, signUpWithEmail, isLoading, error, setError } = useAuth();
     const [emailWarning, setEmailWarning] = React.useState(" ");
     const [passwordWarning, setPasswordWarning] = React.useState(" ");
-    const [designation, setDesignation] = React.useState("");
-    const [semester, setSemester] = React.useState("");
 
 
     const onChangeWarning = (event) => {
@@ -42,17 +37,10 @@ const Register = () => {
     }
 
     const handleSubmit = (event) => {
-        if (event.isTrusted) {
-            const data = new FormData(event.currentTarget);
-            setName(data.get('name'))
-            setEmail(data.get('email'))
-            setPassword(data.get('password'))
-        } else {
-            setUserExtraInfo((pre) => {
-                pre[event.target.name] = event.target.value;
-                return pre;
-            })
-        }
+        const data = new FormData(event.currentTarget);
+        setName(data.get('name'))
+        setEmail(data.get('email'))
+        setPassword(data.get('password'))
     };
     return (
         <PageLayout>
@@ -132,64 +120,6 @@ const Register = () => {
                             onChange={(e) => onChangeWarning(e)}
                         />
                         <Typography variant="subtitle2">{passwordWarning && passwordWarning}</Typography>
-                        <FormControl fullWidth sx={{ mt: 2 }} required>
-                            <InputLabel id="user_designation">Designation</InputLabel>
-                            <Select
-                                labelId="demo_user_designation"
-                                name="designation"
-                                label="Designation"
-                                defaultValue=""
-                                onChange={(e) => { handleSubmit(e); setDesignation(e.target.value) }}
-                            >
-                                <MenuItem value="teacher">Teacher</MenuItem>
-                                <MenuItem value="student">Student</MenuItem>
-                            </Select>
-                        </FormControl>
-                        <FormControl fullWidth sx={{ mt: 2 }} required>
-                            <InputLabel id="user_department">Department</InputLabel>
-                            <Select
-                                labelId="demo_user_department"
-                                name="department"
-                                label="department"
-                                defaultValue=""
-                                onChange={handleSubmit}
-                            >
-                                {!deptLoading && getDepartments.map((item, index) => (
-                                    item &&
-                                    <MenuItem key={index} value={item}>
-                                        <Tooltip title={tagTitle[item] || ''} placement="top-start" arrow>
-                                            <div className="w-full">{item.toUpperCase()}</div>
-                                        </Tooltip>
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        {
-                            designation === "student" &&
-                            <FormControl fullWidth sx={{ mt: 2 }} required>
-                                <InputLabel htmlFor="semester-select">Semester</InputLabel>
-                                <Select
-                                    value={semester}
-                                    id="semester-select"
-                                    label="Semester"
-                                    name="semester"
-                                    onChange={(e) => { handleSubmit(e); setSemester(e.target.value) }}
-                                >
-                                    {
-                                        semesterList.map((sem) => {
-                                            if (sem?.title) {
-                                                return (
-                                                    <ListSubheader key={sem.title} sx={{ fontWeight: "700" }}>{sem.title}</ListSubheader>
-                                                )
-                                            }
-                                            return (
-                                                <MenuItem key={sem} value={sem} sx={{ ml: 1 }}>{sem}</MenuItem>
-                                            )
-                                        })
-                                    }
-                                </Select>
-                            </FormControl>
-                        }
                         <Button
                             type="submit"
                             fullWidth
@@ -200,16 +130,23 @@ const Register = () => {
                         >
                             {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'SIGN UP'}
                         </Button>
-                        <hr />
-                        {/* <Button
-                            type="submit"
+                        <Divider sx={{ my: 2 }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>OR</Typography>
+                        </Divider>
+                        <Button
                             fullWidth
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2, bgcolor: 'red' }}
+                            variant="outlined"
+                            startIcon={<GoogleIcon />}
+                            sx={{ mb: 2, textTransform: 'none', color: 'text.primary', borderColor: 'rgba(0,0,0,0.23)' }}
                             onClick={signWithGoogle}
+                            disabled={isLoading}
                         >
-                            {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'SIGN UP WITH GOOGLE'}
-                        </Button> */}
+                            {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Continue with Google'}
+                        </Button>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+                            Either way, you will be asked for your designation, department
+                            and semester on the next screen.
+                        </Typography>
                         <Grid container>
                             <Grid item>
                                 <NavLink to="/login">

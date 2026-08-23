@@ -120,6 +120,7 @@ const GET_USER_STATUS = gql`
       designation
       department
       semester
+      isProfileComplete
     }
   }
 `;
@@ -231,9 +232,6 @@ const POST_USER = gql`
     $password: String
     $authType: String
     $photoURL: String
-    $designation: String
-    $department: String
-    $semester: String
   ) {
     addUser(
       displayName: $displayName
@@ -241,9 +239,6 @@ const POST_USER = gql`
       password: $password
       authType: $authType
       photoURL: $photoURL
-      designation: $designation
-      department: $department
-      semester: $semester
     ) {
       _id
     }
@@ -340,6 +335,48 @@ const MAKE_ADMIN = gql`
     }
   }
 `;
+const CHANGE_PASSWORD = gql`
+  mutation ChangePassword($token: String!, $newPassword: String!) {
+    changePassword(token: $token, newPassword: $newPassword) {
+      success
+      message
+    }
+  }
+`;
+const COMPLETE_PROFILE = gql`
+  mutation CompleteProfile(
+    $token: String!
+    $designation: String!
+    $department: String!
+    $semester: String
+  ) {
+    completeProfile(
+      token: $token
+      designation: $designation
+      department: $department
+      semester: $semester
+    ) {
+      success
+      message
+    }
+  }
+`;
+const SYNC_PASSWORD = gql`
+  mutation SyncPassword($token: String!, $password: String!) {
+    syncPassword(token: $token, password: $password) {
+      success
+      message
+    }
+  }
+`;
+const REQUEST_PASSWORD_RESET = gql`
+  mutation RequestPasswordReset($email: String!) {
+    requestPasswordReset(email: $email) {
+      success
+      message
+    }
+  }
+`;
 
 // update status
 const UPDATE_STATUS_BOOK = gql`
@@ -401,6 +438,10 @@ export {
   POST_QUESTION,
   POST_SYLLABUS,
   MAKE_ADMIN,
+  CHANGE_PASSWORD,
+  COMPLETE_PROFILE,
+  SYNC_PASSWORD,
+  REQUEST_PASSWORD_RESET,
   UPDATE_BOOK,
   UPDATE_PROFILE,
   UPDATE_QUESTION,

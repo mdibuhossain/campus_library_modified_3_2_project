@@ -17,6 +17,8 @@ const Request = lazy(() => import("./pages/Request/Request"));
 const Login = lazy(() => import("./pages/Login/Login"));
 const Reader = lazy(() => import("./pages/Reader/Reader"));
 const Register = lazy(() => import("./pages/Register/Register"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword/ForgotPassword"));
+const CompleteProfile = lazy(() => import("./pages/CompleteProfile/CompleteProfile"));
 const RequireAuth = lazy(() => import("./PrivateRoute/RequireAuth"));
 const AdminRoute = lazy(() => import("./PrivateRoute/AdminRoute"));
 const MakeAdmin = lazy(() => import("./pages/MakeAdmin/MakeAdmin"));
@@ -180,6 +182,16 @@ function App() {
                   />
                   <Route exact path="/login" element={<Login />} />
                   <Route exact path="/signup" element={<Register />} />
+                  <Route exact path="/forgot-password" element={<ForgotPassword />} />
+                  <Route
+                    exact
+                    path="/complete-profile"
+                    element={
+                      <RequireAuth>
+                        <CompleteProfile />
+                      </RequireAuth>
+                    }
+                  />
                   <Route path="/content/:id" element={<ContentViewer />} />
                   <Route exact path="/department/:dept" element={<Department />} />
                 </Routes>
