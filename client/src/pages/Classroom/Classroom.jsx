@@ -4,48 +4,51 @@ import { Box, Button, IconButton } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import CreateClassroomModal from "./CreateClassroomModal";
 import { useAuth } from "../../Hooks/useAuth";
-import axios from "axios";
+import { useLazyQuery, useMutation } from "@apollo/client";
+import { GET_CLASSROOMS, DELETE_CLASSROOM } from "../../queries/query";
 import { NavLink } from "react-router-dom";
 import ClassroomLoading from "../../components/Loading/ClassroomLoading";
 
 const Classroom = () => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const [myRoom, setMyRoom] = React.useState([])
     const [joinedRoom, setJoinedRoom] = React.useState([])
     const [loading, setLoading] = React.useState(false)
 
+    const [fetchClassrooms] = useLazyQuery(GET_CLASSROOMS, { fetchPolicy: "network-only" });
+    const [deleteClassroom] = useMutation(DELETE_CLASSROOM);
+
     const handleFetchClassroomFromDB = () => {
         setLoading(true);
-        axios.get(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom`, {
-            params: { email: user?.email }
-        }).then(result => {
-            setMyRoom(result?.data?.myRoom)
-            setJoinedRoom(result?.data?.joinedRoom)
-        }).catch(err => {
-            console.log(err)
-        }).finally(() => {
-            setLoading(false)
-        })
+        fetchClassrooms({ variables: { token } })
+            .then(({ data }) => {
+                setMyRoom(data?.getClassrooms?.myRoom)
+                setJoinedRoom(data?.getClassrooms?.joinedRoom)
+            }).catch(err => {
+                console.log(err)
+            }).finally(() => {
+                setLoading(false)
+            })
     }
 
     const handleDeleteClassroom = (id) => {
         if (window.confirm("Are you sure want to delete your classroom?")) {
-            axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/delete`, { roomid: id, email: user?.email })
-                .then(result => {
-                    if (result?.data?.deletedCount)
+            deleteClassroom({ variables: { roomid: id, token } })
+                .then(({ data }) => {
+                    if (data?.deleteClassroom?.success)
                         setMyRoom(pre => pre.filter(room => room?._id !== id));
                     else {
                         console.log("Room doesn't exist!");
                     }
                 }).catch(err => {
-                    console.error(err);
+                    console.error(err.message);
                 })
         }
     }
 
     React.useEffect(() => {
-        handleFetchClassroomFromDB();
-    }, [])
+        token && handleFetchClassroomFromDB();
+    }, [token])
     return (
         <PageLayout>
             <Box sx={{ pt: 4, px: 5 }}>

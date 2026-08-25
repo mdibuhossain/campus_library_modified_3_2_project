@@ -7,8 +7,7 @@ const { connectDB } = require("./Config/db");
 const schema = require("./Schema/schema");
 const admin = require("firebase-admin");
 const path = require("path");
-const apiRouter = require("./routes/api");
-const multer = require("multer");
+const { graphqlUploadExpress } = require("graphql-upload");
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
@@ -20,6 +19,8 @@ const app = express();
 
 connectDB();
 app.use(cors());
+// must run before graphqlHTTP so multipart uploads become Upload promises
+app.use(graphqlUploadExpress());
 app.use(express.json());
 app.use(express.static(PUBLIC_STATIC));
 
@@ -31,15 +32,9 @@ app.use(
   })
 );
 
-app.use("/api", apiRouter);
-
 app.use((err, req, res, next) => {
   if (err) {
-    if (err instanceof multer.MulterError) {
-      res.status(500).send("There was an upload error!")
-    } else {
-      res.status(500).send(err.message)
-    }
+    res.status(500).send(err.message)
   } else {
     res.send("success")
   }

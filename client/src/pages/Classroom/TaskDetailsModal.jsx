@@ -2,7 +2,8 @@ import React from "react";
 import { Box, Button, Modal, TextField } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import ClearIcon from "@mui/icons-material/Clear";
-import axios from "axios";
+import { useMutation } from "@apollo/client";
+import { SUBMIT_TASK, UNSUBMIT_TASK } from "../../queries/query";
 import dompurify from "dompurify";
 import { useAuth } from "../../Hooks/useAuth";
 
@@ -28,7 +29,9 @@ const MS_DAYS = 8.64e7,
   MS_SECONDS = 1e3;
 
 const TaskDetailsModal = ({ task: propsTask, admin }) => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const [submitTask] = useMutation(SUBMIT_TASK);
+  const [unsubmitTask] = useMutation(UNSUBMIT_TASK);
   const senitizer = dompurify.sanitize;
   const [open, setOpen] = React.useState(false);
   const [rmDays, setRmDays] = React.useState(0);
@@ -71,22 +74,19 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
     e.preventDefault();
     const workFile = e.target["assignment"].files[0];
     if (workFile && admin?.email !== user?.email) {
-      const formData = new FormData();
-      formData.append("email", user?.email)
-      formData.append("assignment", workFile)
-      axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/task/${task?._id}/submit`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      }).then(result => {
-        if (result?.status === 200) {
-          setTask(result?.data)
-          console.log(result?.data)
-        } else {
-          alert("Something went wrong! Maybe hosting server error!")
-        }
-      }).catch(err => {
-        alert("Something went wrong! Maybe hosting server error!")
-        console.log(err)
-      })
+      // the File goes straight into variables -- apollo-upload-client builds the
+      // GraphQL multipart request from it
+      submitTask({ variables: { taskid: task?._id, file: workFile, token } })
+        .then(({ data }) => {
+          if (data?.submitTask) {
+            setTask(data.submitTask)
+          } else {
+            alert("Something went wrong! Maybe hosting server error!")
+          }
+        }).catch(err => {
+          alert(err?.graphQLErrors?.[0]?.message || "Something went wrong! Maybe hosting server error!")
+          console.log(err)
+        })
     } else {
       alert("First select file");
     }
@@ -94,13 +94,13 @@ const TaskDetailsModal = ({ task: propsTask, admin }) => {
 
   const handleUnsubmittingWork = async (id) => {
     if (window.confirm("Are you sure want to unsubmit your work?")) {
-      axios.patch(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/task/unsubmit/${id}`, { email: user?.email })
-        .then((result) => {
-          if (result?.status === 201) {
-            setTask(result?.data)
+      unsubmitTask({ variables: { submissionid: id, token } })
+        .then(({ data }) => {
+          if (data?.unsubmitTask) {
+            setTask(data.unsubmitTask)
           }
         }).catch(err => {
-          console.error(err.message)
+          alert(err?.graphQLErrors?.[0]?.message || err.message)
         })
     }
   }

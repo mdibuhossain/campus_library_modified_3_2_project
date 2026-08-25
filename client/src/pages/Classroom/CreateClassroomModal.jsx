@@ -1,7 +1,8 @@
 import React from 'react'
 import { Box, Button, Modal, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import axios from 'axios';
+import { useMutation } from "@apollo/client";
+import { CREATE_CLASSROOM } from "../../queries/query";
 import { useAuth } from '../../Hooks/useAuth';
 
 
@@ -17,7 +18,8 @@ const style = {
 };
 
 const CreateClassroomModal = ({ setMyRoom }) => {
-    const { user } = useAuth();
+    const { token } = useAuth();
+    const [createClassroom] = useMutation(CREATE_CLASSROOM);
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
     const handleClose = () => setOpen(false);
@@ -31,16 +33,14 @@ const CreateClassroomModal = ({ setMyRoom }) => {
 
     const handleCreateClassroom = (e) => {
         e.preventDefault();
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/create`, {
-            ...formInfo,
-            email: user?.email
-        }).then(result => {
-            if (result?.status === 200) {
-                setMyRoom(pre => [...pre, result?.data])
-            }
-        }).catch(err => {
-            console.log(err)
-        })
+        createClassroom({ variables: { ...formInfo, token } })
+            .then(({ data }) => {
+                if (data?.createClassroom) {
+                    setMyRoom(pre => [...pre, data.createClassroom])
+                }
+            }).catch(err => {
+                console.log(err.message)
+            })
     }
 
     return (

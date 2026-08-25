@@ -225,6 +225,14 @@ export default function Navigation() {
       name: "Home",
       to: "/",
     },
+    ...(user?.email
+      ? [
+        {
+          name: "Classroom",
+          to: "/classroom",
+        },
+      ]
+      : []),
     {
       name: "Department ↓",
       list: deptNavList,

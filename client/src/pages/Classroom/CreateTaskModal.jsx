@@ -1,7 +1,8 @@
 import React from 'react'
 import { Box, Button, Modal, TextField } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import axios from 'axios';
+import { useMutation } from "@apollo/client";
+import { CREATE_TASK } from "../../queries/query";
 import "suneditor/dist/css/suneditor.min.css";
 import Editor from "suneditor-react";
 import { useAuth } from '../../Hooks/useAuth';
@@ -21,7 +22,8 @@ const style = {
 };
 
 const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
+    const [createTask] = useMutation(CREATE_TASK);
     const editor = React.useRef();
     const [open, setOpen] = React.useState(false);
     const handleOpen = () => setOpen(true);
@@ -52,28 +54,26 @@ const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
 
     const handleCreateClassroom = (e) => {
         e.preventDefault();
-        const payload = {
-            title: e.target["title"].value,
-            description: editor.current.getContents(),
-            deadline: deadline,
-            email: user?.email,
-            roomid: RoomInfo?._id
-        }
-        console.log(payload)
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/task/create`, {
-            ...payload
-        }).then(result => {
-            if (result?.status === 200) {
+        createTask({
+            variables: {
+                title: e.target["title"].value,
+                description: editor.current.getContents(),
+                deadline: deadline,
+                roomid: RoomInfo?._id,
+                token,
+            }
+        }).then(({ data }) => {
+            if (data?.createTask) {
                 setRoomInfo(pre => {
                     const newData = { ...pre }
-                    newData.tasks = [result?.data, ...newData.tasks]
+                    newData.tasks = [data.createTask, ...newData.tasks]
                     return newData;
                 })
                 handleClose();
                 alert('Task created successfully');
             }
         }).catch(err => {
-            console.log(err)
+            alert(err?.graphQLErrors?.[0]?.message || err.message)
         })
     }
     if (RoomInfo?.admin?.email === user?.email)

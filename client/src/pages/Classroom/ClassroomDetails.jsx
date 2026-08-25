@@ -2,7 +2,8 @@ import React, { lazy } from "react"
 import PageLayout from "../../Layout/PageLayout"
 import { useParams } from "react-router-dom";
 import { useAuth } from "../../Hooks/useAuth";
-import axios from "axios";
+import { useLazyQuery, useMutation } from "@apollo/client";
+import { GET_CLASSROOM, GET_MATERIAL, ADD_MEMBER, ADD_BULK_MEMBER } from "../../queries/query";
 import { Dropdown } from '@mui/base/Dropdown';
 import { Menu } from '@mui/base/Menu';
 import { MenuButton } from '@mui/base/MenuButton';
@@ -31,28 +32,30 @@ const ModalStyle = {
 
 const ClassroomDetails = () => {
     const { rid } = useParams();
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const history = useNavigate();
     const [RoomInfo, setRoomInfo] = React.useState({});
     const [roomLoading, setRoomLoading] = React.useState(true);
     const [tabIndex, setTabIndex] = React.useState(0);
 
+    const [fetchRoom] = useLazyQuery(GET_CLASSROOM, { fetchPolicy: "network-only" });
+
     const handleFetchRoomDetails = () => {
-        axios.get(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/${rid}`, {
-            params: { email: user?.email }
-        }).then(result => {
-            setRoomInfo(result?.data);
-        }).catch(err => {
-            console.error(err)
-        }).finally(() => {
-            setRoomLoading(false)
-        })
+        fetchRoom({ variables: { roomid: rid, token } })
+            .then(({ data }) => {
+                setRoomInfo(data?.getClassroom || {});
+            }).catch(err => {
+                console.error(err.message)
+            }).finally(() => {
+                setRoomLoading(false)
+            })
     }
 
     React.useEffect(() => {
+        if (!token) return;
         setRoomLoading(true);
         handleFetchRoomDetails();
-    }, []);
+    }, [token, rid]);
     console.log(RoomInfo)
     if (RoomInfo?.isJoined) {
         return (
@@ -136,44 +139,37 @@ const MemberList = ({ RoomInfo, user, isModal }) => {
 }
 
 const MemberAddingSection = ({ RoomInfo, setRoomInfo }) => {
-    const { user, userDesignation } = useAuth();
+    const { user, userDesignation, token } = useAuth();
     const { getDepartments, deptLoading } = useUtility()
+    const [addMember] = useMutation(ADD_MEMBER);
+    const [addBulkMember] = useMutation(ADD_BULK_MEMBER);
     const [requestEmail, setRequestEmail] = React.useState('')
     const [semester, setSemester] = React.useState('')
     const [department, setDepartment] = React.useState('')
 
     const handleAddSingleMember = (e) => {
         e.preventDefault();
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/addmember`, { email: requestEmail, roomid: RoomInfo?._id })
-            .then(result => {
-                if (result?.status === 200) {
-                    setRoomInfo(result?.data);
+        addMember({ variables: { memberEmail: requestEmail, roomid: RoomInfo?._id, token } })
+            .then(({ data }) => {
+                if (data?.addMember) {
+                    setRoomInfo(data.addMember);
                     alert("User successfully added!");
                 }
             }).catch(err => {
-                if (err?.response?.status === 409) {
-                    alert(err?.response?.data?.message);
-                } else if (err?.response?.status === 404) {
-                    alert(err?.response?.data?.message);
-                }
+                // GraphQL reports errors as messages, not HTTP status codes
+                alert(err?.graphQLErrors?.[0]?.message || err.message);
             })
     }
 
     const handleAddBulkMember = (e) => {
         e.preventDefault();
-        axios.post(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/classroom/addmember/bulk`, {
-            semester: semester,
-            department: department, roomid: RoomInfo?._id
-        }).then(result => {
-            if (result?.status === 200)
-                setRoomInfo(result?.data);
-        }).catch(err => {
-            if (err?.response?.status === 409) {
-                alert(err?.response?.data?.message);
-            } else if (err?.response?.status === 404) {
-                alert(err?.response?.data?.message);
-            }
-        })
+        addBulkMember({ variables: { semester, department, roomid: RoomInfo?._id, token } })
+            .then(({ data }) => {
+                if (data?.addBulkMember)
+                    setRoomInfo(data.addBulkMember);
+            }).catch(err => {
+                alert(err?.graphQLErrors?.[0]?.message || err.message);
+            })
     }
 
     return (
@@ -315,12 +311,12 @@ const RoomBanner = ({ RoomInfo, tabIndex, setTabIndex, setRoomInfo }) => {
 
 const RelatedMaterial = ({ RoomInfo }) => {
     const [material, setMaterial] = React.useState([]);
+    const [fetchMaterial] = useLazyQuery(GET_MATERIAL);
     React.useEffect(() => {
-        axios.get(`${import.meta.env.VITE_APP_BACKEND_API_WITHOUT_GQL}/material?courseCode=${RoomInfo?.courseCode}`)
-            .then(result => {
-                if (result?.status === 200) {
-                    setMaterial(result?.data)
-                }
+        if (!RoomInfo?.courseCode) return;
+        fetchMaterial({ variables: { courseCode: RoomInfo.courseCode } })
+            .then(({ data }) => {
+                setMaterial(data?.getMaterial || [])
             }).catch(err => {
                 console.error(err.message)
             })

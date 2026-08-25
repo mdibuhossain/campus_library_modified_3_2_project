@@ -245,6 +245,164 @@ const POST_USER = gql`
   }
 `;
 
+// ---- Classroom (replaces the old REST /api routes) ----
+const ROOM_PEOPLE_FIELDS = `
+  displayName
+  email
+  photoURL
+`;
+const TASK_FIELDS = `
+  _id
+  title
+  description
+  deadline
+  iat
+  submission {
+    _id
+    fileId
+    originalFilename
+    submittedAt
+    user {
+      displayName
+      email
+      photoURL
+    }
+  }
+`;
+const GET_CLASSROOMS = gql`
+  query GetClassrooms($token: String!) {
+    getClassrooms(token: $token) {
+      myRoom { _id roomName courseTitle courseCode }
+      joinedRoom { _id roomName courseTitle courseCode }
+    }
+  }
+`;
+const GET_CLASSROOM = gql`
+  query GetClassroom($roomid: ID!, $token: String!) {
+    getClassroom(roomid: $roomid, token: $token) {
+      _id
+      roomName
+      courseTitle
+      courseCode
+      isJoined
+      members { ${ROOM_PEOPLE_FIELDS} }
+      admin { ${ROOM_PEOPLE_FIELDS} }
+      tasks { ${TASK_FIELDS} }
+    }
+  }
+`;
+const GET_MATERIAL = gql`
+  query GetMaterial($courseCode: String!) {
+    getMaterial(courseCode: $courseCode) {
+      _id
+      book_name
+      author
+      edition
+      download_link
+      status
+    }
+  }
+`;
+const CREATE_CLASSROOM = gql`
+  mutation CreateClassroom(
+    $roomName: String!
+    $courseTitle: String!
+    $courseCode: String!
+    $token: String!
+  ) {
+    createClassroom(
+      roomName: $roomName
+      courseTitle: $courseTitle
+      courseCode: $courseCode
+      token: $token
+    ) {
+      _id
+      roomName
+      courseTitle
+      courseCode
+    }
+  }
+`;
+const DELETE_CLASSROOM = gql`
+  mutation DeleteClassroom($roomid: ID!, $token: String!) {
+    deleteClassroom(roomid: $roomid, token: $token) {
+      success
+      message
+    }
+  }
+`;
+const ADD_MEMBER = gql`
+  mutation AddMember($roomid: ID!, $memberEmail: String!, $token: String!) {
+    addMember(roomid: $roomid, memberEmail: $memberEmail, token: $token) {
+      _id
+      roomName
+      courseTitle
+      courseCode
+      isJoined
+      members { ${ROOM_PEOPLE_FIELDS} }
+      admin { ${ROOM_PEOPLE_FIELDS} }
+      tasks { ${TASK_FIELDS} }
+    }
+  }
+`;
+const ADD_BULK_MEMBER = gql`
+  mutation AddBulkMember(
+    $roomid: ID!
+    $semester: String!
+    $department: String!
+    $token: String!
+  ) {
+    addBulkMember(
+      roomid: $roomid
+      semester: $semester
+      department: $department
+      token: $token
+    ) {
+      _id
+      roomName
+      courseTitle
+      courseCode
+      isJoined
+      members { ${ROOM_PEOPLE_FIELDS} }
+      admin { ${ROOM_PEOPLE_FIELDS} }
+      tasks { ${TASK_FIELDS} }
+    }
+  }
+`;
+const CREATE_TASK = gql`
+  mutation CreateTask(
+    $roomid: ID!
+    $title: String!
+    $description: String!
+    $deadline: String!
+    $token: String!
+  ) {
+    createTask(
+      roomid: $roomid
+      title: $title
+      description: $description
+      deadline: $deadline
+      token: $token
+    ) {
+      ${TASK_FIELDS}
+    }
+  }
+`;
+const SUBMIT_TASK = gql`
+  mutation SubmitTask($taskid: ID!, $file: Upload!, $token: String!) {
+    submitTask(taskid: $taskid, file: $file, token: $token) {
+      ${TASK_FIELDS}
+    }
+  }
+`;
+const UNSUBMIT_TASK = gql`
+  mutation UnsubmitTask($submissionid: ID!, $token: String!) {
+    unsubmitTask(submissionid: $submissionid, token: $token) {
+      ${TASK_FIELDS}
+    }
+  }
+`;
+
 // update data
 const UPDATE_BOOK = gql`
   mutation EditBook(
@@ -440,6 +598,16 @@ export {
   MAKE_ADMIN,
   CHANGE_PASSWORD,
   COMPLETE_PROFILE,
+  GET_CLASSROOMS,
+  GET_CLASSROOM,
+  GET_MATERIAL,
+  CREATE_CLASSROOM,
+  DELETE_CLASSROOM,
+  ADD_MEMBER,
+  ADD_BULK_MEMBER,
+  CREATE_TASK,
+  SUBMIT_TASK,
+  UNSUBMIT_TASK,
   SYNC_PASSWORD,
   REQUEST_PASSWORD_RESET,
   UPDATE_BOOK,
