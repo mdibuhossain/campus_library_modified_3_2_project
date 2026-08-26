@@ -11,6 +11,42 @@ const LOCAL_TOKEN_KEY = "fcmToken";
 // The service worker lives in public/ so the bundler never sees it, and a worker
 // cannot read import.meta.env. Pass the config through the registration URL so
 // it can never drift from .env.local.
+/**
+ * navigator.serviceWorker.register() resolves as soon as the *registration*
+ * exists -- on a first install the worker is still "installing". FCM's getToken()
+ * calls PushManager.subscribe() internally, which requires an ACTIVE worker, so
+ * calling it too early fails with:
+ *   "Failed to execute 'subscribe' on 'PushManager': Subscription failed -
+ *    no active Service Worker"
+ * Wait for activation explicitly rather than hoping the race goes our way.
+ */
+const waitForActiveWorker = (registration, timeoutMs = 15000) =>
+    new Promise((resolve, reject) => {
+        if (registration.active) return resolve(registration);
+        const worker = registration.installing || registration.waiting;
+        if (!worker) {
+            return reject(new Error("The service worker registered but produced no worker."));
+        }
+        const timer = setTimeout(() => {
+            worker.removeEventListener("statechange", onChange);
+            reject(new Error("The service worker took too long to activate."));
+        }, timeoutMs);
+        const done = (fn, arg) => {
+            clearTimeout(timer);
+            worker.removeEventListener("statechange", onChange);
+            fn(arg);
+        };
+        function onChange() {
+            if (worker.state === "activated") done(resolve, registration);
+            // redundant means install failed -- usually the worker script threw,
+            // e.g. its importScripts could not be fetched
+            else if (worker.state === "redundant") {
+                done(reject, new Error("The service worker failed to install."));
+            }
+        }
+        worker.addEventListener("statechange", onChange);
+    });
+
 const swUrl = () => {
     const cfg = new URLSearchParams({
         apiKey: import.meta.env.VITE_APP_API_KEY || "",
@@ -83,7 +119,20 @@ const useNotifications = (token) => {
                 setPushError("Notification permission was not granted.");
                 return false;
             }
-            const registration = await navigator.serviceWorker.register(swUrl());
+            if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+                setPushError("This browser cannot receive web push notifications.");
+                return false;
+            }
+            const url = swUrl();
+            // reuse an existing registration for this exact URL instead of
+            // stacking a new one on every click
+            const existing = await navigator.serviceWorker.getRegistration("/");
+            const registration =
+                existing && existing.active?.scriptURL?.includes("firebase-messaging-sw.js")
+                    ? existing
+                    : await navigator.serviceWorker.register(url);
+            // the fix: do not ask FCM for a token until the worker is active
+            await waitForActiveWorker(registration);
             const messaging = await getMessagingSafe();
             const fcmToken = await getToken(messaging, {
                 vapidKey: VAPID_KEY,

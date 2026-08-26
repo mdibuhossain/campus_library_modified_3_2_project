@@ -1,72 +1,197 @@
-import React, { useEffect, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Paper from '@mui/material/Paper';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
-import { Box } from '@mui/system';
-import { Button, CircularProgress } from '@mui/material';
+import ClearIcon from '@mui/icons-material/Clear';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Alert, Chip, CircularProgress, IconButton, Tab, Tabs, Typography } from '@mui/material';
 import PageLayout from '../../Layout/PageLayout';
 import useUtility from '../../Hooks/useUtility';
 
-const Search = () => {
-    const { allData, dataLoading } = useUtility();
-    const [search_text, setSearch_Text] = useState('')
-    const [searchData, setSearchData] = useState([])
+const TYPES = [
+    { key: 'all', label: 'All' },
+    { key: 'book', label: 'Books' },
+    { key: 'question', label: 'Questions' },
+    { key: 'syllabus', label: 'Syllabus' },
+];
 
-    useEffect(() => {
-        const tmp_res = allData?.filter(info => (
-            (info?.book_name?.toLowerCase()?.includes(search_text.toLowerCase()) ||
-                info?.author?.toLowerCase()?.includes(search_text.toLowerCase()) ||
-                info?.course_code?.includes(search_text.toLowerCase()) ||
-                info?.categories?.includes(search_text.toLowerCase()) ||
-                info?.subcategories?.includes(search_text.toLowerCase())) && (search_text.length > 0)
-        ))
-        setSearchData(tmp_res);
-    }, [search_text, allData])
+const norm = (v) => String(v ?? '').toLowerCase();
+
+const Search = () => {
+    // Build the corpus from the three typed lists rather than the pre-merged
+    // `allData`, so each hit can say what kind of thing it is.
+    const { books, questions, syllabus, dataLoading } = useUtility();
+    const [text, setText] = useState('');
+    const [type, setType] = useState(0);
+
+    const corpus = useMemo(() => [
+        ...(books || []).map((b) => ({ ...b, _type: 'book' })),
+        ...(questions || []).map((q) => ({ ...q, _type: 'question' })),
+        ...(syllabus || []).map((s) => ({ ...s, _type: 'syllabus' })),
+    // Public search must only show approved content. `allData` carries every
+    // row regardless of status, so unapproved uploads were previously visible
+    // to any visitor here.
+    ].filter((item) => item?.status), [books, questions, syllabus]);
+
+    const query = text.trim().toLowerCase();
+
+    const results = useMemo(() => {
+        if (!query) return [];
+        const wanted = TYPES[type].key;
+        return corpus.filter((item) => {
+            if (wanted !== 'all' && item._type !== wanted) return false;
+            return (
+                norm(item.book_name).includes(query) ||
+                norm(item.author).includes(query) ||
+                norm(item.course_code).includes(query) ||
+                norm(item.categories).includes(query) ||
+                norm(item.sub_categories).includes(query)
+            );
+        });
+    }, [corpus, query, type]);
+
+    // how many each tab would return, so the tabs are informative
+    const countFor = (key) => {
+        if (!query) return 0;
+        return corpus.filter((item) => {
+            if (key !== 'all' && item._type !== key) return false;
+            return (
+                norm(item.book_name).includes(query) ||
+                norm(item.author).includes(query) ||
+                norm(item.course_code).includes(query) ||
+                norm(item.categories).includes(query) ||
+                norm(item.sub_categories).includes(query)
+            );
+        }).length;
+    };
+
+    const href = (link) =>
+        !link ? '#' : /^https?:\/\//.test(link) ? link : `http://${link}`;
 
     return (
         <PageLayout>
-            <Box sx={{ width: 'min(90vw, 50rem)', m: 'auto', mt: 2 }}>
+            <div className="flex-1 w-full max-w-3xl mx-auto px-4 pt-8 pb-12">
+                <Typography variant="h4" sx={{ fontWeight: 700, textAlign: 'center' }}>
+                    Search the library
+                </Typography>
+                <Typography
+                    variant="body2"
+                    sx={{ color: 'text.secondary', textAlign: 'center', mt: 1, mb: 3 }}
+                >
+                    Find books, question papers and syllabus by title, author, course code
+                    or department.
+                </Typography>
+
                 <Paper
                     component="form"
-                    sx={{
-                        p: '2px 4px', display: 'flex', alignItems: 'center', width: 'auto', m: 'auto'
-                    }}
+                    onSubmit={(e) => e.preventDefault()}
+                    sx={{ p: '4px 6px', display: 'flex', alignItems: 'center', borderRadius: 999 }}
                 >
-                    <Button sx={{ p: '10px' }}>
-                        <SearchIcon />
-                    </Button>
+                    <SearchIcon sx={{ mx: 1, color: 'action.active' }} />
                     <InputBase
-                        sx={{ ml: 1, pr: 2, flex: 1 }}
-                        placeholder="Search"
-                        value={search_text}
-                        onChange={(e) => {
-                            e.preventDefault()
-                            setSearch_Text(e.target.value)
-                        }}
+                        sx={{ ml: 1, flex: 1 }}
+                        placeholder="Search by title, author, course code…"
+                        inputProps={{ 'aria-label': 'search the library' }}
+                        value={text}
+                        autoFocus
+                        onChange={(e) => setText(e.target.value)}
                     />
+                    {text &&
+                        <IconButton aria-label="clear search" onClick={() => setText('')} size="small">
+                            <ClearIcon fontSize="small" />
+                        </IconButton>}
                 </Paper>
-                <Box sx={{ p: 2, mt: 2, ...(searchData.length && { border: 1, borderRadius: 2, borderColor: 'rgba(0, 0, 0, 0.15)' }) }}>
-                    {
-                        (dataLoading) && <CircularProgress color="inherit" />
-                    }
-                    {
-                        searchData.length ?
-                            <div>
-                                {
-                                    searchData.map((item, index) => (
-                                        <a href={item?.download_link} key={index} target="_blank" rel="noreferrer">
-                                            <Paper sx={{ my: 2, p: 2, color: 'rgba(0, 0, 0, 0.7)' }}>
-                                                <strong>{item?.book_name}</strong>
-                                                <p className='text-blue-500 font-semibold text-sm'>{item?.edition ? item?.edition + 'E' : ''} <em>{item?.author ? ' - ' + item?.author : ''}</em> <span style={{ color: 'rgba(0, 0, 0, 0.7)' }}>({item?.sub_categories?.toUpperCase()}) ({item?.categories?.toUpperCase()}) {item?.course_code && `(${item?.course_code?.toUpperCase()})`}</span></p>
-                                            </Paper>
-                                        </a>
-                                    ))
-                                }
+
+                {query &&
+                    <Tabs
+                        value={type}
+                        onChange={(e, v) => setType(v)}
+                        variant="fullWidth"
+                        sx={{ mt: 2, minHeight: 40 }}
+                    >
+                        {TYPES.map((t) => (
+                            <Tab
+                                key={t.key}
+                                sx={{ minHeight: 40, fontWeight: 600, fontSize: 13 }}
+                                label={`${t.label} (${countFor(t.key)})`}
+                            />
+                        ))}
+                    </Tabs>}
+
+                <div className="mt-4">
+                    {dataLoading
+                        ? <div className="flex justify-center py-16"><CircularProgress color="inherit" /></div>
+                        : !query
+                            // previously this area was simply blank until you typed
+                            ? <div className="text-center py-16">
+                                <SearchIcon sx={{ fontSize: 56, color: 'action.disabled' }} />
+                                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+                                    Start typing to search {corpus.length} items.
+                                </Typography>
                             </div>
-                            : ''
-                    }
-                </Box>
-            </Box>
+                            : results.length === 0
+                                // ...and a search with no hits was also blank
+                                ? <Alert severity="info">
+                                    Nothing matches “{text.trim()}”. Try a course code, an author,
+                                    or a shorter phrase.
+                                </Alert>
+                                : <>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                        {results.length} result{results.length === 1 ? '' : 's'}
+                                    </Typography>
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        {results.map((item) => (
+                                            <a
+                                                key={item._id}
+                                                href={href(item.download_link)}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="block"
+                                            >
+                                                <Paper
+                                                    sx={{
+                                                        p: 2, borderRadius: 2,
+                                                        transition: '0.15s',
+                                                        '&:hover': { boxShadow: 4, transform: 'translateY(-1px)' },
+                                                    }}
+                                                >
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <Typography sx={{ fontWeight: 600 }}>
+                                                            {item.book_name}
+                                                            {item.edition && ` — ${item.edition}E`}
+                                                        </Typography>
+                                                        <OpenInNewIcon sx={{ fontSize: 15, color: 'text.disabled', mt: '4px' }} />
+                                                    </div>
+                                                    {item.author &&
+                                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                                            by {item.author}
+                                                        </Typography>}
+                                                    <div className="flex gap-1.5 flex-wrap mt-2">
+                                                        <Chip
+                                                            size="small" label={item._type}
+                                                            color="primary" variant="outlined"
+                                                            sx={{ height: 20, fontSize: 11 }}
+                                                        />
+                                                        {item.categories &&
+                                                            <Chip size="small" variant="outlined"
+                                                                label={item.categories.toUpperCase()}
+                                                                sx={{ height: 20, fontSize: 11 }} />}
+                                                        {item.sub_categories &&
+                                                            <Chip size="small" variant="outlined"
+                                                                label={item.sub_categories.toUpperCase()}
+                                                                sx={{ height: 20, fontSize: 11 }} />}
+                                                        {item.course_code &&
+                                                            <Chip size="small" variant="outlined"
+                                                                label={item.course_code.toUpperCase()}
+                                                                sx={{ height: 20, fontSize: 11 }} />}
+                                                    </div>
+                                                </Paper>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </>}
+                </div>
+            </div>
         </PageLayout>
     );
 };

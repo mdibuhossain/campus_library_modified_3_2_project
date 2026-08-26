@@ -2,9 +2,10 @@ import styled from "@emotion/styled";
 import { tagTitle } from "../../utility/tagTitle";
 
 const DepartmentStyle = styled.div`
-  width: min(15rem, 90vw);
-  height: min(15rem, 100vh);
-  background-image: url(${(props) => `assets/images/${props.tag}.webp`});
+  /* fills its grid cell; the grid decides the column width */
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-image: url(${(props) => `/assets/images/${props.tag}.webp`});
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -36,16 +37,18 @@ const DepartmentStyle = styled.div`
     background: rgba(16, 22, 50, 0.75);
   }
   @media (max-width: 580px) {
-    width: 90vw;
-    height: min(8rem, 100vh);
+    /* short and wide on phones so the list stays scannable */
+    aspect-ratio: 5 / 2;
     font-size: 75%;
   }
 `;
 
 const DepartmentCard = styled.section`
   border-radius: 30px;
-  margin: 25px;
+  /* gutters come from the grid gap, not from per-card margins, so the
+     spacing stays even at every breakpoint */
   overflow: hidden;
+  position: relative;
   transition: 0.21s ease-in-out;
 
   // Neumorphism Shadow for 3D effect
@@ -57,8 +60,9 @@ const DepartmentCard = styled.section`
     transition: 0.21s ease-in-out;
   }
 
-  @media(max-width: 580px) {
-    margin-top: 0px;
+  &:focus-within {
+    box-shadow: 8px 8px 20px #b8b9be, -8px -8px 20px #ffffff;
+    transform: scale(1.02);
   }
 `;
 

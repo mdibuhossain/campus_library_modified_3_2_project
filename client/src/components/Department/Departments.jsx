@@ -1,9 +1,12 @@
 import {
+  Alert,
   Autocomplete,
+  Button,
   CircularProgress,
   IconButton,
   InputAdornment,
   TextField,
+  Typography,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
@@ -48,91 +51,132 @@ const Departments = () => {
     setInputValue(newValue);
   };
 
+  const total = Object.keys(tagTitle).length;
+  const shown = getDepartments?.filter(Boolean)?.length || 0;
+  const isFiltered = shown !== total;
+
   return (
-    <>
-      <div className="w-full m-auto mb-5">
-        <div className="w-[90vw] mx-auto flex justify-center py-5">
-          <Autocomplete
-            fullWidth
-            disableClearable
-            selectOnFocus={true}
-            id="free-solo-2-demo"
-            options={Object.keys(tagTitle).map(
-              (option) => `${option.toUpperCase()} - ${tagTitle[option]}`
-            )}
-            value={searchedValue}
-            inputValue={inputValue}
-            onChange={handleChange}
-            onInputChange={handleInputValueChange}
-            isOptionEqualToValue={(option, value) => {
-              // Show all options when input is empty
-              if (value === "") return true;
-              return option === value;
-            }}
-            sx={{
-              "&.MuiAutocomplete-root": {
-                maxWidth: "32rem",
-                transition: "0.2s ease-in-out",
-                "&.Mui-focused": {
-                  maxWidth: "100%",
-                },
-              },
-            }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                fullWidth
-                placeholder={`Search for departments...`}
-                variant="outlined"
-                InputLabelProps={{
-                  shrink: false,
-                }}
-                InputProps={{
-                  ...params.InputProps,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <IconButton onClick={handleChange}>
-                        <SearchIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={handleResetSearch}>
-                        <RestartAltIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                  style: { borderRadius: "100px", width: "100%" },
-                }}
-              />
-            )}
-          />
-        </div>
-        {/* <Typography
-          variant="h4"
-          sx={{ fontWeight: 600, textAlign: "center", py: 5, color: "#707af4" }}
+    <div className="flex-1">
+      {/* A visitor used to land on a bare search box with no explanation of what
+          the site is. Give the page a title and one line of orientation. */}
+      <header className="text-center px-4 pt-8 pb-2">
+        <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          Browse by department
+        </Typography>
+        <Typography
+          variant="body1"
+          sx={{ color: "text.secondary", mt: 1, maxWidth: "42rem", mx: "auto" }}
         >
-          Departments
-        </Typography> */}
-        <div className="flex flex-wrap justify-center">
-          {deptLoading ? (
+          Books, question papers and syllabus, organised by department. Pick one
+          below or search for it by name.
+        </Typography>
+      </header>
+
+      <div className="w-full max-w-2xl mx-auto px-4 py-5">
+        <Autocomplete
+          fullWidth
+          disableClearable
+          selectOnFocus={true}
+          id="free-solo-2-demo"
+          options={Object.keys(tagTitle).map(
+            (option) => `${option.toUpperCase()} - ${tagTitle[option]}`
+          )}
+          value={searchedValue}
+          inputValue={inputValue}
+          onChange={handleChange}
+          onInputChange={handleInputValueChange}
+          isOptionEqualToValue={(option, value) => {
+            // Show all options when input is empty
+            if (value === "") return true;
+            return option === value;
+          }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              fullWidth
+              placeholder={`Search for departments...`}
+              variant="outlined"
+              InputLabelProps={{
+                shrink: false,
+              }}
+              InputProps={{
+                ...params.InputProps,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <IconButton onClick={handleChange} aria-label="search">
+                      <SearchIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleResetSearch} aria-label="reset search">
+                      <RestartAltIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                style: { borderRadius: "100px", width: "100%" },
+              }}
+            />
+          )}
+        />
+        {!deptLoading && (
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              {isFiltered
+                ? `showing ${shown} of ${total} departments`
+                : `${total} departments`}
+            </Typography>
+            {isFiltered && (
+              <Button size="small" onClick={handleResetSearch} sx={{ fontSize: 11 }}>
+                show all
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-12">
+        {deptLoading ? (
+          <div className="flex justify-center py-16">
             <CircularProgress color="info" />
-          ) : (
-            getDepartments?.map(
+          </div>
+        ) : shown === 0 ? (
+          // previously a search with no match rendered a completely blank page
+          <div className="max-w-md mx-auto">
+            <Alert
+              severity="info"
+              action={
+                <Button size="small" onClick={handleResetSearch}>
+                  reset
+                </Button>
+              }
+            >
+              No department matches that search.
+            </Alert>
+          </div>
+        ) : (
+          /* a real grid: even gutters at every breakpoint, instead of a
+             flex-wrap of cards each carrying its own 25px margin */
+          <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {getDepartments?.map(
               (item) =>
                 item && (
                   <DepartmentCard key={item}>
-                    <NavLink to={`/department/${item}`}>
+                    <NavLink
+                      to={`/department/${item}`}
+                      aria-label={tagTitle[item] || item}
+                      className="block"
+                    >
                       <DepartmentStyle tag={item} />
                     </NavLink>
                   </DepartmentCard>
                 )
-            )
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 
