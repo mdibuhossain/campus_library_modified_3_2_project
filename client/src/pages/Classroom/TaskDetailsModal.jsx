@@ -1,281 +1,308 @@
 import React from "react";
-import { Box, Button, Modal, TextField } from "@mui/material";
-import IconButton from "@mui/material/IconButton";
+import {
+  Alert, Avatar, Box, Button, Chip, Dialog, DialogContent, DialogTitle,
+  Divider, IconButton, Tooltip, Typography,
+} from "@mui/material";
+import { LoadingButton } from "@mui/lab";
 import ClearIcon from "@mui/icons-material/Clear";
+import AssignmentIcon from "@mui/icons-material/Assignment";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useMutation } from "@apollo/client";
-import { SUBMIT_TASK, UNSUBMIT_TASK } from "../../queries/query";
 import dompurify from "dompurify";
 import { useAuth } from "../../Hooks/useAuth";
+import { SUBMIT_TASK, UNSUBMIT_TASK } from "../../queries/query";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: "95%",
-  maxHeight: "90vh",
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  borderRadius: 3,
-  overflowY: "auto",
-  p: 1,
-  pb: 3,
+const MS = { day: 8.64e7, hour: 3.6e6, minute: 6e4, second: 1e3 };
+const pad = (n) => String(n).padStart(2, "0");
+
+/* Break a positive millisecond span into d/h/m/s.
+ *
+ * The old code decomposed a value that could be negative and then inferred
+ * "is the task still open" from whether any of the four parts was truthy --
+ * so a small negative remainder (seconds = -5) read as OPEN. Openness is now
+ * derived from the deadline itself and this only formats a clamped span. */
+const breakdown = (ms) => {
+  const t = Math.max(0, ms);
+  return {
+    days: Math.floor(t / MS.day),
+    hours: Math.floor((t % MS.day) / MS.hour),
+    minutes: Math.floor((t % MS.hour) / MS.minute),
+    seconds: Math.floor((t % MS.minute) / MS.second),
+  };
 };
 
-const divmod = (n, m) => [Math.trunc(n / m), n % m];
-const MS_DAYS = 8.64e7,
-  MS_HOURS = 3.6e6,
-  MS_MINUTES = 6e4,
-  MS_SECONDS = 1e3;
+const fileUrl = (fileId) =>
+  `${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/assignments/${fileId}`;
 
 const TaskDetailsModal = ({ task: propsTask, admin }) => {
   const { user, token } = useAuth();
-  const [submitTask] = useMutation(SUBMIT_TASK);
-  const [unsubmitTask] = useMutation(UNSUBMIT_TASK);
-  const senitizer = dompurify.sanitize;
+  const sanitize = dompurify.sanitize;
   const [open, setOpen] = React.useState(false);
-  const [rmDays, setRmDays] = React.useState(0);
-  const [rmHours, setRmHours] = React.useState(0);
-  const [rmMinutes, setRmMinutes] = React.useState(0);
-  const [rmSeconds, setRmSeconds] = React.useState(0);
-  const [task, setTask] = React.useState(propsTask)
-  const [remainingTime, setRemainingTime] = React.useState(
-    new Date(task?.deadline).getTime() - new Date().getTime()
-  );
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const [task, setTask] = React.useState(propsTask);
+  const [file, setFile] = React.useState(null);
+  const [error, setError] = React.useState("");
+  const [now, setNow] = React.useState(() => Date.now());
 
+  const [submitTask, { loading: submitting }] = useMutation(SUBMIT_TASK);
+  const [unsubmitTask, { loading: unsubmitting }] = useMutation(UNSUBMIT_TASK);
+
+  const deadline = React.useMemo(() => new Date(task?.deadline).getTime(), [task?.deadline]);
+  const remaining = deadline - now;
+  // one source of truth, straight from the deadline
+  const stillOpen = Number.isFinite(deadline) && remaining > 0;
+  const { days, hours, minutes, seconds } = breakdown(remaining);
+
+  /* Recompute from the clock each second instead of subtracting 1000 from a
+   * stored value: the old interval drifted, ran forever once expired, and was
+   * started only if the task happened to be open at mount. */
   React.useEffect(() => {
-    if (typeof remainingTime === "number" && remainingTime >= 0) {
-      const [days, daysMS] = divmod(remainingTime, MS_DAYS);
-      const [hours, hoursMS] = divmod(daysMS, MS_HOURS);
-      const [minutes, minutesMS] = divmod(hoursMS, MS_MINUTES);
-      const [seconds, secondsMS] = divmod(minutesMS, MS_SECONDS);
-      setRmDays(days);
-      setRmHours(hours);
-      setRmMinutes(minutes);
-      setRmSeconds(seconds);
-    }
-  }, [remainingTime]);
+    if (!stillOpen) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [stillOpen]);
 
-  React.useEffect(() => {
-    const countDown = () => {
-      const interval = setInterval(() => {
-        setRemainingTime((pre) => pre - 1000);
-      }, 1000);
-      return () => clearInterval(interval);
-    };
-    if (remainingTime / 1000 >= 1 && remainingTime >= 0) {
-      return countDown();
-    }
-  }, []);
+  const isTeacher = admin?.email === user?.email;
+  const mySubmission = task?.submission?.[0];
 
-  const handleSubmittingWork = async (e) => {
+  const close = () => { setOpen(false); setError(""); };
+
+  const handleSubmittingWork = (e) => {
     e.preventDefault();
-    const workFile = e.target["assignment"].files[0];
-    if (workFile && admin?.email !== user?.email) {
-      // the File goes straight into variables -- apollo-upload-client builds the
-      // GraphQL multipart request from it
-      submitTask({ variables: { taskid: task?._id, file: workFile, token } })
-        .then(({ data }) => {
-          if (data?.submitTask) {
-            setTask(data.submitTask)
-          } else {
-            alert("Something went wrong! Maybe hosting server error!")
-          }
-        }).catch(err => {
-          alert(err?.graphQLErrors?.[0]?.message || "Something went wrong! Maybe hosting server error!")
-          console.log(err)
-        })
-    } else {
-      alert("First select file");
-    }
+    setError("");
+    if (!file) return setError("Choose a file first.");
+    submitTask({ variables: { taskid: task?._id, file, token } })
+      .then(({ data }) => {
+        if (data?.submitTask) {
+          setTask(data.submitTask);
+          setFile(null);
+        }
+      })
+      .catch((err) => setError(err?.graphQLErrors?.[0]?.message || err.message));
   };
 
-  const handleUnsubmittingWork = async (id) => {
-    if (window.confirm("Are you sure want to unsubmit your work?")) {
-      unsubmitTask({ variables: { submissionid: id, token } })
-        .then(({ data }) => {
-          if (data?.unsubmitTask) {
-            setTask(data.unsubmitTask)
-          }
-        }).catch(err => {
-          alert(err?.graphQLErrors?.[0]?.message || err.message)
-        })
-    }
-  }
+  const handleUnsubmittingWork = (id) => {
+    if (!window.confirm("Remove your submission? You can turn in again before the deadline.")) return;
+    setError("");
+    unsubmitTask({ variables: { submissionid: id, token } })
+      .then(({ data }) => { data?.unsubmitTask && setTask(data.unsubmitTask); })
+      .catch((err) => setError(err?.graphQLErrors?.[0]?.message || err.message));
+  };
+
+  const Countdown = () => (
+    <div className="flex justify-center gap-1.5 font-mono">
+      {[["days", days], ["hrs", hours], ["min", minutes], ["sec", seconds]].map(([label, value], i) => (
+        <React.Fragment key={label}>
+          {i > 0 && <span className="text-gray-300 self-start pt-1">:</span>}
+          <div className="flex flex-col items-center">
+            <span className={`text-lg font-bold ${stillOpen ? "text-gray-800" : "text-gray-300"}`}>
+              {pad(value)}
+            </span>
+            <span className="text-[10px] uppercase text-gray-400">{label}</span>
+          </div>
+        </React.Fragment>
+      ))}
+    </div>
+  );
 
   return (
     <>
-      <Box
-        onClick={handleOpen}
-        sx={{
-          "&:hover": { boxShadow: "0px 0px 5px #919191" },
-          p: 2,
-          borderRadius: 2,
-          cursor: "pointer",
-          background:
-            rmDays || rmHours || rmMinutes || rmSeconds ? "none" : "#f8f8f8",
-          bgcolor:
-            rmDays || rmHours || rmMinutes || rmSeconds
-              ? "none"
-              : "#dcdcdc",
-        }}
+      {/* was a clickable <Box> (a div), unreachable by keyboard */}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={`w-full text-left rounded-xl border p-3 mb-2 transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-sky-400 ${
+          stillOpen ? "bg-white border-gray-200" : "bg-gray-50 border-gray-200"
+        }`}
       >
-        <div className="flex align-center items-center gap-2">
-          <div className="bg-sky-500 rounded-full p-2 fill-white">
-            <svg focusable="false" width="24" height="24" viewBox="0 0 24 24">
-              <path d="M7 15h7v2H7zm0-4h10v2H7zm0-4h10v2H7z"></path>
-              <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-.14 0-.27.01-.4.04a2.008 2.008 0 0 0-1.44 1.19c-.1.23-.16.49-.16.77v14c0 .27.06.54.16.78s.25.45.43.64c.27.27.62.47 1.01.55.13.02.26.03.4.03h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7-.25c.41 0 .75.34.75.75s-.34.75-.75.75-.75-.34-.75-.75.34-.75.75-.75zM19 19H5V5h14v14z"></path>
-            </svg>
-          </div>
-          <div className="w-full flex align-center justify-between">
-            <p>{task?.title}</p>
-            <p className="text-xs text-gray-400">
+        <div className="flex items-center gap-3">
+          <Avatar sx={{ bgcolor: stillOpen ? "primary.main" : "grey.400", width: 38, height: 38 }}>
+            <AssignmentIcon fontSize="small" />
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium truncate">{task?.title}</p>
+            <p className="text-xs text-gray-500">
               Due {new Date(task?.deadline).toLocaleString()}
             </p>
           </div>
+          <div className="flex flex-col items-end gap-1 shrink-0">
+            <Chip
+              size="small"
+              label={stillOpen ? "open" : "closed"}
+              color={stillOpen ? "success" : "default"}
+              sx={{ height: 20, fontSize: 11 }}
+            />
+            {!isTeacher && mySubmission && (
+              <Chip
+                size="small" icon={<CheckCircleIcon sx={{ fontSize: 13 }} />} label="turned in"
+                color="success" variant="outlined" sx={{ height: 20, fontSize: 11 }}
+              />
+            )}
+            {isTeacher && (
+              <span className="text-xs text-gray-500">
+                {task?.submission?.length || 0} submitted
+              </span>
+            )}
+          </div>
         </div>
-      </Box>
-      <Modal open={open}>
-        <Box sx={{ ...style }}>
-          {/* Modal close button */}
-          <div className="flex justify-end mb-2" onClick={handleClose}>
-            <IconButton>
-              <ClearIcon />
-            </IconButton>
+      </button>
+
+      {/* Dialog rather than a bare Modal: the old <Modal open={open}> had no
+          onClose, so Escape and backdrop clicks did nothing. */}
+      <Dialog open={open} onClose={close} fullWidth maxWidth="lg" scroll="paper">
+        <DialogTitle sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}>
+          <div className="min-w-0">
+            <span className="block truncate">{task?.title}</span>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              Due {new Date(task?.deadline).toLocaleString()}
+            </Typography>
           </div>
-          {/* Main body */}
-          <div className="flex gap-5 md:flex-row flex-col justify-between items-start">
-            {/* Rich text - Task Description */}
-            <div className="flex-1 w-full">
-              <div className="shadow-slate-400 p-3 shadow-inner rounded-md w-full max-h-[400px] min-h-[350px] overflow-auto">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: senitizer(task?.description),
-                  }}
-                />
+          <IconButton onClick={close} size="small" aria-label="close">
+            <ClearIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>{error}</Alert>}
+
+          <div className="grid lg:grid-cols-3 gap-5 items-start">
+            {/* description */}
+            <div className="lg:col-span-2">
+              <Typography variant="overline" sx={{ color: "text.secondary" }}>Instructions</Typography>
+              <div className="mt-1 border border-gray-200 rounded-lg p-4 max-h-[420px] overflow-auto prose prose-sm max-w-none">
+                {task?.description ? (
+                  <div dangerouslySetInnerHTML={{ __html: sanitize(task.description) }} />
+                ) : (
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    No description was added.
+                  </Typography>
+                )}
               </div>
             </div>
-            {/* Timmer & submission form */}
-            <div className="flex flex-col shadow-md shadow-slate-400 p-3 rounded-lg mx-auto max-w-[300px]">
-              <p>Remaining submission time</p>
-              {/* Timmer */}
-              <div className="inline-block border-2 rounded-lg p-2 mx-auto">
-                <div
-                  className={`flex justify-center gap-1 text-md font-bold ${rmDays || rmHours || rmMinutes || rmSeconds
-                    ? "text-gray-600"
-                    : "text-gray-300"
-                    }`}
-                >
-                  <div className="flex flex-col justify-center items-center text-center">
-                    <span>{rmDays >= 10 ? rmDays : `0${rmDays}`}</span>
-                    <span className="text-sm font-medium">Days</span>
-                  </div>
-                  <span>:</span>
-                  <div className="flex flex-col justify-center items-center text-center">
-                    <span>{rmHours >= 10 ? rmHours : `0${rmHours}`}</span>
-                    <span className="text-sm font-medium">Hours</span>
-                  </div>
-                  <span>:</span>
-                  <div className="flex flex-col justify-center items-center text-center">
-                    <span>{rmMinutes >= 10 ? rmMinutes : `0${rmMinutes}`}</span>
-                    <span className="text-sm font-medium">Minutes</span>
-                  </div>
-                  <span>:</span>
-                  <div className="flex flex-col justify-center items-center text-center">
-                    <span>{rmSeconds >= 10 ? rmSeconds : `0${rmSeconds}`}</span>
-                    <span className="text-sm font-medium">Seconds</span>
-                  </div>
-                </div>
-              </div>
-              {
-                !(admin?.email === user?.email) ? (
-                  // Submission form & unsubmission button
-                  <div className="mt-4">
-                    <p className="font-medium">Your work</p>
-                    {
-                      !(task?.submission?.[0]) ? (
-                        // Submission form
-                        <form onSubmit={handleSubmittingWork}>
-                          <label className="block bg-gray-50 rounded-full mt-2">
-                            <input
-                              disabled={!(rmDays || rmHours || rmMinutes || rmSeconds)}
-                              type="file"
-                              name="assignment"
-                              className={`block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold ${rmDays || rmHours || rmMinutes || rmSeconds
-                                ? "file:bg-violet-50 file:text-violet-600 hover:file:bg-violet-100"
-                                : ""
-                                } `}
-                            />
-                          </label>
-                          <button
-                            disabled={!(rmDays || rmHours || rmMinutes || rmSeconds)}
-                            className={`mt-3 rounded-md   text-white py-1 w-full ${rmDays || rmHours || rmMinutes || rmSeconds
-                              ? "bg-violet-600 hover:bg-violet-700 hover:shadow-md"
-                              : "bg-gray-300"
-                              }`}
-                          >
-                            Turn in
-                          </button>
-                        </form>
-                      ) : (
-                        // unsubmission button
-                        <div>
-                          <div className="flex flex-row justify-between ">
-                            <a className="w-10/12 flex-1" target="_blank" href={`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/assignments/${task?.submission?.[0]?.fileId}`}>
-                              <div className="py-2 px-3 bg-green-500 rounded-md rounded-e-none cursor-pointer hover:shadow-md shadow-green-500 text-ellipsis overflow-hidden">
-                                {task?.submission?.[0]?.originalFilename}
-                              </div>
-                            </a>
-                            <button onClick={() => handleUnsubmittingWork(task?.submission?.[0]?._id)} className="py-2 px-3 bg-red-600 text-white font-bold rounded-e-md hover:shadow-md shadow-orange-600">
-                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    }
-                  </div>
-                ) : null
-              }
-            </div>
-          </div>
-          {
-            admin?.email === user?.email ? (
-              <div className="mt-10">
-                <h3 className="text-xl font-semibold mb-2">Student work</h3>
-                <div className="flex flex-col gap-3">
-                  {
-                    task?.submission?.map((work) => (
-                      <a
-                        key={work._id}
-                        target="_blank" href={`${import.meta.env.VITE_APP_BACKEND_WITHOUT_GQL}/assignments/${work.fileId}`}
-                        className="max-w-[400px] bg-neutral-100 hover:bg-neutral-200 p-3 rounded-full hover:shadow-none shadow-lg shadow-gray-300 duration-100"
+
+            {/* countdown + submission */}
+            <div className="border border-gray-200 rounded-lg p-4">
+              <Typography variant="overline" sx={{ color: "text.secondary" }}>
+                {stillOpen ? "Time remaining" : "Closed"}
+              </Typography>
+              <div className="mt-2 mb-1"><Countdown /></div>
+              {!stillOpen && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                  The deadline has passed.
+                </Alert>
+              )}
+
+              {!isTeacher && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Your work</Typography>
+
+                  {!mySubmission ? (
+                    <form onSubmit={handleSubmittingWork} className="flex flex-col gap-2">
+                      <Button
+                        component="label"
+                        variant="outlined"
+                        startIcon={<UploadFileIcon />}
+                        disabled={!stillOpen || submitting}
+                        sx={{ textTransform: "none" }}
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-11 h-11 border-2 border-gray-400 rounded-full overflow-hidden bg-gray-100 flex justify-center items-center text-xs font-medium text-center text-slate-700">
-                            {
-                              work.user.photoURL ?
-                                <img src={work.user.photoURL} alt="avatar" /> :
-                                <p className="text-base">{work.user.displayName.slice(0, 2).toUpperCase()}</p>
-                            }
+                        {/* the chosen filename was never shown before submitting */}
+                        {file ? "Change file" : "Choose file"}
+                        <input
+                          type="file"
+                          name="assignment"
+                          hidden
+                          onChange={(e) => { setError(""); setFile(e.target.files?.[0] || null); }}
+                        />
+                      </Button>
+                      {file && (
+                        <Typography variant="caption" sx={{ color: "text.secondary", wordBreak: "break-all" }}>
+                          {file.name} · {(file.size / 1024).toFixed(0)} KB
+                        </Typography>
+                      )}
+                      <LoadingButton
+                        type="submit"
+                        variant="contained"
+                        loading={submitting}
+                        disabled={!stillOpen || !file}
+                      >
+                        turn in
+                      </LoadingButton>
+                    </form>
+                  ) : (
+                    <div className="flex items-stretch gap-1">
+                      <Tooltip title="Open your submitted file" arrow>
+                        <a
+                          className="flex-1 min-w-0"
+                          target="_blank"
+                          rel="noreferrer"
+                          href={fileUrl(mySubmission.fileId)}
+                        >
+                          <div className="h-full flex items-center gap-1.5 px-3 py-2 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
+                            <CheckCircleIcon sx={{ fontSize: 16, color: "success.main" }} />
+                            <span className="text-sm truncate">{mySubmission.originalFilename}</span>
+                            <OpenInNewIcon sx={{ fontSize: 13, color: "text.disabled" }} />
                           </div>
-                          <div className="overflow-hidden text-ellipsis">
-                            <p className="text-base p-0 m-0">{work.user.displayName}</p>
-                            <p className="text-xs">{work.user.email}</p>
-                          </div>
-                        </div>
-                      </a>
-                    ))
-                  }
+                        </a>
+                      </Tooltip>
+                      <Tooltip title={stillOpen ? "Unsubmit" : "Too late to unsubmit"} arrow>
+                        <span>
+                          <IconButton
+                            color="error"
+                            onClick={() => handleUnsubmittingWork(mySubmission._id)}
+                            disabled={!stillOpen || unsubmitting}
+                          >
+                            <DeleteOutlineIcon />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {isTeacher && (
+            <>
+              <Divider sx={{ my: 3 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
+                Student work ({task?.submission?.length || 0})
+              </Typography>
+              {!task?.submission?.length ? (
+                <Alert severity="info">Nobody has turned in work yet.</Alert>
+              ) : (
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {task.submission.map((work) => (
+                    <a
+                      key={work._id}
+                      target="_blank"
+                      rel="noreferrer"
+                      href={fileUrl(work.fileId)}
+                      className="flex items-center gap-2.5 p-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors"
+                    >
+                      <Avatar src={work.user?.photoURL || undefined} sx={{ width: 36, height: 36 }}>
+                        {work.user?.displayName?.slice(0, 2).toUpperCase()}
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{work.user?.displayName}</p>
+                        <p className="text-xs text-gray-500 truncate">{work.user?.email}</p>
+                        {work.submittedAt && (
+                          <p className="text-[11px] text-gray-400">
+                            {new Date(work.submittedAt).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                      <OpenInNewIcon sx={{ fontSize: 14, color: "text.disabled" }} />
+                    </a>
+                  ))}
                 </div>
-              </div>
-            ) : null
-          }
-        </Box>
-      </Modal>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

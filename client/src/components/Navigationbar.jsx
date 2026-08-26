@@ -288,14 +288,16 @@ export default function Navigation() {
 
   // `onNavigate` closes the mobile panel after a tap; undefined on desktop
   const renderNav = (mobile, onNavigate) =>
-    navigation.map((item) =>
+    // `key` is pulled out of the object before spreading: React 18 warns when a
+    // spread object contains a "key", even if an explicit key= is also given
+    navigation.map(({ key, ...item }) =>
       item.list?.length
         ? !deptLoading
           ? mobile
-            ? <MobileDeptList key={item.key} {...item} onNavigate={onNavigate} />
-            : <DrowdownList key={item.key} {...item} />
+            ? <MobileDeptList key={key} {...item} onNavigate={onNavigate} />
+            : <DrowdownList key={key} {...item} />
           : null
-        : <LinkTitle key={item.key} {...item} onNavigate={onNavigate} />
+        : <LinkTitle key={key} {...item} onNavigate={onNavigate} />
     );
 
   const mobileProfileRoutes = profileRoutes.filter(

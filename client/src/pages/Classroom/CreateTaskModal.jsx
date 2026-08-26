@@ -1,156 +1,182 @@
-import React from 'react'
-import { Box, Button, Modal, TextField } from '@mui/material';
+import React from 'react';
+import {
+    Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+    IconButton, TextField, Typography,
+} from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import { useMutation } from "@apollo/client";
 import { CREATE_TASK } from "../../queries/query";
 import "suneditor/dist/css/suneditor.min.css";
 import Editor from "suneditor-react";
 import { useAuth } from '../../Hooks/useAuth';
 
+const EDITOR_BUTTONS = [[
+    "undo", "redo", "bold", "underline", "italic", "strike",
+    "subscript", "superscript", "blockquote", "align", "font", "fontColor",
+    "fontSize", "hiliteColor", "horizontalRule", "lineHeight", "list",
+    "paragraphStyle", "table", "textStyle",
+]];
 
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: "90%",
-    maxHeight: "90vh",
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    overflowY: "auto",
-    overflowX: "hidden"
+// value for a datetime-local input, in the browser's own timezone
+const toLocalInput = (date) => {
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
 const CreateTaskModal = ({ RoomInfo, setRoomInfo }) => {
     const { user, token } = useAuth();
-    const [createTask] = useMutation(CREATE_TASK);
+    const [createTask, { loading }] = useMutation(CREATE_TASK);
     const editor = React.useRef();
     const [open, setOpen] = React.useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-    const [deadline, setDeadline] = React.useState("");
-    const [editorContent, setEditorContent] = React.useState("");
-    const [date, setDate] = React.useState('');
-    const [time, setTime] = React.useState('');
+    const [title, setTitle] = React.useState('');
+    const [deadline, setDeadline] = React.useState('');
+    const [error, setError] = React.useState('');
+
     const getSunEditorInstance = (sunEditor) => {
         editor.current = sunEditor;
     };
 
-    const handleOnChangeTime = (e) => {
-        const changedTime = e.target.value;
-        setTime(changedTime);
-        if (date.length > 0) {
-            const isoTime = new Date(date + ' ' + changedTime).toUTCString();
-            setDeadline(isoTime);
-        }
-    }
+    const close = () => {
+        setOpen(false);
+        setError('');
+    };
 
-    const handleOnChangeDate = (e) => {
-        const changedDate = e.target.value;
-        setDate(changedDate);
-        const isoTime = new Date(changedDate + ' ' + time).toUTCString();
-        setDeadline(isoTime);
-    }
+    const reset = () => {
+        setTitle('');
+        setDeadline('');
+        setError('');
+    };
 
-    const handleCreateClassroom = (e) => {
+    /* The old version kept separate `date` and `time` inputs and recomputed the
+     * deadline inside each onChange with
+     *   new Date(date + ' ' + time).toUTCString()
+     * which produced the literal string "Invalid Date" whenever only one of the
+     * two had been filled in. One datetime-local field, converted once at submit
+     * time, cannot get into that state. */
+    const deadlineDate = deadline ? new Date(deadline) : null;
+    const deadlineValid = deadlineDate && !isNaN(deadlineDate.getTime());
+    const inPast = deadlineValid && deadlineDate.getTime() <= Date.now();
+    const canSubmit = title.trim() && deadlineValid && !inPast;
+
+    const handleCreateTask = (e) => {
         e.preventDefault();
+        if (!canSubmit) return;
         createTask({
             variables: {
-                title: e.target["title"].value,
-                description: editor.current.getContents(),
-                deadline: deadline,
+                title: title.trim(),
+                description: editor.current?.getContents() || '',
+                deadline: deadlineDate.toISOString(),
                 roomid: RoomInfo?._id,
                 token,
-            }
-        }).then(({ data }) => {
-            if (data?.createTask) {
-                setRoomInfo(pre => {
-                    const newData = { ...pre }
-                    newData.tasks = [data.createTask, ...newData.tasks]
-                    return newData;
-                })
-                handleClose();
-                alert('Task created successfully');
-            }
-        }).catch(err => {
-            alert(err?.graphQLErrors?.[0]?.message || err.message)
+            },
         })
-    }
-    if (RoomInfo?.admin?.email === user?.email)
-        return (
-            <>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    sx={{ borderRadius: 7, mb: 2, py: 1 }}
-                    onClick={handleOpen}
-                >Create</Button>
-                <Modal
-                    open={open}
-                >
-                    <Box
+            .then(({ data }) => {
+                if (!data?.createTask) return;
+                setRoomInfo((pre) => ({
+                    ...pre,
+                    tasks: [data.createTask, ...(pre.tasks || [])],
+                }));
+                reset();
+                close();
+            })
+            // was a window.alert on success and another on failure
+            .catch((err) => setError(err?.graphQLErrors?.[0]?.message || err.message));
+    };
 
-                        sx={{ ...style, p: { md: 5, xs: 2 }, bgcolor: "white", borderRadius: 2, boxShadow: '0.65px 1.75px 10px rgb(0, 0, 0, 0.3)' }}
-                    >
-                        <h5 className="mb-5 text-lg">Assignment</h5>
-                        <form onSubmit={handleCreateClassroom} className='flex flex-col gap-y-5'>
+    if (RoomInfo?.admin?.email !== user?.email) return null;
+
+    return (
+        <>
+            <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                sx={{ borderRadius: 7, mb: 2, textTransform: 'none' }}
+                onClick={() => setOpen(true)}
+            >
+                New assignment
+            </Button>
+
+            {/* Dialog rather than a bare Modal: the old <Modal open={open}> had no
+                onClose, so Escape and backdrop clicks did nothing. */}
+            <Dialog open={open} onClose={close} fullWidth maxWidth="md" scroll="paper">
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+                    <span>New assignment</span>
+                    <IconButton onClick={close} size="small" aria-label="close">
+                        <CloseIcon fontSize="small" />
+                    </IconButton>
+                </DialogTitle>
+                <Box component="form" onSubmit={handleCreateTask}>
+                    <DialogContent sx={{ pt: 0 }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2.5 }}>
+                            Everyone in <strong>{RoomInfo?.roomName}</strong> is notified when you
+                            post this.
+                        </Typography>
+                        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+                        <div className="flex flex-col gap-4">
                             <TextField
-                                id="component-task-title"
+                                id="task-title"
                                 label="Title"
-                                variant="standard"
-                                name="title"
+                                size="small"
+                                value={title}
+                                onChange={(e) => { setError(''); setTitle(e.target.value); }}
                                 required
-                            />
-                            <Editor
-                                name="description"
-                                getSunEditorInstance={getSunEditorInstance}
-                                placeholder="Write description"
-                                height='180px'
-                                setOptions={{
-                                    buttonList: [[
-                                        "undo", "redo",
-                                        "bold", "underline", "italic", "strike", "subscript", "superscript",
-                                        "blockquote",
-                                        "align",
-                                        "font",
-                                        "fontColor",
-                                        "fontSize",
-                                        "hiliteColor",
-                                        "horizontalRule",
-                                        "lineHeight",
-                                        "list",
-                                        "paragraphStyle",
-                                        "table",
-                                        "textStyle",
-                                    ]]
-                                }}
+                                autoFocus
+                                fullWidth
                             />
 
-                            <input
-                                className='border-2 p-2 rounded-md'
-                                type='date'
-                                name='date'
-                                onChange={handleOnChangeDate}
-                                required
-                            />
-                            <input
-                                className='border-2 p-2 rounded-md'
-                                type='time'
-                                name='time'
-                                onChange={handleOnChangeTime}
-                                required
-                            />
-                            <div className="flex flex-row-reverse gap-x-3">
-                                <Button className='self-end w-0' variant="text" color='error' onClick={handleClose}>Close</Button>
-                                <Button type='submit' className='self-end w-0' variant="text">Assign</Button>
+                            <div>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                                    Description
+                                </Typography>
+                                <Editor
+                                    name="description"
+                                    getSunEditorInstance={getSunEditorInstance}
+                                    placeholder="What should students do?"
+                                    height="200px"
+                                    setOptions={{ buttonList: EDITOR_BUTTONS }}
+                                />
                             </div>
-                        </form>
-                    </Box>
-                </Modal>
-            </>
-        )
-    else
-        return null;
-}
+
+                            <TextField
+                                id="task-deadline"
+                                label="Deadline"
+                                type="datetime-local"
+                                size="small"
+                                value={deadline}
+                                onChange={(e) => { setError(''); setDeadline(e.target.value); }}
+                                required
+                                fullWidth
+                                InputLabelProps={{ shrink: true }}
+                                inputProps={{ min: toLocalInput(new Date()) }}
+                                error={inPast}
+                                // a past deadline makes the task un-submittable the
+                                // moment it is created, which nothing warned about
+                                helperText={
+                                    inPast
+                                        ? 'That is in the past — nobody would be able to submit'
+                                        : 'Students can submit until this moment'
+                                }
+                            />
+                        </div>
+                    </DialogContent>
+                    <DialogActions sx={{ px: 3, pb: 2.5 }}>
+                        <Button onClick={close} disabled={loading}>Cancel</Button>
+                        <LoadingButton
+                            type="submit"
+                            variant="contained"
+                            loading={loading}
+                            disabled={!canSubmit}
+                        >
+                            post assignment
+                        </LoadingButton>
+                    </DialogActions>
+                </Box>
+            </Dialog>
+        </>
+    );
+};
 
 export default CreateTaskModal;

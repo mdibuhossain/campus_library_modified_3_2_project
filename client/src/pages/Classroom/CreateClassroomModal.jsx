@@ -1,98 +1,137 @@
-import React from 'react'
-import { Box, Button, Modal, TextField } from '@mui/material';
+import React from 'react';
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, TextField, Typography } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import { useMutation } from "@apollo/client";
 import { CREATE_CLASSROOM } from "../../queries/query";
 import { useAuth } from '../../Hooks/useAuth';
 
-
-const style = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    width: 400,
-    bgcolor: 'background.paper',
-    boxShadow: 24,
-    p: 4,
-};
+const emptyForm = { roomName: "", courseTitle: "", courseCode: "" };
 
 const CreateClassroomModal = ({ setMyRoom }) => {
-    const { token } = useAuth();
-    const [createClassroom] = useMutation(CREATE_CLASSROOM);
+    const { token, can } = useAuth();
+    const [createClassroom, { loading }] = useMutation(CREATE_CLASSROOM);
     const [open, setOpen] = React.useState(false);
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
-    const [formInfo, setFormInfo] = React.useState({ roomName: "", courseCode: "", courseTitle: "" });
+    const [form, setForm] = React.useState(emptyForm);
+    const [error, setError] = React.useState('');
 
-    const handleOnChangeForm = (e) => {
-        const tmpFormInfo = { ...formInfo };
-        tmpFormInfo[e.target.name] = e.target.value;
-        setFormInfo(tmpFormInfo);
-    }
+    const close = () => {
+        setOpen(false);
+        setError('');
+    };
+
+    const set = (name) => (e) => {
+        setError('');
+        setForm((prev) => ({ ...prev, [name]: e.target.value }));
+    };
+
+    const canSubmit =
+        form.roomName.trim() && form.courseTitle.trim() && form.courseCode.trim();
 
     const handleCreateClassroom = (e) => {
         e.preventDefault();
-        createClassroom({ variables: { ...formInfo, token } })
+        if (!canSubmit) return;
+        createClassroom({
+            variables: {
+                roomName: form.roomName.trim(),
+                courseTitle: form.courseTitle.trim(),
+                courseCode: form.courseCode.trim(),
+                token,
+            },
+        })
             .then(({ data }) => {
-                if (data?.createClassroom) {
-                    setMyRoom(pre => [...pre, data.createClassroom])
-                }
-            }).catch(err => {
-                console.log(err.message)
+                if (!data?.createClassroom) return;
+                setMyRoom((pre) => [...pre, data.createClassroom]);
+                // the old version left the dialog open with the same values
+                // still filled in, so pressing Create again made a duplicate
+                setForm(emptyForm);
+                close();
             })
-    }
+            // was only console.log, so a failure looked like nothing happened
+            .catch((err) => setError(err?.graphQLErrors?.[0]?.message || err.message));
+    };
 
     return (
         <>
             <Button
-                variant="outlined"
+                variant="contained"
                 startIcon={<AddIcon />}
-                onClick={handleOpen}
-            >Create Classroom</Button>
-            <Modal
-                open={open}
+                onClick={() => setOpen(true)}
+                sx={{ borderRadius: 7, textTransform: 'none' }}
+                // the server requires classroom.create; without the permission
+                // the button would open a form that always fails
+                disabled={!can('classroom.create')}
             >
-                <Box
+                Create classroom
+            </Button>
 
-                    sx={{ ...style, maxWidth: "450px", m: { md: "auto", xs: 2 }, p: 5, bgcolor: "white", borderRadius: 2, boxShadow: '0.65px 1.75px 10px rgb(0, 0, 0, 0.3)' }}
-                >
-                    <h5 className="mb-5 text-lg">Create classroom</h5>
-                    <form onSubmit={handleCreateClassroom} className='flex flex-col gap-y-5'>
-                        <TextField
-                            id="component-classroom-name"
-                            label="Classroom name"
-                            multiline
-                            variant="standard"
-                            name="roomName"
-                            onChange={handleOnChangeForm}
-                            required
-                        />
-                        <TextField
-                            id="component-course"
-                            label="Course title"
-                            variant="standard"
-                            name="courseTitle"
-                            onChange={handleOnChangeForm}
-                            required
-                        />
-                        <TextField
-                            id="component-course-code"
-                            label="Course code"
-                            variant="standard"
-                            name="courseCode"
-                            onChange={handleOnChangeForm}
-                            required
-                        />
-                        <div className="flex flex-row-reverse gap-x-3">
-                            <Button className='self-end w-0' variant="text" color='error' onClick={handleClose}>Close</Button>
-                            <Button type='submit' className='self-end w-0' variant="text">Create</Button>
+            {/* Dialog rather than a bare Modal: the old <Modal open={open}> had no
+                onClose, so Escape and backdrop clicks did nothing and the only way
+                out was the Close button. */}
+            <Dialog open={open} onClose={close} fullWidth maxWidth="xs">
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+                    <span>Create classroom</span>
+                    <IconButton onClick={close} size="small" aria-label="close">
+                        <CloseIcon fontSize="small" />
+                    </IconButton>
+                </DialogTitle>
+                <Box component="form" onSubmit={handleCreateClassroom}>
+                    <DialogContent sx={{ pt: 0 }}>
+                        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2.5 }}>
+                            You will be the admin of this classroom and can add members and
+                            assignments once it exists.
+                        </Typography>
+                        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                        <div className="flex flex-col gap-4">
+                            <TextField
+                                id="classroom-name"
+                                label="Classroom name"
+                                size="small"
+                                value={form.roomName}
+                                onChange={set('roomName')}
+                                required
+                                autoFocus
+                                fullWidth
+                                helperText="e.g. CSE 3rd year — Section A"
+                            />
+                            <TextField
+                                id="classroom-course-title"
+                                label="Course title"
+                                size="small"
+                                value={form.courseTitle}
+                                onChange={set('courseTitle')}
+                                required
+                                fullWidth
+                            />
+                            <TextField
+                                id="classroom-course-code"
+                                label="Course code"
+                                size="small"
+                                value={form.courseCode}
+                                onChange={set('courseCode')}
+                                required
+                                fullWidth
+                                helperText="Matching library material shows up inside the classroom"
+                            />
                         </div>
-                    </form>
+                    </DialogContent>
+                    <DialogActions sx={{ px: 3, pb: 2.5 }}>
+                        {/* the old buttons carried className="w-0", literally zero width */}
+                        <Button onClick={close} disabled={loading}>Cancel</Button>
+                        <LoadingButton
+                            type="submit"
+                            variant="contained"
+                            loading={loading}
+                            disabled={!canSubmit}
+                        >
+                            create
+                        </LoadingButton>
+                    </DialogActions>
                 </Box>
-            </Modal>
+            </Dialog>
         </>
-    )
-}
+    );
+};
 
 export default CreateClassroomModal;
