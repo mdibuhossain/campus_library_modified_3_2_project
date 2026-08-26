@@ -655,13 +655,35 @@ const mutation = new GraphQLObjectType({
         secret: { type: GraphQLString },
         withinHours: { type: GraphQLInt },
       },
-      async resolve(_, args) {
-        const expected = process.env.CRON_SECRET;
+      async resolve(_, args, context) {
+        // trimmed: a stray newline or space in a dashboard-pasted env var is a
+        // very easy way to get a mismatch that looks like a wrong secret
+        const expected = (process.env.CRON_SECRET || "").trim();
         if (!expected) {
           throw new Error("CRON_SECRET is not configured on the server");
         }
-        if (args?.secret !== expected) {
-          throw new Error("Unauthorized");
+        // Accept the secret as a GraphQL variable OR an x-cron-secret header --
+        // cron services differ in how reliably they send a JSON body with
+        // variables, and a header is usually easier to configure correctly.
+        // express-graphql's default context is the Express request.
+        const fromHeader = context?.headers?.["x-cron-secret"];
+        const provided = String(args?.secret || fromHeader || "").trim();
+        // distinguished from a mismatch on purpose: "it never arrived" and "it
+        // arrived wrong" need completely different fixes. Neither leaks the value.
+        if (!provided) {
+          throw new Error(
+            "No cron secret received. Send it as the `secret` GraphQL variable or an x-cron-secret header."
+          );
+        }
+        if (provided !== expected) {
+          // Lengths only -- never the values. A length difference immediately
+          // reveals the usual culprit: quotes or a newline included when the
+          // variable was pasted into a hosting dashboard. dotenv strips quotes
+          // from a local .env file, so `CRON_SECRET="abc"` works locally while
+          // the same paste into Vercel yields a literal 5-character `"abc"`.
+          throw new Error(
+            `Unauthorized (received ${provided.length} chars, server expects ${expected.length})`
+          );
         }
         const hours = Math.min(Math.max(args?.withinHours || 24, 1), 168);
         const now = new Date();
