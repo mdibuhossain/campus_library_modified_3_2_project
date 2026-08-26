@@ -20,6 +20,8 @@ const Task = require("../Models/Task_Model");
 const Submission = require("../Models/Submission_Model");
 const Role = require("../Models/Role_Model");
 const Notification = require("../Models/Notification_Model");
+const Conversation = require("../Models/Conversation_Model");
+const Message = require("../Models/Message_Model");
 const { notify } = require("../notifications");
 const { PERMISSION_KEYS } = require("../permissions");
 const { verifyToken } = require("../MiddleWare/isAuth");
@@ -130,6 +132,27 @@ const defaultRoleName = async () => {
   const roles = await loadRoles();
   for (const role of roles.values()) if (role.isDefault) return role.name;
   return "student";
+};
+
+// Regex-escaped so a user typing "a.b" or "c+d" searches literally instead of
+// injecting a pattern (and "(((" cannot blow up the regex engine).
+const escapeRegex = (v) => String(v).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Shapes a conversation for the caller: resolves the other participant and
+// flattens that person's unread counter.
+const shapeConversation = async (convo, callerEmail) => {
+  const otherEmail = (convo.participants || []).find((p) => p !== callerEmail);
+  const other = otherEmail
+    ? await User.findOne({ email: otherEmail }, "displayName email photoURL designation department")
+    : null;
+  return {
+    _id: convo._id,
+    other,
+    lastMessage: convo.lastMessage,
+    lastMessageAt: convo.lastMessageAt,
+    lastMessageFrom: convo.lastMessageFrom,
+    unread: convo.unreadCounts?.[(convo.participants || []).indexOf(callerEmail)] || 0,
+  };
 };
 
 // members + admin, as the REST controllers populated them
@@ -265,6 +288,41 @@ const NotificationFeedType = new GraphQLObjectType({
   name: "notificationFeed",
   fields: () => ({
     items: { type: new GraphQLList(NotificationType) },
+    unread: { type: GraphQLInt },
+  }),
+});
+// A deliberately thin view of another user: chat needs enough to recognise
+// somebody, not the whole record. getUsers stays behind user.list.
+const PublicUserType = new GraphQLObjectType({
+  name: "publicUser",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    displayName: { type: GraphQLString },
+    email: { type: GraphQLString },
+    photoURL: { type: GraphQLString },
+    designation: { type: GraphQLString },
+    department: { type: GraphQLString },
+  }),
+});
+const MessageType = new GraphQLObjectType({
+  name: "message",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    from: { type: GraphQLString },
+    body: { type: GraphQLString },
+    iat: isoDate("iat"),
+    mine: { type: GraphQLBoolean },
+  }),
+});
+const ConversationType = new GraphQLObjectType({
+  name: "conversation",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    // the participant who is not the caller
+    other: { type: PublicUserType },
+    lastMessage: { type: GraphQLString },
+    lastMessageAt: isoDate("lastMessageAt"),
+    lastMessageFrom: { type: GraphQLString },
     unread: { type: GraphQLInt },
   }),
 });
@@ -488,6 +546,91 @@ const RootQuery = new GraphQLObjectType({
         }));
       },
     },
+    // Discovery. Any signed-in user may search, but only by an explicit query
+    // and only for a capped number of thin records -- this is not a directory
+    // dump, which is what getUsers (user.list) is for.
+    searchUsers: {
+      type: new GraphQLList(PublicUserType),
+      args: {
+        query: { type: GraphQLString },
+        token: { type: GraphQLString },
+        limit: { type: GraphQLInt },
+      },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const q = String(args?.query || "").trim();
+        // a 1-character search would return most of the collection
+        if (q.length < 2) return [];
+        const rx = new RegExp(escapeRegex(q), "i");
+        const limit = Math.min(Math.max(args?.limit || 10, 1), 25);
+        return User.find(
+          {
+            email: { $ne: caller.email },
+            $or: [{ displayName: rx }, { email: rx }],
+          },
+          "displayName email photoURL designation department"
+        )
+          .sort("displayName")
+          .limit(limit);
+      },
+    },
+    getConversations: {
+      type: new GraphQLList(ConversationType),
+      args: { token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const convos = await Conversation.find({ participants: caller.email })
+          .sort({ lastMessageAt: -1 })
+          .limit(50);
+        return Promise.all(convos.map((c) => shapeConversation(c, caller.email)));
+      },
+    },
+    // total unread across every conversation, for the nav badge
+    getUnreadMessageCount: {
+      type: GraphQLInt,
+      args: { token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const convos = await Conversation.find(
+          { participants: caller.email },
+          "participants unreadCounts"
+        );
+        return convos.reduce(
+          (n, c) => n + (c.unreadCounts?.[(c.participants || []).indexOf(caller.email)] || 0),
+          0
+        );
+      },
+    },
+    getMessages: {
+      type: new GraphQLList(MessageType),
+      args: {
+        conversationId: { type: GraphQLID },
+        // ascending _id cursor: "give me what arrived after this"
+        after: { type: GraphQLID },
+        limit: { type: GraphQLInt },
+        token: { type: GraphQLString },
+      },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const convo = await Conversation.findById(args?.conversationId);
+        if (!convo) throw new Error("Conversation not found");
+        // being a participant IS the authorisation
+        if (!convo.participants.includes(caller.email)) {
+          throw new Error("Unauthorized");
+        }
+        const limit = Math.min(Math.max(args?.limit || 50, 1), 100);
+        const filter = { conversation: convo._id };
+        if (args?.after) filter._id = { $gt: args.after };
+        const rows = await Message.find(filter).sort({ _id: 1 }).limit(limit);
+        return rows.map((m) => ({
+          _id: m._id,
+          from: m.from,
+          body: m.body,
+          iat: m.iat,
+          mine: m.from === caller.email,
+        }));
+      },
+    },
     getNotifications: {
       type: NotificationFeedType,
       args: { token: { type: GraphQLString }, limit: { type: GraphQLInt } },
@@ -596,6 +739,122 @@ const mutation = new GraphQLObjectType({
           return null;
         }
         return User.create(args);
+      },
+    },
+
+    // ---- Chat ----
+    /* Opens (or finds) the conversation with one other person.
+     *
+     * Uses an upsert on the unique pairKey rather than find-then-create: two
+     * people opening the chat with each other simultaneously would otherwise
+     * both find nothing and both insert, giving one pair two conversations. */
+    startConversation: {
+      type: ConversationType,
+      args: { email: { type: GraphQLString }, token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const otherEmail = String(args?.email || "").trim().toLowerCase();
+        if (!otherEmail) throw new Error("No recipient provided");
+        if (otherEmail === caller.email) {
+          throw new Error("You cannot start a conversation with yourself");
+        }
+        const other = await User.findOne({ email: otherEmail });
+        if (!other) throw new Error("User not exist!");
+
+        const pairKey = Conversation.keyFor(caller.email, otherEmail);
+        const convo = await Conversation.findOneAndUpdate(
+          { pairKey },
+          {
+            $setOnInsert: {
+              pairKey,
+              participants: [caller.email, otherEmail].sort(),
+              lastMessage: "",
+              lastMessageAt: new Date(),
+              lastMessageFrom: "",
+              unreadCounts: [0, 0],
+            },
+          },
+          { new: true, upsert: true, setDefaultsOnInsert: true }
+        );
+        return shapeConversation(convo, caller.email);
+      },
+    },
+    sendMessage: {
+      type: MessageType,
+      args: {
+        conversationId: { type: GraphQLID },
+        body: { type: GraphQLString },
+        token: { type: GraphQLString },
+      },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const body = String(args?.body || "").trim();
+        if (!body) throw new Error("Message is empty");
+        if (body.length > 4000) throw new Error("Message is too long");
+
+        const convo = await Conversation.findById(args?.conversationId);
+        if (!convo) throw new Error("Conversation not found");
+        if (!convo.participants.includes(caller.email)) {
+          throw new Error("Unauthorized");
+        }
+        const recipient = convo.participants.find((p) => p !== caller.email);
+
+        const message = await new Message({
+          conversation: convo._id,
+          from: caller.email,
+          body,
+        }).save();
+
+        // $inc the recipient's slot only -- the sender has read their own message
+        // by definition. A numeric index, because an email in the path would be
+        // split on its dots.
+        const recipientIdx = convo.participants.indexOf(recipient);
+        await Conversation.updateOne(
+          { _id: convo._id },
+          {
+            $set: {
+              lastMessage: body.slice(0, 200),
+              lastMessageAt: message.iat,
+              lastMessageFrom: caller.email,
+            },
+            $inc: { [`unreadCounts.${recipientIdx}`]: 1 },
+          }
+        );
+
+        // This is what makes it feel live without a socket: the recipient gets a
+        // push and their client pulls messages after its cursor.
+        await notify([recipient], {
+          title: caller.displayName || caller.email,
+          body: body.slice(0, 120),
+          link: `/messages/${convo._id}`,
+          kind: "message",
+        });
+
+        return {
+          _id: message._id,
+          from: message.from,
+          body: message.body,
+          iat: message.iat,
+          mine: true,
+        };
+      },
+    },
+    markConversationRead: {
+      type: AuthActionType,
+      args: { conversationId: { type: GraphQLID }, token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const convo = await Conversation.findById(args?.conversationId);
+        if (!convo) throw new Error("Conversation not found");
+        if (!convo.participants.includes(caller.email)) {
+          throw new Error("Unauthorized");
+        }
+        const callerIdx = convo.participants.indexOf(caller.email);
+        await Conversation.updateOne(
+          { _id: convo._id },
+          { $set: { [`unreadCounts.${callerIdx}`]: 0 } }
+        );
+        return { success: true, message: "Marked read" };
       },
     },
 

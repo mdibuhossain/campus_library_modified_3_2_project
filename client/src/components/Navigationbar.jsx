@@ -4,7 +4,7 @@ import { MenuIcon, XIcon, ChevronDownIcon } from "@heroicons/react/outline";
 import { NavLink } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import { useAuth } from "../Hooks/useAuth";
-import { CircularProgress } from "@mui/material";
+import { Badge, CircularProgress } from "@mui/material";
 import DownloadButtonWithAnimate from "./Download_Button/DownloadButtonWithAnimate";
 import useUtility from "../Hooks/useUtility";
 import NotificationBell from "./NotificationBell";
@@ -130,10 +130,21 @@ const ProfileButton = () => {
 // Desktop link: a plain anchor. The mobile variant wraps it in Disclosure.Button
 // so tapping it also closes the menu -- previously a <Disclosure.Button> (a
 // <button>) was nested *inside* the <NavLink> (an <a>), which is invalid HTML.
-const LinkTitle = ({ name, to, icon, onNavigate }) => (
+const LinkTitle = ({ name, to, icon, onNavigate, badge }) => (
   <NavLink to={to} onClick={onNavigate} className={itemClass}>
     <span className="inline-flex items-center justify-center gap-1.5">
-      {name}
+      {badge ? (
+        <Badge
+          badgeContent={badge}
+          color="error"
+          max={99}
+          sx={{ "& .MuiBadge-badge": { right: -12, top: 0 } }}
+        >
+          {name}
+        </Badge>
+      ) : (
+        name
+      )}
       {icon || null}
     </span>
   </NavLink>
@@ -272,13 +283,23 @@ const DrowdownList = ({ name, list }) => (
 );
 
 export default function Navigation() {
-  const { user, isLoading, can } = useAuth();
+  const { user, isLoading, can, unreadMessages } = useAuth();
   const { deptNavList, deptLoading } = useUtility();
 
   const navigation = [
     { key: "home", name: "Home", to: "/" },
     // /classroom is behind RequireAuth, so only offer it once signed in
-    ...(user?.email ? [{ key: "classroom", name: "Classroom", to: "/classroom" }] : []),
+    ...(user?.email
+      ? [
+        { key: "classroom", name: "Classroom", to: "/classroom" },
+        {
+          key: "messages",
+          name: "Messages",
+          to: "/messages",
+          badge: unreadMessages,
+        },
+      ]
+      : []),
     { key: "dept", name: "Department", list: deptNavList },
     { key: "upload", name: "Upload", to: "/request" },
     // `key` is explicit because this item's name is empty (icon only), which

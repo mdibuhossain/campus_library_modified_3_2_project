@@ -15,4 +15,9 @@ const UserSchema = new mongoose.Schema({
     fcmTokens: { type: [String], default: [] }
 })
 
+// Backs searchUsers(): a case-insensitive prefix/substring match on either
+// field. Without these, every search is a full collection scan.
+UserSchema.index({ displayName: 1 })
+UserSchema.index({ email: 1 })
+
 module.exports = mongoose.model('User', UserSchema)

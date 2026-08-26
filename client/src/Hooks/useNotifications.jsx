@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@apollo/client";
 import { getMessaging, getToken, onMessage, isSupported } from "firebase/messaging";
 import {
     GET_NOTIFICATIONS, REGISTER_DEVICE, UNREGISTER_DEVICE, MARK_NOTIFICATIONS_READ,
+    GET_UNREAD_MESSAGE_COUNT,
 } from "../queries/query";
 
 const VAPID_KEY = import.meta.env.VITE_APP_VAPID_KEY;
@@ -81,6 +82,17 @@ const useNotifications = (token) => {
         pollInterval: token ? 120000 : 0,
         fetchPolicy: "cache-and-network",
     });
+
+    // drives the badge on the nav's Messages entry
+    const { data: unreadMsgData, refetch: refetchUnreadMessages } = useQuery(
+        GET_UNREAD_MESSAGE_COUNT,
+        {
+            variables: { token },
+            skip: !token,
+            pollInterval: token ? 60000 : 0,
+            fetchPolicy: "cache-and-network",
+        }
+    );
 
     const [registerDevice] = useMutation(REGISTER_DEVICE);
     const [unregisterDevice] = useMutation(UNREGISTER_DEVICE);
@@ -168,10 +180,14 @@ const useNotifications = (token) => {
         (async () => {
             const messaging = await getMessagingSafe();
             if (!messaging) return;
-            unsubscribe = onMessage(messaging, () => { refetch(); });
+            unsubscribe = onMessage(messaging, () => {
+                refetch();
+                // a chat push must move the Messages badge as well as the bell
+                refetchUnreadMessages();
+            });
         })();
         return () => unsubscribe();
-    }, [token, supported, permission, refetch, getMessagingSafe]);
+    }, [token, supported, permission, refetch, refetchUnreadMessages, getMessagingSafe]);
 
     const markAllRead = useCallback(async () => {
         if (!unread) return;
@@ -186,6 +202,8 @@ const useNotifications = (token) => {
 
     return {
         items, unread, refetchNotifications: refetch,
+        unreadMessages: unreadMsgData?.getUnreadMessageCount || 0,
+        refetchUnreadMessages,
         permission, pushSupported: supported, pushConfigured: !!VAPID_KEY, pushError,
         enablePush, disablePush, markAllRead, markOneRead,
     };

@@ -23,6 +23,7 @@ const RequireAuth = lazy(() => import("./PrivateRoute/RequireAuth"));
 const AdminRoute = lazy(() => import("./PrivateRoute/AdminRoute"));
 const MakeAdmin = lazy(() => import("./pages/MakeAdmin/MakeAdmin"));
 const RoleManagement = lazy(() => import("./pages/RoleManagement/RoleManagement"));
+const Messages = lazy(() => import("./pages/Messages/Messages"));
 const EditContent = lazy(() => import("./pages/EditContent/EditContent"));
 const ChangeDP = lazy(() => import("./pages/ChangeDP/ChangeDP"));
 const Classroom = lazy(() => import("./pages/Classroom/Classroom"));
@@ -182,6 +183,26 @@ function App() {
                       <AdminRoute permission="role.manage">
                         <RoleManagement />
                       </AdminRoute>
+                    }
+                  />
+                  {/* both paths render the same page: the list, plus the open
+                      thread when a conversation id is present */}
+                  <Route
+                    exact
+                    path="/messages"
+                    element={
+                      <RequireAuth>
+                        <Messages />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    exact
+                    path="/messages/:cid"
+                    element={
+                      <RequireAuth>
+                        <Messages />
+                      </RequireAuth>
                     }
                   />
                   <Route exact path="/login" element={<Login />} />

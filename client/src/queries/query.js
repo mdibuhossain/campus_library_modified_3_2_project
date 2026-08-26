@@ -247,6 +247,86 @@ const POST_USER = gql`
   }
 `;
 
+// ---- Chat (1:1 messaging over Mongo, made live by FCM push + a short poll) ----
+const SEARCH_USERS = gql`
+  query SearchUsers($query: String!, $token: String!, $limit: Int) {
+    searchUsers(query: $query, token: $token, limit: $limit) {
+      _id
+      displayName
+      email
+      photoURL
+      designation
+      department
+    }
+  }
+`;
+const GET_CONVERSATIONS = gql`
+  query GetConversations($token: String!) {
+    getConversations(token: $token) {
+      _id
+      lastMessage
+      lastMessageAt
+      lastMessageFrom
+      unread
+      other {
+        displayName
+        email
+        photoURL
+        designation
+        department
+      }
+    }
+  }
+`;
+const GET_UNREAD_MESSAGE_COUNT = gql`
+  query GetUnreadMessageCount($token: String!) {
+    getUnreadMessageCount(token: $token)
+  }
+`;
+const GET_MESSAGES = gql`
+  query GetMessages($conversationId: ID!, $after: ID, $limit: Int, $token: String!) {
+    getMessages(conversationId: $conversationId, after: $after, limit: $limit, token: $token) {
+      _id
+      from
+      body
+      iat
+      mine
+    }
+  }
+`;
+const START_CONVERSATION = gql`
+  mutation StartConversation($email: String!, $token: String!) {
+    startConversation(email: $email, token: $token) {
+      _id
+      unread
+      other {
+        displayName
+        email
+        photoURL
+      }
+    }
+  }
+`;
+const SEND_MESSAGE = gql`
+  mutation SendMessage($conversationId: ID!, $body: String!, $token: String!) {
+    sendMessage(conversationId: $conversationId, body: $body, token: $token) {
+      _id
+      from
+      body
+      iat
+      mine
+    }
+  }
+`;
+const MARK_CONVERSATION_READ = gql`
+  mutation MarkConversationRead($conversationId: ID!, $token: String!) {
+    markConversationRead(conversationId: $conversationId, token: $token) {
+      success
+      message
+    }
+  }
+`;
+
 // ---- Notifications (FCM push + in-app history) ----
 const GET_NOTIFICATIONS = gql`
   query GetNotifications($token: String!, $limit: Int) {
@@ -708,6 +788,13 @@ export {
   POST_BOOK,
   POST_QUESTION,
   POST_SYLLABUS,
+  SEARCH_USERS,
+  GET_CONVERSATIONS,
+  GET_UNREAD_MESSAGE_COUNT,
+  GET_MESSAGES,
+  START_CONVERSATION,
+  SEND_MESSAGE,
+  MARK_CONVERSATION_READ,
   GET_NOTIFICATIONS,
   REGISTER_DEVICE,
   UNREGISTER_DEVICE,
