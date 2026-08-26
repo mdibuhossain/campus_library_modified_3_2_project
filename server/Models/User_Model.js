@@ -9,7 +9,10 @@ const UserSchema = new mongoose.Schema({
     designation: { type: String },
     department: { type: String },
     semester: { type: String },
-    role: { type: String }
+    role: { type: String },
+    // FCM device tokens. An array because one person may use several browsers
+    // or devices; invalid ones are pruned when FCM reports them as stale.
+    fcmTokens: { type: [String], default: [] }
 })
 
 module.exports = mongoose.model('User', UserSchema)

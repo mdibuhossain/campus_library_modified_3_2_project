@@ -33,6 +33,12 @@ const TaskSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    // set once the "deadline approaching" reminder has gone out, so a cron that
+    // runs repeatedly cannot notify the same people twice
+    reminderSentAt: {
+      type: Date,
+      default: null,
+    },
   },
 );
 

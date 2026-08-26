@@ -73,6 +73,8 @@ const useFirebase = () => {
                 department: userDepartment = "",
                 semester: userSemester = "",
                 isProfileComplete: profileComplete = false,
+                role: userRole = "",
+                permissions: userPermissions = [],
             } = {}
         } = [],
         loading: userStatusLoading = true,
@@ -82,6 +84,10 @@ const useFirebase = () => {
         // the query declares email as String!, so don't fire it signed out
         skip: !user?.email,
     })
+
+    // Capability check. Replaces branching on `admin` -- a role can now hold
+    // one permission without holding the others.
+    const can = (key) => (userPermissions || []).includes(key);
 
     const uploadAvatar = async (file) => {
         const fileRef = ref(storage, 'avatar/' + auth?.currentUser?.uid + '.png');
@@ -382,6 +388,9 @@ const useFirebase = () => {
         userSemester,
         userDepartment,
         userDesignation,
+        can,
+        userRole,
+        userPermissions,
         userStatusLoading,
         uploadAvatar,
         signWithGoogle,

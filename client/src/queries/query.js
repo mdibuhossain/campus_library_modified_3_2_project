@@ -121,6 +121,8 @@ const GET_USER_STATUS = gql`
       department
       semester
       isProfileComplete
+      role
+      permissions
     }
   }
 `;
@@ -241,6 +243,48 @@ const POST_USER = gql`
       photoURL: $photoURL
     ) {
       _id
+    }
+  }
+`;
+
+// ---- Notifications (FCM push + in-app history) ----
+const GET_NOTIFICATIONS = gql`
+  query GetNotifications($token: String!, $limit: Int) {
+    getNotifications(token: $token, limit: $limit) {
+      unread
+      items {
+        _id
+        title
+        body
+        link
+        kind
+        read
+        iat
+      }
+    }
+  }
+`;
+const REGISTER_DEVICE = gql`
+  mutation RegisterDevice($fcmToken: String!, $token: String!) {
+    registerDevice(fcmToken: $fcmToken, token: $token) {
+      success
+      message
+    }
+  }
+`;
+const UNREGISTER_DEVICE = gql`
+  mutation UnregisterDevice($fcmToken: String!, $token: String!) {
+    unregisterDevice(fcmToken: $fcmToken, token: $token) {
+      success
+      message
+    }
+  }
+`;
+const MARK_NOTIFICATIONS_READ = gql`
+  mutation MarkNotificationsRead($_id: ID, $token: String!) {
+    markNotificationsRead(_id: $_id, token: $token) {
+      success
+      message
     }
   }
 `;
@@ -486,10 +530,79 @@ const UPDATE_PROFILE = gql`
     }
   }
 `;
-const MAKE_ADMIN = gql`
-  mutation MakeAdmin($_id: ID!, $token: String!) {
-    makeAdmin(_id: $_id, token: $token) {
+const GET_ROLES = gql`
+  query GetRoles($token: String!) {
+    getRoles(token: $token) {
       _id
+      name
+      description
+      permissions
+      protected
+      isDefault
+      userCount
+    }
+  }
+`;
+const GET_PERMISSION_KEYS = gql`
+  query GetPermissionKeys($token: String!) {
+    getPermissionKeys(token: $token) {
+      key
+      description
+    }
+  }
+`;
+const CREATE_ROLE = gql`
+  mutation CreateRole(
+    $name: String!
+    $description: String
+    $permissions: [String]
+    $token: String!
+  ) {
+    createRole(
+      name: $name
+      description: $description
+      permissions: $permissions
+      token: $token
+    ) {
+      _id
+      name
+      permissions
+    }
+  }
+`;
+const UPDATE_ROLE = gql`
+  mutation UpdateRole(
+    $_id: ID!
+    $description: String
+    $permissions: [String]
+    $token: String!
+  ) {
+    updateRole(
+      _id: $_id
+      description: $description
+      permissions: $permissions
+      token: $token
+    ) {
+      _id
+      name
+      permissions
+    }
+  }
+`;
+const DELETE_ROLE = gql`
+  mutation DeleteRole($_id: ID!, $token: String!) {
+    deleteRole(_id: $_id, token: $token) {
+      success
+      message
+    }
+  }
+`;
+const ASSIGN_ROLE = gql`
+  mutation AssignRole($_id: ID!, $roleName: String!, $token: String!) {
+    assignRole(_id: $_id, roleName: $roleName, token: $token) {
+      _id
+      email
+      role
     }
   }
 `;
@@ -595,7 +708,16 @@ export {
   POST_BOOK,
   POST_QUESTION,
   POST_SYLLABUS,
-  MAKE_ADMIN,
+  GET_NOTIFICATIONS,
+  REGISTER_DEVICE,
+  UNREGISTER_DEVICE,
+  MARK_NOTIFICATIONS_READ,
+  GET_ROLES,
+  GET_PERMISSION_KEYS,
+  CREATE_ROLE,
+  UPDATE_ROLE,
+  DELETE_ROLE,
+  ASSIGN_ROLE,
   CHANGE_PASSWORD,
   COMPLETE_PROFILE,
   GET_CLASSROOMS,

@@ -22,6 +22,7 @@ const CompleteProfile = lazy(() => import("./pages/CompleteProfile/CompleteProfi
 const RequireAuth = lazy(() => import("./PrivateRoute/RequireAuth"));
 const AdminRoute = lazy(() => import("./PrivateRoute/AdminRoute"));
 const MakeAdmin = lazy(() => import("./pages/MakeAdmin/MakeAdmin"));
+const RoleManagement = lazy(() => import("./pages/RoleManagement/RoleManagement"));
 const EditContent = lazy(() => import("./pages/EditContent/EditContent"));
 const ChangeDP = lazy(() => import("./pages/ChangeDP/ChangeDP"));
 const Classroom = lazy(() => import("./pages/Classroom/Classroom"));
@@ -134,10 +135,7 @@ function App() {
                     path="/pending"
                     element={
                       <RequireAuth>
-                        <ContentManagement
-                          isMyContent={false}
-                          pageTitle="PENDING REQUEST"
-                        />
+                        <ContentManagement mode="pending" />
                       </RequireAuth>
                     }
                   />
@@ -146,10 +144,7 @@ function App() {
                     path="/mycontent"
                     element={
                       <RequireAuth>
-                        <ContentManagement
-                          isMyContent={true}
-                          pageTitle="MY CONTENT"
-                        />
+                        <ContentManagement mode="mine" />
                       </RequireAuth>
                     }
                   />
@@ -157,8 +152,8 @@ function App() {
                     exact
                     path="/manage"
                     element={
-                      <AdminRoute>
-                        <ContentManagement pageTitle="MANAGE CONTENT" />
+                      <AdminRoute permission="content.approve">
+                        <ContentManagement mode="manage" />
                       </AdminRoute>
                     }
                   />
@@ -175,8 +170,17 @@ function App() {
                     exact
                     path="/makeadmin"
                     element={
-                      <AdminRoute>
+                      <AdminRoute permission="user.role.assign">
                         <MakeAdmin />
+                      </AdminRoute>
+                    }
+                  />
+                  <Route
+                    exact
+                    path="/roles"
+                    element={
+                      <AdminRoute permission="role.manage">
+                        <RoleManagement />
                       </AdminRoute>
                     }
                   />

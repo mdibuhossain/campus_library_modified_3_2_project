@@ -7,8 +7,12 @@ import { useAuth } from "../Hooks/useAuth";
 import { CircularProgress } from "@mui/material";
 import DownloadButtonWithAnimate from "./Download_Button/DownloadButtonWithAnimate";
 import useUtility from "../Hooks/useUtility";
+import NotificationBell from "./NotificationBell";
 
-const usersRoute = [
+// One list instead of an admin/user fork. `permission` is a key from
+// server/permissions.js; entries without one are visible to every signed-in
+// user. Adding a role no longer means touching this file.
+const profileRoutes = [
   {
     name: "Settings",
     to: "/settings",
@@ -21,24 +25,20 @@ const usersRoute = [
     name: "My Content",
     to: "/mycontent",
   },
-];
-
-const adminRoute = [
-  // {
-  //     name: 'Test File upload',
-  //     to: '/test'
-  // },
   {
     name: "Manage Content",
     to: "/manage",
+    permission: "content.approve",
   },
   {
-    name: "Make Admin",
+    name: "User Roles",
     to: "/makeadmin",
+    permission: "user.role.assign",
   },
   {
-    name: "Settings",
-    to: "/settings",
+    name: "Manage Roles",
+    to: "/roles",
+    permission: "role.manage",
   },
 ];
 
@@ -47,7 +47,10 @@ function classNames(...classes) {
 }
 
 const ProfileButton = () => {
-  const { user, logOut, admin } = useAuth();
+  const { user, logOut, can } = useAuth();
+  const visibleRoutes = profileRoutes.filter(
+    (route) => !route.permission || can(route.permission)
+  );
   if (user?.email)
     return (
       <Menu as="div" className="ml-3 relative z-50">
@@ -69,39 +72,22 @@ const ProfileButton = () => {
           leaveTo="transform opacity-0 scale-95"
         >
           <Menu.Items className="bg-gray-700 origin-top-right absolute md:right-0 -right-20 mt-2 w-48 rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 focus:outline-none">
-            {/* Admin and normal user features */}
-            {admin &&
-              adminRoute.map((route) => (
-                <Menu.Item key={route?.name}>
-                  {({ active }) => (
-                    <NavLink
-                      to={route.to}
-                      className={classNames(
-                        active ? "bg-gray-800" : "",
-                        "block px-4 py-2 text-sm text-gray-200"
-                      )}
-                    >
-                      {route.name}
-                    </NavLink>
-                  )}
-                </Menu.Item>
-              ))}
-            {!admin &&
-              usersRoute.map((route) => (
-                <Menu.Item key={route?.name}>
-                  {({ active }) => (
-                    <NavLink
-                      to={route.to}
-                      className={classNames(
-                        active ? "bg-gray-800" : "",
-                        "block px-4 py-2 text-sm text-gray-200"
-                      )}
-                    >
-                      {route.name}
-                    </NavLink>
-                  )}
-                </Menu.Item>
-              ))}
+            {/* filtered by the caller's permissions */}
+            {visibleRoutes.map((route) => (
+              <Menu.Item key={route?.name}>
+                {({ active }) => (
+                  <NavLink
+                    to={route.to}
+                    className={classNames(
+                      active ? "bg-gray-800" : "",
+                      "block px-4 py-2 text-sm text-gray-200"
+                    )}
+                  >
+                    {route.name}
+                  </NavLink>
+                )}
+              </Menu.Item>
+            ))}
             <Menu.Item>
               {({ active }) => (
                 <NavLink
@@ -276,11 +262,14 @@ export default function Navigation() {
                         transform: "translate(-50%, 0)",
                       }}
                     >
-                      {isLoading ? (
-                        <CircularProgress color="info" />
-                      ) : (
-                        ProfileButton()
-                      )}
+                      <div className="flex items-center">
+                        <NotificationBell />
+                        {isLoading ? (
+                          <CircularProgress color="info" />
+                        ) : (
+                          ProfileButton()
+                        )}
+                      </div>
                     </div>
                     <div className="hidden md:block ml-auto">
                       <div className="ml-10 flex items-center space-x-4">
@@ -291,6 +280,7 @@ export default function Navigation() {
                         })}
                         {!user?.email &&
                           LinkTitle({ name: "Login", to: "/login" })}
+                        <NotificationBell />
                         {isLoading ? (
                           <CircularProgress color="info" />
                         ) : (

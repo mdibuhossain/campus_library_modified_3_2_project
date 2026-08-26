@@ -18,6 +18,10 @@ const Syllabus = require("../Models/Syllabus_Model");
 const Room = require("../Models/Room_Model");
 const Task = require("../Models/Task_Model");
 const Submission = require("../Models/Submission_Model");
+const Role = require("../Models/Role_Model");
+const Notification = require("../Models/Notification_Model");
+const { notify } = require("../notifications");
+const { PERMISSION_KEYS } = require("../permissions");
 const { verifyToken } = require("../MiddleWare/isAuth");
 const admin = require("firebase-admin");
 
@@ -46,6 +50,86 @@ const requireUser = async (token) => {
     throw new Error("User not exist!");
   }
   return caller;
+};
+
+// Role name -> permissions[], memoised so a permission check does not cost an
+// extra query on every resolver. MUST be invalidated by every role write, or a
+// permission change silently does nothing until the process restarts.
+let rolesCache = null;
+
+const loadRoles = async () => {
+  if (rolesCache) return rolesCache;
+  const roles = await Role.find({});
+  rolesCache = new Map(roles.map((r) => [r.name, r]));
+  return rolesCache;
+};
+
+const invalidateRolesCache = () => {
+  rolesCache = null;
+};
+
+const permissionsOf = async (roleName) => {
+  if (!roleName) return [];
+  const roles = await loadRoles();
+  return roles.get(roleName)?.permissions || [];
+};
+
+const can = async (user, key) =>
+  (await permissionsOf(user?.role)).includes(key);
+
+// requireUser + a capability check. Throws the same "Unauthorized" string the
+// old role checks threw, so existing client-side alerts read identically.
+const requirePermission = async (token, key) => {
+  const caller = await requireUser(token);
+  if (!(await can(caller, key))) {
+    throw new Error("Unauthorized");
+  }
+  return caller;
+};
+
+// "own content, or the permission to touch anyone's" -- ownership itself needs
+// no permission key, it is just a comparison against added_by
+const requireOwnerOr = async (token, doc, key) => {
+  const caller = await requireUser(token);
+  if (doc?.added_by && doc.added_by === caller.email) return caller;
+  if (await can(caller, key)) return caller;
+  throw new Error("Unauthorized");
+};
+
+// Anti-lockout invariant: at least one existing user must hold a role that
+// grants user.role.assign, otherwise nobody can ever fix a bad role change.
+const someoneCanAssignRoles = async () => {
+  const roles = await loadRoles();
+  const capable = [...roles.values()]
+    .filter((r) => r.permissions.includes("user.role.assign"))
+    .map((r) => r.name);
+  if (!capable.length) return false;
+  return (await User.countDocuments({ role: { $in: capable } })) > 0;
+};
+
+// everyone whose role grants content.approve -- the review queue audience
+const notifyReviewers = async (doc, kind) => {
+  const roles = await loadRoles();
+  const approverRoles = [...roles.values()]
+    .filter((r) => r.permissions.includes("content.approve"))
+    .map((r) => r.name);
+  if (!approverRoles.length) return;
+  const reviewers = await User.find({ role: { $in: approverRoles } }, "email");
+  await notify(
+    reviewers.map((r) => r.email).filter((e) => e !== doc?.added_by),
+    {
+      title: "New content awaiting review",
+      body: `${doc?.book_name} (${kind}) from ${doc?.added_by}`,
+      link: "/pending",
+      kind: "content",
+    }
+  );
+};
+
+const defaultRoleName = async () => {
+  const roles = await loadRoles();
+  for (const role of roles.values()) if (role.isDefault) return role.name;
+  return "student";
 };
 
 // members + admin, as the REST controllers populated them
@@ -96,7 +180,7 @@ const GraphQLSchemaForUser = {
   designation: { type: GraphQLString },
   department: { type: GraphQLString },
   semester: { type: GraphQLString },
-  role: { type: GraphQLString, defaultValue: "regular" },
+  role: { type: GraphQLString },
 };
 const GraphQLSchemaAuth = {
   _id: { type: GraphQLID },
@@ -136,6 +220,8 @@ const UserStatus = new GraphQLObjectType({
     department: { type: GraphQLString },
     semester: { type: GraphQLString },
     isProfileComplete: { type: GraphQLBoolean },
+    role: { type: GraphQLString },
+    permissions: { type: new GraphQLList(GraphQLString) },
   }),
 });
 const DepartmentType = new GraphQLObjectType({
@@ -149,6 +235,44 @@ const AuthActionType = new GraphQLObjectType({
   fields: () => ({
     success: { type: GraphQLBoolean },
     message: { type: GraphQLString },
+  }),
+});
+const RoleType = new GraphQLObjectType({
+  name: "role",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    description: { type: GraphQLString },
+    permissions: { type: new GraphQLList(GraphQLString) },
+    protected: { type: GraphQLBoolean },
+    isDefault: { type: GraphQLBoolean },
+    userCount: { type: GraphQLInt },
+  }),
+});
+const NotificationType = new GraphQLObjectType({
+  name: "notification",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    title: { type: GraphQLString },
+    body: { type: GraphQLString },
+    link: { type: GraphQLString },
+    kind: { type: GraphQLString },
+    read: { type: GraphQLBoolean },
+    iat: isoDate("iat"),
+  }),
+});
+const NotificationFeedType = new GraphQLObjectType({
+  name: "notificationFeed",
+  fields: () => ({
+    items: { type: new GraphQLList(NotificationType) },
+    unread: { type: GraphQLInt },
+  }),
+});
+const PermissionKeyType = new GraphQLObjectType({
+  name: "permissionKey",
+  fields: () => ({
+    key: { type: GraphQLString },
+    description: { type: GraphQLString },
   }),
 });
 
@@ -275,15 +399,8 @@ const RootQuery = new GraphQLObjectType({
       type: new GraphQLList(UserType),
       args: { token: { type: GraphQLString } },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
-        const checkUser = await User.findOne({ email: decodedEmail });
-        if (checkUser?.email) {
-          return User.find();
-        }
-        throw new Error("Unauthenticated!");
+        await requirePermission(args?.token, "user.list");
+        return User.find();
       },
     },
     // was GET /api/classroom?email
@@ -347,17 +464,74 @@ const RootQuery = new GraphQLObjectType({
         return Book.find({ course_code: args.courseCode.toLowerCase() });
       },
     },
+    getRoles: {
+      type: new GraphQLList(RoleType),
+      args: { token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        // either permission is enough: assigning roles needs to list them too
+        if (
+          !(await can(caller, "role.manage")) &&
+          !(await can(caller, "user.role.assign"))
+        ) {
+          throw new Error("Unauthorized");
+        }
+        const roles = await Role.find({}).sort("name");
+        // how many users hold each role -- the UI needs it to warn before delete
+        const counts = await User.aggregate([
+          { $group: { _id: "$role", n: { $sum: 1 } } },
+        ]);
+        const byName = new Map(counts.map((c) => [c._id, c.n]));
+        return roles.map((r) => ({
+          ...r.toObject(),
+          userCount: byName.get(r.name) || 0,
+        }));
+      },
+    },
+    getNotifications: {
+      type: NotificationFeedType,
+      args: { token: { type: GraphQLString }, limit: { type: GraphQLInt } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const limit = Math.min(Math.max(args?.limit || 20, 1), 50);
+        const [items, unread] = await Promise.all([
+          Notification.find({ email: caller.email }).sort({ iat: -1 }).limit(limit),
+          Notification.countDocuments({ email: caller.email, read: false }),
+        ]);
+        return { items, unread };
+      },
+    },
+    getPermissionKeys: {
+      type: new GraphQLList(PermissionKeyType),
+      args: { token: { type: GraphQLString } },
+      async resolve(_, args) {
+        // authenticated is enough: the vocabulary is not secret (it already
+        // ships in the client bundle) and every user should be able to see
+        // what their own permissions mean on their profile page
+        await requireUser(args?.token);
+        const { PERMISSIONS } = require("../permissions");
+        return PERMISSION_KEYS.map((key) => ({
+          key,
+          description: PERMISSIONS[key],
+        }));
+      },
+    },
     getUserStatus: {
       type: UserStatus,
       args: { email: { type: GraphQLString } },
       async resolve(_, args) {
         const searchedUser = await User.findOne({ email: args.email });
+        const permissions = await permissionsOf(searchedUser?.role);
         return {
-          isAdmin: searchedUser?.role === "admin",
+          // kept for the existing client, but derived from a capability now
+          // rather than a hardcoded role name
+          isAdmin: permissions.includes("user.role.assign"),
           designation: searchedUser?.designation,
           department: searchedUser?.department,
           semester: searchedUser?.semester,
           isProfileComplete: isProfileComplete(searchedUser),
+          role: searchedUser?.role,
+          permissions,
         };
       },
     },
@@ -373,39 +547,36 @@ const mutation = new GraphQLObjectType({
       type: BookType,
       args: { ...GraphQLSchemaTemplateForBook, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        await requirePermission(args?.token, "content.create");
         const newBook = new Book({
           ...args,
           course_code: args?.course_code.toLowerCase(),
         });
-        return newBook.save();
+        const saved = await newBook.save();
+        await notifyReviewers(saved, "book");
+        return saved;
       },
     },
     addQuestion: {
       type: QuestionType,
       args: { ...GraphQLSchemaTemplate, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        await requirePermission(args?.token, "content.create");
         const newQuestion = new Question({ ...args });
-        return newQuestion.save();
+        const saved = await newQuestion.save();
+        await notifyReviewers(saved, "question");
+        return saved;
       },
     },
     addSyllabus: {
       type: SyllabusType,
       args: { ...GraphQLSchemaTemplate, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        await requirePermission(args?.token, "content.create");
         const newSyllabus = new Syllabus({ ...args });
-        return newSyllabus.save();
+        const saved = await newSyllabus.save();
+        await notifyReviewers(saved, "syllabus");
+        return saved;
       },
     },
     signUp: {
@@ -428,6 +599,262 @@ const mutation = new GraphQLObjectType({
       },
     },
 
+    // ---- Notifications ----
+    registerDevice: {
+      type: AuthActionType,
+      args: { fcmToken: { type: GraphQLString }, token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        if (!args?.fcmToken) {
+          return { success: false, message: "No device token provided" };
+        }
+        // the same browser can re-register after a token refresh; addToSet keeps
+        // it idempotent, and pulling it off other users stops a shared machine
+        // from pushing one person's notifications to another
+        await User.updateMany(
+          { email: { $ne: caller.email }, fcmTokens: args.fcmToken },
+          { $pull: { fcmTokens: args.fcmToken } }
+        );
+        await User.updateOne(
+          { email: caller.email },
+          { $addToSet: { fcmTokens: args.fcmToken } }
+        );
+        return { success: true, message: "Device registered" };
+      },
+    },
+    unregisterDevice: {
+      type: AuthActionType,
+      args: { fcmToken: { type: GraphQLString }, token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        await User.updateOne(
+          { email: caller.email },
+          { $pull: { fcmTokens: args?.fcmToken } }
+        );
+        return { success: true, message: "Device removed" };
+      },
+    },
+    markNotificationsRead: {
+      type: AuthActionType,
+      args: { _id: { type: GraphQLID }, token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        // no _id marks the whole feed read
+        const filter = { email: caller.email, read: false };
+        if (args?._id) filter._id = args._id;
+        const r = await Notification.updateMany(filter, { $set: { read: true } });
+        return { success: true, message: `${r.modifiedCount} marked read` };
+      },
+    },
+    // Called by an external scheduler (a free cron service) rather than Vercel
+    // Cron, which only allows one daily run on the Hobby plan. Guarded by a
+    // shared secret instead of a user token because no user is signed in.
+    runDeadlineReminders: {
+      type: AuthActionType,
+      args: {
+        secret: { type: GraphQLString },
+        withinHours: { type: GraphQLInt },
+      },
+      async resolve(_, args) {
+        const expected = process.env.CRON_SECRET;
+        if (!expected) {
+          throw new Error("CRON_SECRET is not configured on the server");
+        }
+        if (args?.secret !== expected) {
+          throw new Error("Unauthorized");
+        }
+        const hours = Math.min(Math.max(args?.withinHours || 24, 1), 168);
+        const now = new Date();
+        const cutoff = new Date(now.getTime() + hours * 3600 * 1000);
+
+        // due soon, not already past, and not already reminded
+        const tasks = await Task.find({
+          deadline: { $gt: now, $lte: cutoff },
+          reminderSentAt: null,
+        }).populate({ path: "room", select: "roomName members" });
+
+        let notified = 0;
+        for (const task of tasks) {
+          const memberIds = task.room?.members || [];
+          if (memberIds.length) {
+            const members = await User.find({ _id: { $in: memberIds } }, "email");
+            // skip anyone who has already submitted
+            const submitted = await Submission.find(
+              { task: task._id },
+              "user"
+            ).populate({ path: "user", select: "email" });
+            const done = new Set(submitted.map((s) => s.user?.email));
+            const pending = members
+              .map((m) => m.email)
+              .filter((e) => e && !done.has(e));
+            if (pending.length) {
+              const left = Math.round((new Date(task.deadline) - now) / 3600000);
+              await notify(pending, {
+                title: `Deadline approaching: ${task.title}`,
+                body: `Due in about ${left} hour(s) in ${task.room?.roomName || "your classroom"}.`,
+                link: task.room?._id ? `/classroom/${task.room._id}` : "/classroom",
+                kind: "classroom",
+              });
+              notified += pending.length;
+            }
+          }
+          task.reminderSentAt = now;
+          await task.save();
+        }
+        return {
+          success: true,
+          message: `${tasks.length} task(s) processed, ${notified} reminder(s) sent`,
+        };
+      },
+    },
+
+    // ---- Roles & permissions ----
+    createRole: {
+      type: RoleType,
+      args: {
+        name: { type: GraphQLString },
+        description: { type: GraphQLString },
+        permissions: { type: new GraphQLList(GraphQLString) },
+        token: { type: GraphQLString },
+      },
+      async resolve(_, args) {
+        await requirePermission(args?.token, "role.manage");
+        const name = String(args?.name || "").trim().toLowerCase();
+        if (!name) throw new Error("Role name is required");
+        if (await Role.findOne({ name })) {
+          throw new Error("A role with that name already exists");
+        }
+        const permissions = (args?.permissions || []).filter((k) =>
+          PERMISSION_KEYS.includes(k)
+        );
+        const created = await new Role({
+          name,
+          description: args?.description || "",
+          permissions,
+          protected: false,
+          isDefault: false,
+        }).save();
+        invalidateRolesCache();
+        return { ...created.toObject(), userCount: 0 };
+      },
+    },
+    updateRole: {
+      type: RoleType,
+      args: {
+        _id: { type: GraphQLID },
+        description: { type: GraphQLString },
+        permissions: { type: new GraphQLList(GraphQLString) },
+        token: { type: GraphQLString },
+      },
+      async resolve(_, args) {
+        await requirePermission(args?.token, "role.manage");
+        const role = await Role.findById(args?._id);
+        if (!role) throw new Error("Role not found");
+        // the protected role is the lockout insurance -- if its permissions
+        // could be edited away there would be no guaranteed way back in
+        if (role.protected) {
+          throw new Error("This role is protected and cannot be modified");
+        }
+        const update = {};
+        if (args?.description !== undefined) update.description = args.description;
+        if (args?.permissions) {
+          update.permissions = args.permissions.filter((k) =>
+            PERMISSION_KEYS.includes(k)
+          );
+        }
+        const updated = await Role.findByIdAndUpdate(
+          args?._id,
+          { $set: update },
+          { new: true }
+        );
+        invalidateRolesCache();
+        // removing user.role.assign from the last role that grants it would
+        // leave nobody able to manage users
+        if (!(await someoneCanAssignRoles())) {
+          await Role.findByIdAndUpdate(args?._id, {
+            $set: { permissions: role.permissions },
+          });
+          invalidateRolesCache();
+          throw new Error(
+            "That change would leave nobody able to assign roles"
+          );
+        }
+        const userCount = await User.countDocuments({ role: updated.name });
+        return { ...updated.toObject(), userCount };
+      },
+    },
+    deleteRole: {
+      type: AuthActionType,
+      args: { _id: { type: GraphQLID }, token: { type: GraphQLString } },
+      async resolve(_, args) {
+        await requirePermission(args?.token, "role.manage");
+        const role = await Role.findById(args?._id);
+        if (!role) throw new Error("Role not found");
+        if (role.protected) {
+          throw new Error("This role is protected and cannot be deleted");
+        }
+        if (role.isDefault) {
+          throw new Error("The default role cannot be deleted");
+        }
+        const holders = await User.countDocuments({ role: role.name });
+        if (holders > 0) {
+          throw new Error(
+            `${holders} user(s) still have this role -- reassign them first`
+          );
+        }
+        await Role.deleteOne({ _id: role._id });
+        invalidateRolesCache();
+        return { success: true, message: `Role "${role.name}" deleted` };
+      },
+    },
+    assignRole: {
+      type: UserType,
+      args: {
+        _id: { type: GraphQLID },
+        roleName: { type: GraphQLString },
+        token: { type: GraphQLString },
+      },
+      async resolve(_, args) {
+        const caller = await requirePermission(args?.token, "user.role.assign");
+        const target = await User.findById(args?._id);
+        if (!target) throw new Error("User not exist!");
+        if (target.email === caller.email) {
+          throw new Error("User can not update their role by themselves!");
+        }
+        const nextRole = await Role.findOne({
+          name: String(args?.roleName || "").toLowerCase(),
+        });
+        if (!nextRole) throw new Error("Role not found");
+        const currentRole = (await loadRoles()).get(target.role);
+        // a protected role cannot be taken away from its holder, and cannot be
+        // handed out either -- it is set by the migration script only
+        if (currentRole?.protected) {
+          throw new Error("This user's role is protected and cannot be changed");
+        }
+        if (nextRole.protected) {
+          throw new Error("This role cannot be assigned");
+        }
+        const updated = await User.findByIdAndUpdate(
+          args?._id,
+          { $set: { role: nextRole.name } },
+          { new: true }
+        );
+        if (!(await someoneCanAssignRoles())) {
+          await User.findByIdAndUpdate(args?._id, {
+            $set: { role: target.role },
+          });
+          throw new Error("That change would leave nobody able to assign roles");
+        }
+        await notify([target.email], {
+          title: "Your role was changed",
+          body: `You are now "${nextRole.name}".`,
+          link: "/settings",
+          kind: "account",
+        });
+        return updated;
+      },
+    },
+
     // ---- Classroom (was POST /api/classroom/*) ----
     createClassroom: {
       type: RoomType,
@@ -438,7 +865,7 @@ const mutation = new GraphQLObjectType({
         token: { type: GraphQLString },
       },
       async resolve(_, args) {
-        const caller = await requireUser(args?.token);
+        const caller = await requirePermission(args?.token, "classroom.create");
         return new Room({
           roomName: args?.roomName,
           courseTitle: args?.courseTitle,
@@ -492,6 +919,12 @@ const mutation = new GraphQLObjectType({
         }
         theRoom.members.push(newMember._id);
         theRoom = await theRoom.save();
+        await notify([newMember.email], {
+          title: `You were added to ${theRoom.roomName}`,
+          body: `${theRoom.courseTitle} (${theRoom.courseCode})`,
+          link: `/classroom/${theRoom._id}`,
+          kind: "classroom",
+        });
         await theRoom.populate(ROOM_PEOPLE_POPULATE);
         return { ...theRoom.toObject(), isJoined: true };
       },
@@ -526,8 +959,20 @@ const mutation = new GraphQLObjectType({
         [...filteredUsers.map(({ _id }) => _id), ...theRoom.members].forEach(
           (id) => merged.set(String(id), id)
         );
+        const before = new Set(theRoom.members.map((id) => String(id)));
         theRoom.members = Array.from(merged.values());
         theRoom = await theRoom.save();
+        // only the genuinely new members, so a repeated bulk add is quiet
+        const addedIds = [...merged.keys()].filter((id) => !before.has(id));
+        if (addedIds.length) {
+          const added = await User.find({ _id: { $in: addedIds } }, "email");
+          await notify(added.map((a) => a.email), {
+            title: `You were added to ${theRoom.roomName}`,
+            body: `${theRoom.courseTitle} (${theRoom.courseCode})`,
+            link: `/classroom/${theRoom._id}`,
+            kind: "classroom",
+          });
+        }
         await theRoom.populate(ROOM_PEOPLE_POPULATE);
         return { ...theRoom.toObject(), isJoined: true };
       },
@@ -561,6 +1006,15 @@ const mutation = new GraphQLObjectType({
         }).save();
         theRoom.tasks.push(newTask._id);
         await theRoom.save();
+        if (theRoom.members?.length) {
+          const members = await User.find({ _id: { $in: theRoom.members } }, "email");
+          await notify(members.map((m) => m.email), {
+            title: `New assignment in ${theRoom.roomName}`,
+            body: newTask.title,
+            link: `/classroom/${theRoom._id}`,
+            kind: "classroom",
+          });
+        }
         return newTask;
       },
     },
@@ -616,6 +1070,15 @@ const mutation = new GraphQLObjectType({
             select:
               "_id department designation email displayName photoURL semester",
           });
+          const roomAdmin = await User.findById(theRoom.admin, "email");
+          if (roomAdmin?.email) {
+            await notify([roomAdmin.email], {
+              title: `New submission for ${theTask.title}`,
+              body: `${caller.displayName || caller.email} submitted their work`,
+              link: `/classroom/${theRoom._id}`,
+              kind: "classroom",
+            });
+          }
           return {
             ...theTask.toObject(),
             submission: [newSubmission.toObject()],
@@ -671,10 +1134,9 @@ const mutation = new GraphQLObjectType({
       type: BookType,
       args: { ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        const doc = await Book.findById(args?._id);
+        if (!doc) throw new Error("Content not found");
+        await requireOwnerOr(args?.token, doc, "content.delete.any");
         return Book.findByIdAndRemove(args?._id);
       },
     },
@@ -682,10 +1144,9 @@ const mutation = new GraphQLObjectType({
       type: QuestionType,
       args: { ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        const doc = await Question.findById(args?._id);
+        if (!doc) throw new Error("Content not found");
+        await requireOwnerOr(args?.token, doc, "content.delete.any");
         return Question.findByIdAndRemove(args?._id);
       },
     },
@@ -693,10 +1154,9 @@ const mutation = new GraphQLObjectType({
       type: SyllabusType,
       args: { ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        const doc = await Syllabus.findById(args?._id);
+        if (!doc) throw new Error("Content not found");
+        await requireOwnerOr(args?.token, doc, "content.delete.any");
         return Syllabus.findByIdAndRemove(args?._id);
       },
     },
@@ -706,12 +1166,12 @@ const mutation = new GraphQLObjectType({
       type: BookType,
       args: { ...GraphQLSchemaTemplateForBook, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        const doc = await Book.findById(args?._id);
+        if (!doc) throw new Error("Content not found");
+        await requireOwnerOr(args?.token, doc, "content.edit.any");
         const tmp = { ...args, course_code: args?.course_code.toLowerCase() };
         delete tmp._id;
+        delete tmp.token;
         return Book.findByIdAndUpdate(args?._id, { $set: tmp }, { new: true });
       },
     },
@@ -719,12 +1179,12 @@ const mutation = new GraphQLObjectType({
       type: QuestionType,
       args: { ...GraphQLSchemaTemplate, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        const doc = await Question.findById(args?._id);
+        if (!doc) throw new Error("Content not found");
+        await requireOwnerOr(args?.token, doc, "content.edit.any");
         const tmp = { ...args };
         delete tmp._id;
+        delete tmp.token;
         return Question.findByIdAndUpdate(
           args?._id,
           { $set: tmp },
@@ -736,12 +1196,12 @@ const mutation = new GraphQLObjectType({
       type: SyllabusType,
       args: { ...GraphQLSchemaTemplate, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
+        const doc = await Syllabus.findById(args?._id);
+        if (!doc) throw new Error("Content not found");
+        await requireOwnerOr(args?.token, doc, "content.edit.any");
         const tmp = { ...args };
         delete tmp._id;
+        delete tmp.token;
         return Syllabus.findByIdAndUpdate(
           args?._id,
           { $set: tmp },
@@ -771,51 +1231,63 @@ const mutation = new GraphQLObjectType({
       type: BookType,
       args: { ...GraphQLSchemaAuth, status: { type: GraphQLBoolean } },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        const adminUser = await User.findOne({ email: decodedEmail });
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        } else if (adminUser?.role === "admin")
-          return Book.findByIdAndUpdate(
-            args?._id,
-            { $set: { status: args?.status } },
-            { new: true }
-          );
-        else throw new Error("Unauthenticated!");
+        await requirePermission(args?.token, "content.approve");
+        const updated = await Book.findByIdAndUpdate(
+          args?._id,
+          { $set: { status: args?.status } },
+          { new: true }
+        );
+        if (updated?.added_by) {
+          await notify([updated.added_by], {
+            title: args?.status ? "Your upload was approved" : "Your upload was hidden",
+            body: `${updated.book_name} (book)`,
+            link: "/mycontent",
+            kind: "content",
+          });
+        }
+        return updated;
       },
     },
     editQuestionStatus: {
       type: QuestionType,
       args: { ...GraphQLSchemaAuth, status: { type: GraphQLBoolean } },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        const adminUser = await User.findOne({ email: decodedEmail });
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        } else if (adminUser?.role === "admin")
-          return Question.findByIdAndUpdate(
-            args?._id,
-            { $set: { status: args?.status } },
-            { new: true }
-          );
-        else throw new Error("Unauthenticated!");
+        await requirePermission(args?.token, "content.approve");
+        const updated = await Question.findByIdAndUpdate(
+          args?._id,
+          { $set: { status: args?.status } },
+          { new: true }
+        );
+        if (updated?.added_by) {
+          await notify([updated.added_by], {
+            title: args?.status ? "Your upload was approved" : "Your upload was hidden",
+            body: `${updated.book_name} (question)`,
+            link: "/mycontent",
+            kind: "content",
+          });
+        }
+        return updated;
       },
     },
     editSyllabusStatus: {
       type: SyllabusType,
       args: { ...GraphQLSchemaAuth, status: { type: GraphQLBoolean } },
       async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        const adminUser = await User.findOne({ email: decodedEmail });
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        } else if (adminUser?.role === "admin")
-          return Syllabus.findByIdAndUpdate(
-            args?._id,
-            { $set: { status: args?.status } },
-            { new: true }
-          );
-        else throw new Error("Unauthenticated!");
+        await requirePermission(args?.token, "content.approve");
+        const updated = await Syllabus.findByIdAndUpdate(
+          args?._id,
+          { $set: { status: args?.status } },
+          { new: true }
+        );
+        if (updated?.added_by) {
+          await notify([updated.added_by], {
+            title: args?.status ? "Your upload was approved" : "Your upload was hidden",
+            body: `${updated.book_name} (syllabus)`,
+            link: "/mycontent",
+            kind: "content",
+          });
+        }
+        return updated;
       },
     },
     changePassword: {
@@ -942,7 +1414,7 @@ const mutation = new GraphQLObjectType({
               displayName: decoded?.name || "",
               photoURL: decoded?.picture || "",
               authType: decoded?.firebase?.sign_in_provider || "",
-              role: "regular",
+              role: await defaultRoleName(),
             },
           },
           { new: true, upsert: true }
@@ -980,36 +1452,6 @@ const mutation = new GraphQLObjectType({
           success: true,
           message: updated ? "Password mirror updated" : "Already in sync",
         };
-      },
-    },
-    makeAdmin: {
-      type: UserType,
-      args: { ...GraphQLSchemaAuth },
-      async resolve(_, args) {
-        const decodedEmail = await verifyToken(args?.token);
-        if (!decodedEmail) {
-          throw new Error("Unauthenticated!");
-        }
-        const checkUser = await User.findOne({ email: decodedEmail });
-        if (checkUser?.email) {
-          const editUser = await User.findById(args?._id);
-          if (editUser?.email === checkUser?.email) {
-            throw new Error("User can not update their role by themselves!");
-          } else if (editUser?.role === "admin") {
-            return User.findByIdAndUpdate(
-              args?._id,
-              { $set: { role: "regular" } },
-              { new: true }
-            );
-          } else {
-            return User.findByIdAndUpdate(
-              args?._id,
-              { $set: { role: "admin" } },
-              { new: true }
-            );
-          }
-        }
-        throw new Error("Unauthenticated!");
       },
     },
   },
