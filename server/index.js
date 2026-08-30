@@ -8,6 +8,7 @@ const schema = require("./Schema/schema");
 const admin = require("firebase-admin");
 const path = require("path");
 const { graphqlUploadExpress } = require("graphql-upload");
+const compression = require("compression");
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
@@ -19,6 +20,7 @@ const app = express();
 
 connectDB();
 app.use(cors());
+app.use(compression());
 // must run before graphqlHTTP so multipart uploads become Upload promises
 app.use(graphqlUploadExpress());
 app.use(express.json());

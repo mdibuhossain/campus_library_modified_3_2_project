@@ -9,32 +9,27 @@ import Banner from "./Home/Home.style";
 import LinearLoadin from "../components/Linear_Loading/LinearLoadin";
 import NotFound from "../components/NotFound/NotFound";
 import { tagTitle } from "../utility/tagTitle";
-import { Helmet } from "react-helmet";
+import useDocumentMeta from "../Hooks/useDocumentMeta";
 
 const Department = () => {
   const { dept } = useParams();
   const { dataLoading } = useUtility();
+  const name = tagTitle[dept];
+
+  // hooks must run before any early return
+  useDocumentMeta({
+    title: name ? `${name} | Campus Classroom` : undefined,
+    description: name
+      ? `Get all the books, questions, and syllabus of ${name} department`
+      : undefined,
+    keywords: name ? `${name}, books, questions, syllabus` : undefined,
+  });
 
   if (dataLoading) return <LinearLoadin />;
-
-  const name = tagTitle[dept];
   if (!name) return <NotFound />;
 
   return (
-    <>
-      <Helmet>
-        {/* the site is branded "Campus Classroom" everywhere else */}
-        <title>{name} | Campus Classroom</title>
-        <meta
-          name="description"
-          content={`Get all the books, questions, and syllabus of ${name} department`}
-        />
-        <meta
-          name="keywords"
-          content={`${name}, books, questions, syllabus`}
-        />
-      </Helmet>
-      <PageLayout>
+    <PageLayout>
         <Banner title={dept} src={dept} />
         {/* there was no way back to the department list except the browser
             button or the logo */}
@@ -45,9 +40,8 @@ const Department = () => {
             </Button>
           </NavLink>
         </div>
-        <BookShowcase department={dept} />
-      </PageLayout>
-    </>
+      <BookShowcase department={dept} />
+    </PageLayout>
   );
 };
 

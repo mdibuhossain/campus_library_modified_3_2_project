@@ -148,8 +148,21 @@ const useData = () => {
       getQuestions: questions = [],
       getAllSyllabus: syllabus = [],
     } = {},
-    loading: dataLoading,
-  } = useQuery(GET_ALL_DATA);
+    loading: queryLoading,
+  } = useQuery(GET_ALL_DATA, {
+    /* The cache is restored from localStorage before the first render, so this
+     * paints instantly on a repeat visit and revalidates in the background.
+     * nextFetchPolicy keeps a re-mount from firing the network again. */
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+  });
+
+  /* Only a genuinely cold load should show the full-page loader. `loading` is
+   * also true during the background revalidation above, and gating on it alone
+   * would hide rows we already have behind a spinner -- which is exactly the
+   * flash that persisting the cache is meant to remove. */
+  const hasData = books.length > 0 || questions.length > 0 || syllabus.length > 0;
+  const dataLoading = queryLoading && !hasData;
 
   // for testing purpose
   const [deptLoading, setDeptLoading] = useState(true);
@@ -175,10 +188,14 @@ const useData = () => {
   //     }
   // }, [deptLoading, getDepartments]);
 
+  /* Depends on the arrays, not on the loading flag. Apollo hands back stable
+   * references while data is unchanged, so this runs once per actual change --
+   * whereas keying off `dataLoading` missed the background revalidation, which
+   * with a warm cache never flips the flag at all. */
   useEffect(() => {
     if (books && questions && syllabus)
       setAllData([...books, ...questions, ...syllabus]);
-  }, [dataLoading]);
+  }, [books, questions, syllabus]);
 
   return {
     books,

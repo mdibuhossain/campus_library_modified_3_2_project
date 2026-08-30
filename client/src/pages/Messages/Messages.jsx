@@ -2,7 +2,8 @@ import React from "react";
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Alert, Avatar, Badge, Button, Chip, CircularProgress, IconButton, TextField, Tooltip, Typography,
+  Alert, Avatar, Badge, Button, Chip, CircularProgress, IconButton, Skeleton,
+  TextField, Tooltip, Typography,
 } from "@mui/material";
 import AddCommentIcon from "@mui/icons-material/AddComment";
 import SendIcon from "@mui/icons-material/Send";
@@ -30,6 +31,29 @@ const ago = (iso) => {
   return `${Math.round(s / 86400)}d`;
 };
 
+// Alternating incoming/outgoing bubbles so the placeholder reads as a
+// conversation rather than a generic loading block.
+const MessageSkeleton = () => (
+  <div className="flex flex-col gap-3 py-2" aria-hidden="true">
+    {[
+      { mine: false, w: "62%" },
+      { mine: true, w: "45%" },
+      { mine: false, w: "72%" },
+      { mine: true, w: "38%" },
+      { mine: false, w: "55%" },
+    ].map((row, i) => (
+      <div key={i} className={`flex ${row.mine ? "justify-end" : "justify-start"}`}>
+        <Skeleton
+          variant="rounded"
+          width={row.w}
+          height={40}
+          sx={{ borderRadius: 4, bgcolor: row.mine ? "rgba(2,132,199,0.13)" : "grey.200" }}
+        />
+      </div>
+    ))}
+  </div>
+);
+
 const Messages = () => {
   const { cid } = useParams();
   const navigate = useNavigate();
@@ -37,12 +61,15 @@ const Messages = () => {
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [draft, setDraft] = React.useState("");
   const [messages, setMessages] = React.useState([]);
+  // Only the initial load of a thread flips this. The 4s poll must not, or the
+  // thread would blink back to a skeleton every four seconds.
+  const [threadLoading, setThreadLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const bottomRef = React.useRef(null);
   // the id of the newest message we hold, used as the fetch cursor
   const cursorRef = React.useRef(null);
 
-  const { data: convoData, refetch: refetchConversations } = useQuery(GET_CONVERSATIONS, {
+  const { data: convoData, loading: convosLoading, refetch: refetchConversations } = useQuery(GET_CONVERSATIONS, {
     variables: { token },
     skip: !token,
     fetchPolicy: "cache-and-network",
@@ -64,13 +91,20 @@ const Messages = () => {
   const loadMessages = React.useCallback(
     async (mode) => {
       if (!cid || !token) return;
+      const initial = mode !== "since";
+      if (initial) setThreadLoading(true);
       try {
-        const after = mode === "since" ? cursorRef.current : null;
+        const after = initial ? null : cursorRef.current;
         const { data } = await fetchMessages({
           variables: { conversationId: cid, after, limit: 100, token },
         });
         const rows = data?.getMessages || [];
-        if (!rows.length) return;
+        // an empty thread is a legitimate result, not a reason to keep the
+        // previous conversation's messages on screen
+        if (!rows.length) {
+          if (initial) setMessages([]);
+          return;
+        }
         cursorRef.current = rows[rows.length - 1]._id;
         setMessages((prev) => {
           if (mode !== "since") return rows;
@@ -80,6 +114,8 @@ const Messages = () => {
         scrollToBottom();
       } catch (err) {
         setError(err?.graphQLErrors?.[0]?.message || err.message);
+      } finally {
+        if (initial) setThreadLoading(false);
       }
     },
     [cid, token, fetchMessages]
@@ -90,6 +126,7 @@ const Messages = () => {
     setMessages([]);
     setError("");
     if (!cid || !token) return;
+    setThreadLoading(true);
     loadMessages("all");
     markRead({ variables: { conversationId: cid, token } })
       .then(() => { refetchConversations(); refetchNotifications?.(); })
@@ -150,7 +187,19 @@ const Messages = () => {
         <div className="grid md:grid-cols-3 gap-4 items-start">
           {/* conversation list -- hidden on mobile while a thread is open */}
           <div className={`md:col-span-1 bg-white rounded-xl border border-gray-200 overflow-hidden ${cid ? "hidden md:block" : ""}`}>
-            {conversations.length === 0 ? (
+            {convosLoading && conversations.length === 0 ? (
+              <div className="divide-y divide-gray-100">
+                {[0, 1, 2, 3].map((n) => (
+                  <div key={n} className="flex items-center gap-3 p-3">
+                    <Skeleton variant="circular" width={40} height={40} />
+                    <div className="flex-1">
+                      <Skeleton variant="text" width="55%" height={18} />
+                      <Skeleton variant="text" width="80%" height={14} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : conversations.length === 0 ? (
               <div className="p-6 text-center">
                 <ForumIcon sx={{ fontSize: 40, color: "action.disabled" }} />
                 <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
@@ -241,7 +290,12 @@ const Messages = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 bg-gray-50/50">
-                  {messages.length === 0 ? (
+                  {threadLoading ? (
+                    // Bubble-shaped skeletons rather than a bare spinner: the
+                    // thread keeps its shape, so it does not jump when the real
+                    // messages land.
+                    <MessageSkeleton />
+                  ) : messages.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center">
                       <Typography variant="body2" sx={{ color: "text.secondary" }}>
                         Say hello.

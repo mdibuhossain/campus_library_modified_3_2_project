@@ -1,10 +1,30 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
-import { getMessaging, getToken, onMessage, isSupported } from "firebase/messaging";
 import {
     GET_NOTIFICATIONS, REGISTER_DEVICE, UNREGISTER_DEVICE, MARK_NOTIFICATIONS_READ,
     GET_UNREAD_MESSAGE_COUNT,
 } from "../queries/query";
+
+/* firebase/messaging used to be imported at the top of this file, which put the
+ * entire Messaging SDK in the entry chunk -- downloaded by every anonymous
+ * visitor just to render the home page. Nothing here is reachable without the
+ * notification bell, and the bell only renders for a signed-in user.
+ *
+ * The import promise is memoised at module scope so concurrent callers share a
+ * single request and a single module instance. */
+let messagingModule;
+const loadMessaging = () => {
+    if (!messagingModule) messagingModule = import("firebase/messaging");
+    return messagingModule;
+};
+
+/* Cheap native probe. If the browser is missing these APIs then Firebase's own
+ * isSupported() would return false too, so we can answer without loading it. */
+const browserCouldSupportPush = () =>
+    typeof window !== "undefined" &&
+    "serviceWorker" in navigator &&
+    "PushManager" in window &&
+    typeof Notification !== "undefined";
 
 const VAPID_KEY = import.meta.env.VITE_APP_VAPID_KEY;
 const LOCAL_TOKEN_KEY = "fcmToken";
@@ -101,12 +121,24 @@ const useNotifications = (token) => {
     const items = data?.getNotifications?.items || [];
     const unread = data?.getNotifications?.unread || 0;
 
+    // Gated on `token`: a signed-out visitor has no bell, so there is nothing to
+    // report support for and no reason to fetch the SDK.
     useEffect(() => {
-        isSupported().then(setSupported).catch(() => setSupported(false));
-    }, []);
+        if (!token || !browserCouldSupportPush()) {
+            setSupported(false);
+            return;
+        }
+        let cancelled = false;
+        loadMessaging()
+            .then(({ isSupported }) => isSupported())
+            .then((ok) => { if (!cancelled) setSupported(ok); })
+            .catch(() => { if (!cancelled) setSupported(false); });
+        return () => { cancelled = true; };
+    }, [token]);
 
     const getMessagingSafe = useCallback(async () => {
         if (messagingRef.current) return messagingRef.current;
+        const { getMessaging, isSupported } = await loadMessaging();
         if (!(await isSupported())) return null;
         messagingRef.current = getMessaging();
         return messagingRef.current;
@@ -121,6 +153,7 @@ const useNotifications = (token) => {
                 setPushError("Push is not configured yet (VITE_APP_VAPID_KEY is missing).");
                 return false;
             }
+            const { isSupported, getToken } = await loadMessaging();
             if (!(await isSupported())) {
                 setPushError("This browser does not support push notifications.");
                 return false;
@@ -178,7 +211,10 @@ const useNotifications = (token) => {
         if (!token || !supported || permission !== "granted") return;
         let unsubscribe = () => { };
         (async () => {
-            const messaging = await getMessagingSafe();
+            const [{ onMessage }, messaging] = await Promise.all([
+                loadMessaging(),
+                getMessagingSafe(),
+            ]);
             if (!messaging) return;
             unsubscribe = onMessage(messaging, () => {
                 refetch();

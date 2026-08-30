@@ -47,7 +47,7 @@ const formatDate = (value) => {
 
 const ChangeDP = () => {
     const {
-        user, token, isLoading, uploadAvatar, updateProfileSettings, updateProfileLoading,
+        user, token, avatarLoading, uploadAvatar, updateProfileSettings, updateProfileLoading,
         changeUserPassword, passwordError, passwordMessage, passwordLoading,
         setPasswordError, setPasswordMessage,
         resendVerification, verifyError, verifyMessage, verifyLoading,
@@ -175,7 +175,7 @@ const ChangeDP = () => {
                     <Section title="Identity" subtitle="Your name and picture as other members see them">
                         <div className="flex justify-center mb-4">
                             <div className="relative p-0">
-                                {(isLoading || updateProfileLoading) ?
+                                {(avatarLoading || updateProfileLoading) ?
                                     <div className="flex items-center justify-center space-x-2 animate-pulse">
                                         <div className="w-32 h-32 bg-gray-400 rounded-full"></div>
                                     </div> :

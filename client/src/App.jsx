@@ -1,86 +1,22 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { ApolloProvider, ApolloClient, InMemoryCache } from "@apollo/client";
-import { createUploadLink } from "apollo-upload-client";
+import { ApolloProvider } from "@apollo/client";
 import "./App.css";
 import { AuthProvider } from "./context/AuthProvider";
 import CircularLoading from "./components/Circular_Loading/CircularLoading";
 import NotFound from "./components/NotFound/NotFound";
 import { UtilityProvider } from "./context/UtilityProvider";
-import Test from "./pages/Test/Test";
-const Department = lazy(() => import("./pages/Department"));
+import { client } from "./apollo/client";
+import useRoutePrefetch from "./Hooks/useRoutePrefetch";
+import {
+  Home, Department, Search, Request, Login, Register, ForgotPassword,
+  CompleteProfile, MakeAdmin, RoleManagement, Messages, EditContent, ChangeDP,
+  Classroom, ClassroomDetails, ContentViewer, ContentManagement, Test,
+  RequireAuth, AdminRoute,
+} from "./routes/lazyRoutes";
+
 const Navigation = lazy(() => import("./components/Navigationbar"));
-const Home = lazy(() => import("./pages/Home/Home"));
-const Search = lazy(() => import("./pages/Search/Search"));
-const Request = lazy(() => import("./pages/Request/Request"));
-const Login = lazy(() => import("./pages/Login/Login"));
-const Reader = lazy(() => import("./pages/Reader/Reader"));
-const Register = lazy(() => import("./pages/Register/Register"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword/ForgotPassword"));
-const CompleteProfile = lazy(() => import("./pages/CompleteProfile/CompleteProfile"));
-const RequireAuth = lazy(() => import("./PrivateRoute/RequireAuth"));
-const AdminRoute = lazy(() => import("./PrivateRoute/AdminRoute"));
-const MakeAdmin = lazy(() => import("./pages/MakeAdmin/MakeAdmin"));
-const RoleManagement = lazy(() => import("./pages/RoleManagement/RoleManagement"));
-const Messages = lazy(() => import("./pages/Messages/Messages"));
-const EditContent = lazy(() => import("./pages/EditContent/EditContent"));
-const ChangeDP = lazy(() => import("./pages/ChangeDP/ChangeDP"));
-const Classroom = lazy(() => import("./pages/Classroom/Classroom"));
-const ClassroomDetails = lazy(() => import("./pages/Classroom/ClassroomDetails"));
-const ContentViewer = lazy(() => import("./pages/ContentViewer/ContentViewer"));
-
-const ContentManagement = lazy(() =>
-  import("./pages/ContentManagement/ContentManagement")
-);
-
-const cache = new InMemoryCache({
-  typePolicies: {
-    Query: {
-      fields: {
-        getBooks: {
-          merge(existing, incoming) {
-            return incoming;
-          },
-        },
-        getQuestions: {
-          merge(existing, incoming) {
-            return incoming;
-          },
-        },
-        getAllSyllabus: {
-          merge(existing, incoming) {
-            return incoming;
-          },
-        },
-        getUsers: {
-          merge(existing, incoming) {
-            return incoming;
-          },
-        },
-      },
-    },
-  },
-});
-
-// backup server [if main server get failed] -------------
-const primaryServerEndpoint = import.meta.env.VITE_APP_BACKEND;
-const backupServerEndpoint = import.meta.env.VITE_APP_BACKEND_BACKUP;
-
-const errorLink = (uri, options) => {
-  return fetch(uri, options).catch(() => {
-    return fetch(backupServerEndpoint, options);
-  });
-};
-// <---------------------------------
-
-const client = new ApolloClient({
-  link: createUploadLink({
-    uri: primaryServerEndpoint,
-    fetch: errorLink,
-  }),
-  cache,
-});
 
 const theme = createTheme({
   typography: {
@@ -93,6 +29,134 @@ const theme = createTheme({
   },
 });
 
+/* Split out so the prefetch hook runs inside the router. It does not read router
+ * context, but keeping it here means it mounts once for the app rather than
+ * re-registering its listeners whenever a provider above it re-renders. */
+const AppRoutes = () => {
+  useRoutePrefetch();
+
+  return (
+    <Routes>
+      <Route path="*" element={<NotFound />} />
+      <Route exact path="" element={<Home />} />
+      <Route exact path="/" element={<Home />} />
+      {/* <Route exact path="/reader" element={<Reader />} /> */}
+      <Route exact path="search" element={<Search />} />
+      <Route exact path="request" element={<Request />} />
+      <Route exact path="test" element={<Test />} />
+      <Route exact path="classroom">
+        <Route index element={
+          <RequireAuth>
+            <Classroom />
+          </RequireAuth>
+        } />
+        <Route path=":rid" element={
+          <RequireAuth>
+            <ClassroomDetails />
+          </RequireAuth>
+        } />
+      </Route>
+      <Route
+        exact
+        path="/settings"
+        element={
+          <RequireAuth>
+            <ChangeDP />
+          </RequireAuth>
+        }
+      />
+      <Route
+        exact
+        path="/pending"
+        element={
+          <RequireAuth>
+            <ContentManagement mode="pending" />
+          </RequireAuth>
+        }
+      />
+      <Route
+        exact
+        path="/mycontent"
+        element={
+          <RequireAuth>
+            <ContentManagement mode="mine" />
+          </RequireAuth>
+        }
+      />
+      <Route
+        exact
+        path="/manage"
+        element={
+          <AdminRoute permission="content.approve">
+            <ContentManagement mode="manage" />
+          </AdminRoute>
+        }
+      />
+      <Route
+        exact
+        path="/edit/:id"
+        element={
+          <RequireAuth>
+            <EditContent />
+          </RequireAuth>
+        }
+      />
+      <Route
+        exact
+        path="/makeadmin"
+        element={
+          <AdminRoute permission="user.role.assign">
+            <MakeAdmin />
+          </AdminRoute>
+        }
+      />
+      <Route
+        exact
+        path="/roles"
+        element={
+          <AdminRoute permission="role.manage">
+            <RoleManagement />
+          </AdminRoute>
+        }
+      />
+      {/* both paths render the same page: the list, plus the open
+          thread when a conversation id is present */}
+      <Route
+        exact
+        path="/messages"
+        element={
+          <RequireAuth>
+            <Messages />
+          </RequireAuth>
+        }
+      />
+      <Route
+        exact
+        path="/messages/:cid"
+        element={
+          <RequireAuth>
+            <Messages />
+          </RequireAuth>
+        }
+      />
+      <Route exact path="/login" element={<Login />} />
+      <Route exact path="/signup" element={<Register />} />
+      <Route exact path="/forgot-password" element={<ForgotPassword />} />
+      <Route
+        exact
+        path="/complete-profile"
+        element={
+          <RequireAuth>
+            <CompleteProfile />
+          </RequireAuth>
+        }
+      />
+      <Route path="/content/:id" element={<ContentViewer />} />
+      <Route exact path="/department/:dept" element={<Department />} />
+    </Routes>
+  );
+};
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -102,124 +166,7 @@ function App() {
             <UtilityProvider>
               <AuthProvider>
                 <Navigation />
-                <Routes>
-                  <Route path="*" element={<NotFound />} />
-                  <Route exact path="" element={<Home />} />
-                  <Route exact path="/" element={<Home />} />
-                  {/* <Route exact path="/reader" element={<Reader />} /> */}
-                  <Route exact path="search" element={<Search />} />
-                  <Route exact path="request" element={<Request />} />
-                  <Route exact path="test" element={<Test />} />
-                  <Route exact path="classroom">
-                    <Route index element={
-                      <RequireAuth>
-                        <Classroom />
-                      </RequireAuth>
-                    } />
-                    <Route path=":rid" element={
-                      <RequireAuth>
-                        <ClassroomDetails />
-                      </RequireAuth>
-                    } />
-                  </Route>
-                  <Route
-                    exact
-                    path="/settings"
-                    element={
-                      <RequireAuth>
-                        <ChangeDP />
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/pending"
-                    element={
-                      <RequireAuth>
-                        <ContentManagement mode="pending" />
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/mycontent"
-                    element={
-                      <RequireAuth>
-                        <ContentManagement mode="mine" />
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/manage"
-                    element={
-                      <AdminRoute permission="content.approve">
-                        <ContentManagement mode="manage" />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/edit/:id"
-                    element={
-                      <RequireAuth>
-                        <EditContent />
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/makeadmin"
-                    element={
-                      <AdminRoute permission="user.role.assign">
-                        <MakeAdmin />
-                      </AdminRoute>
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/roles"
-                    element={
-                      <AdminRoute permission="role.manage">
-                        <RoleManagement />
-                      </AdminRoute>
-                    }
-                  />
-                  {/* both paths render the same page: the list, plus the open
-                      thread when a conversation id is present */}
-                  <Route
-                    exact
-                    path="/messages"
-                    element={
-                      <RequireAuth>
-                        <Messages />
-                      </RequireAuth>
-                    }
-                  />
-                  <Route
-                    exact
-                    path="/messages/:cid"
-                    element={
-                      <RequireAuth>
-                        <Messages />
-                      </RequireAuth>
-                    }
-                  />
-                  <Route exact path="/login" element={<Login />} />
-                  <Route exact path="/signup" element={<Register />} />
-                  <Route exact path="/forgot-password" element={<ForgotPassword />} />
-                  <Route
-                    exact
-                    path="/complete-profile"
-                    element={
-                      <RequireAuth>
-                        <CompleteProfile />
-                      </RequireAuth>
-                    }
-                  />
-                  <Route path="/content/:id" element={<ContentViewer />} />
-                  <Route exact path="/department/:dept" element={<Department />} />
-                </Routes>
+                <AppRoutes />
               </AuthProvider>
             </UtilityProvider>
           </Suspense>

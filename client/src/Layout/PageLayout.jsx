@@ -22,9 +22,11 @@ const PageLayout = ({ children, className }) => {
                 style={{ minHeight: 'calc(100vh - 64px)' }}
                 className={`flex flex-col ${className || ''}`}
             >
-                <div className="flex-1 flex flex-col">
+                {/* target for the navbar's "Skip to content" link, and the
+                    landmark screen readers jump to */}
+                <main id="main" tabIndex={-1} className="flex-1 flex flex-col">
                     {children}
-                </div>
+                </main>
                 <FooterBar />
             </div>
         </Suspense>

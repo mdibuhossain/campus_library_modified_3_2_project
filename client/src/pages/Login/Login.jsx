@@ -15,7 +15,11 @@ import GoogleIcon from '@mui/icons-material/Google';
 import PageLayout from '../../Layout/PageLayout';
 
 const Login = () => {
-    const { signWithGoogle, error, email, password, signInWithEmail, setEmail, setPassword, isLoading } = useAuth();
+    const { signWithGoogle, error, email, password, signInWithEmail, setEmail, setPassword,
+        emailAuthLoading, googleAuthLoading } = useAuth();
+    // one attempt at a time: the button that is working shows the spinner, the
+    // other is disabled rather than also spinning
+    const busy = emailAuthLoading || googleAuthLoading;
 
     const handleChange = (event) => {
         event.preventDefault();
@@ -73,10 +77,10 @@ const Login = () => {
                             fullWidth
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
-                            disabled={(email && password) ? false : true}
+                            disabled={!(email && password) || busy}
                             onClick={signInWithEmail}
                         >
-                            {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Sign In'}
+                            {emailAuthLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Sign In'}
                         </Button>
                         <Divider sx={{ my: 2 }}>
                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>OR</Typography>
@@ -87,9 +91,9 @@ const Login = () => {
                             startIcon={<GoogleIcon />}
                             sx={{ mb: 2, textTransform: 'none', color: 'text.primary', borderColor: 'rgba(0,0,0,0.23)' }}
                             onClick={signWithGoogle}
-                            disabled={isLoading}
+                            disabled={busy}
                         >
-                            {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Continue with Google'}
+                            {googleAuthLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Continue with Google'}
                         </Button>
                         <Grid container sx={{ mt: 2 }}>
                             <Grid item xs>

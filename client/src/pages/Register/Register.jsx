@@ -16,7 +16,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import PageLayout from '../../Layout/PageLayout';
 
 const Register = () => {
-    const { signWithGoogle, name, setName, setEmail, setPassword, signUpWithEmail, isLoading, error, setError } = useAuth();
+    const { signWithGoogle, name, setName, setEmail, setPassword, signUpWithEmail,
+        emailAuthLoading, googleAuthLoading, error, setError } = useAuth();
+    const busy = emailAuthLoading || googleAuthLoading;
     const [emailWarning, setEmailWarning] = React.useState(" ");
     const [passwordWarning, setPasswordWarning] = React.useState(" ");
 
@@ -125,10 +127,10 @@ const Register = () => {
                             fullWidth
                             variant="contained"
                             sx={{ mt: 3, mb: 2 }}
-                            disabled={!(!name || passwordWarning || emailWarning) ? false : true}
+                            disabled={!!(!name || passwordWarning || emailWarning) || busy}
                             onClick={signUpWithEmail}
                         >
-                            {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'SIGN UP'}
+                            {emailAuthLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'SIGN UP'}
                         </Button>
                         <Divider sx={{ my: 2 }}>
                             <Typography variant="caption" sx={{ color: 'text.secondary' }}>OR</Typography>
@@ -139,9 +141,9 @@ const Register = () => {
                             startIcon={<GoogleIcon />}
                             sx={{ mb: 2, textTransform: 'none', color: 'text.primary', borderColor: 'rgba(0,0,0,0.23)' }}
                             onClick={signWithGoogle}
-                            disabled={isLoading}
+                            disabled={busy}
                         >
-                            {isLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Continue with Google'}
+                            {googleAuthLoading ? <CircularProgress disableShrink={true} size={25} color="inherit" /> : 'Continue with Google'}
                         </Button>
                         <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
                             Either way, you will be asked for your designation, department

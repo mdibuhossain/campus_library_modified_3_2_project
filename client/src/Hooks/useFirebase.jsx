@@ -1,9 +1,9 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, getIdToken, sendPasswordResetEmail, sendEmailVerification, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
-import { getDownloadURL, getStorage, ref, uploadString } from 'firebase/storage';
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import initAuth from "../firebase/initAuth"
+import { purgePersistedCache } from '../apollo/client';
 import { POST_USER, GET_USER_STATUS, UPDATE_PROFILE, CHANGE_PASSWORD, COMPLETE_PROFILE, SYNC_PASSWORD, REQUEST_PASSWORD_RESET } from '../queries/query';
 
 
@@ -18,7 +18,17 @@ const useFirebase = () => {
     const [updateTrack, setUpdateTrack] = useState(0);
     const [error, setError] = useState();
     const [token, setToken] = useState('');
+    /* `isLoading` is the auth *bootstrap* flag: true until onAuthStateChanged
+     * first reports. RequireAuth, AdminRoute and the navbar avatar key off it.
+     *
+     * It used to double as the submit state for every auth action, so signing in
+     * with email spun the Google button too, disabled it, AND made the route
+     * guards render a full-page loader mid-attempt. Each action owns its own
+     * flag now. */
     const [isLoading, setIsLoading] = useState(true);
+    const [emailAuthLoading, setEmailAuthLoading] = useState(false);
+    const [googleAuthLoading, setGoogleAuthLoading] = useState(false);
+    const [avatarLoading, setAvatarLoading] = useState(false);
     // password flows keep their own state so they don't clobber the
     // `error`/`isLoading` shared by the login and registration forms
     const [passwordError, setPasswordError] = useState('');
@@ -30,7 +40,6 @@ const useFirebase = () => {
     const [verifyMessage, setVerifyMessage] = useState('');
     const [verifyLoading, setVerifyLoading] = useState(false);
     const auth = getAuth();
-    const storage = getStorage();
 
     const location = useLocation();
     const history = useNavigate();
@@ -89,19 +98,32 @@ const useFirebase = () => {
     // one permission without holding the others.
     const can = (key) => (userPermissions || []).includes(key);
 
+    /* firebase/storage is loaded on demand. Changing an avatar is a rare,
+     * deliberate action behind /settings, so there is no reason every visitor
+     * downloads the Storage SDK before the home page can render. The extra
+     * round trip lands while the user is already cropping their image.
+     *
+     * The try/finally is new: the old version had no error path, so a failed
+     * upload left the spinner running forever. */
     const uploadAvatar = async (file) => {
-        const fileRef = ref(storage, 'avatar/' + auth?.currentUser?.uid + '.png');
-        setIsLoading(true);
-        const snapshot = await uploadString(fileRef, file, 'data_url');
-        const photoURL = await getDownloadURL(fileRef);
-        updateProfile(auth?.currentUser, { photoURL })
-            .then(() => { })
-            .catch(e => { })
-            .finally((result) => {
-                changePhoto({ variables: { token, photoURL } })
-                setUser({ ...user, photoURL })
-            })
-        setIsLoading(false);
+        setAvatarLoading(true);
+        try {
+            const { getStorage, ref, uploadString, getDownloadURL } = await import('firebase/storage');
+            const fileRef = ref(getStorage(), 'avatar/' + auth?.currentUser?.uid + '.png');
+            await uploadString(fileRef, file, 'data_url');
+            const photoURL = await getDownloadURL(fileRef);
+            updateProfile(auth?.currentUser, { photoURL })
+                .then(() => { })
+                .catch(e => { })
+                .finally(() => {
+                    changePhoto({ variables: { token, photoURL } })
+                    setUser({ ...user, photoURL })
+                })
+        } catch (e) {
+            setError(e.message)
+        } finally {
+            setAvatarLoading(false);
+        }
     }
 
     const updateProfileSettings = (updateData) => {
@@ -134,7 +156,7 @@ const useFirebase = () => {
 
     const signWithGoogle = async (e) => {
         e.preventDefault();
-        setIsLoading(true);
+        setGoogleAuthLoading(true);
         setError('');
         try {
             const googleProvider = new GoogleAuthProvider();
@@ -161,13 +183,13 @@ const useFirebase = () => {
         } catch (e) {
             setError(googleErrorMessage(firebaseErrorCode(e)))
         } finally {
-            setIsLoading(false)
+            setGoogleAuthLoading(false)
         }
     }
 
     const signInWithEmail = (e) => {
         e.preventDefault();
-        setIsLoading(true);
+        setEmailAuthLoading(true);
         setError('');
         const signedInWith = password;
         signInWithEmailAndPassword(auth, email, password)
@@ -186,12 +208,12 @@ const useFirebase = () => {
                 user && redirect();
             })
             .catch(error => setError(error.message.split('(')[1].split(')')[0]))
-            .finally(() => setIsLoading(false))
+            .finally(() => setEmailAuthLoading(false))
     }
 
     const signUpWithEmail = (event) => {
         event.preventDefault();
-        setIsLoading(true);
+        setEmailAuthLoading(true);
         setError('');
         createUserWithEmailAndPassword(auth, email, password)
             .then(result => {
@@ -222,12 +244,12 @@ const useFirebase = () => {
                 user && redirect();
             })
             .catch(error => setError(error.message.split('(')[1].split(')')[0]))
-            .finally(() => setIsLoading(false))
+            .finally(() => setEmailAuthLoading(false))
     }
 
     // Supplies the fields Google could not give us. Mirrors what the email
     // signup form writes, so both paths leave the same row shape behind.
-    const completeProfile = async ({ designation, department, semester }) => {
+    const completeProfile = async ({ designation, department, semester }, options = {}) => {
         setProfileLoading(true);
         setProfileError('');
         try {
@@ -240,7 +262,10 @@ const useFirebase = () => {
                 return false
             }
             await refetchUserStatus()
-            redirect()
+            // the gate sends people here with an intended destination in
+            // location.state; editing from Settings should go back to Settings
+            if (options?.to) history(options.to);
+            else redirect();
             return true
         } catch (e) {
             setProfileError(e?.message || 'Unable to save your details')
@@ -332,8 +357,13 @@ const useFirebase = () => {
             .then(() => {
                 setUser({})
                 clearUser()
+                /* The Apollo cache is persisted to localStorage now, and it
+                 * holds whatever this user read: their profile and permissions,
+                 * conversation list, message previews. On a shared browser the
+                 * next person could otherwise read all of it out of devtools. */
+                purgePersistedCache()
             })
-        // .finally(() => setIsLoading(false))
+        // .finally(() => setEmailAuthLoading(false))
         user && redirect();
     }
 
@@ -384,6 +414,9 @@ const useFirebase = () => {
         setError,
         password,
         isLoading,
+        emailAuthLoading,
+        googleAuthLoading,
+        avatarLoading,
         setPassword,
         userSemester,
         userDepartment,

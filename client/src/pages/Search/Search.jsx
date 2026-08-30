@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Paper from '@mui/material/Paper';
 import InputBase from '@mui/material/InputBase';
 import SearchIcon from '@mui/icons-material/Search';
@@ -21,8 +22,28 @@ const Search = () => {
     // Build the corpus from the three typed lists rather than the pre-merged
     // `allData`, so each hit can say what kind of thing it is.
     const { books, questions, syllabus, dataLoading } = useUtility();
-    const [text, setText] = useState('');
+    /* Seeded from ?q= so the navbar's search box can hand off to this page, and
+       so a search is a shareable / bookmarkable URL rather than transient state. */
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [text, setText] = useState(() => searchParams.get('q') || '');
     const [type, setType] = useState(0);
+
+    // follow the URL when it changes underneath us (navbar search, back button)
+    useEffect(() => {
+        const q = searchParams.get('q') || '';
+        setText((prev) => (prev === q ? prev : q));
+    }, [searchParams]);
+
+    // mirror typing back into the URL, replacing so each keystroke does not
+    // become its own history entry
+    useEffect(() => {
+        const current = searchParams.get('q') || '';
+        if (current === text) return;
+        const id = setTimeout(() => {
+            setSearchParams(text ? { q: text } : {}, { replace: true });
+        }, 400);
+        return () => clearTimeout(id);
+    }, [text]);
 
     const corpus = useMemo(() => [
         ...(books || []).map((b) => ({ ...b, _type: 'book' })),

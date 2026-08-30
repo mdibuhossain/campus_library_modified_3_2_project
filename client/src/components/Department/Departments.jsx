@@ -17,13 +17,13 @@ import { tagTitle } from "../../utility/tagTitle";
 import { useState } from "react";
 
 const Departments = () => {
-  const {
-    getDepartments,
-    setGetDepartments,
-    searchedValue,
-    setSearchedValue,
-    deptLoading,
-  } = useUtility();
+  /* `searchedValue`/`setSearchedValue` used to be pulled from useUtility, but
+   * useData never returned them -- they were always undefined. So the
+   * Autocomplete was uncontrolled (value={undefined}), and picking a department
+   * threw "setSearchedValue is not a function" on every selection. It is local
+   * UI state; only the filtered list (setGetDepartments) needs to be shared. */
+  const { getDepartments, setGetDepartments, deptLoading } = useUtility();
+  const [searchedValue, setSearchedValue] = useState("");
   const [inputValue, setInputValue] = useState("");
 
   const handleChange = (event, newValue) => {
@@ -103,9 +103,10 @@ const Departments = () => {
                 ...params.InputProps,
                 startAdornment: (
                   <InputAdornment position="start">
-                    <IconButton onClick={handleChange} aria-label="search">
-                      <SearchIcon />
-                    </IconButton>
+                    {/* decorative: selecting an option is what filters, and this
+                        button previously called handleChange with no value,
+                        which could only ever be a no-op */}
+                    <SearchIcon sx={{ color: "action.active", ml: 1 }} />
                   </InputAdornment>
                 ),
                 endAdornment: (

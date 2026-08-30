@@ -42,7 +42,16 @@ const BookShowcase = ({ department }) => {
   };
 
   const syncHeight = useCallback(() => {
-    swiperRef.current?.updateAutoHeight(0);
+    const swiper = swiperRef.current;
+    /* `?.` guarded against null but not against a DESTROYED Swiper.
+     *
+     * A ResizeObserver callback can land after the swiper is torn down -- a
+     * route change away from the department page, or a re-init. The instance
+     * object still exists, but its internal `params` is gone, so
+     * updateAutoHeight -> setTransition reads `this.params.cssMode` of
+     * undefined and throws. */
+    if (!swiper || swiper.destroyed || !swiper.params) return;
+    swiper.updateAutoHeight(0);
   }, []);
 
   // autoHeight is measured when the slide changes, but this panel's height also
@@ -54,7 +63,10 @@ const BookShowcase = ({ department }) => {
     if (!el || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(syncHeight);
     el.querySelectorAll(".swiper-slide").forEach((slide) => observer.observe(slide));
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      swiperRef.current = null;
+    };
   }, [syncHeight]);
 
   useEffect(() => { syncHeight(); }, [syllabus, academic, questions, tabIndex, syncHeight]);
