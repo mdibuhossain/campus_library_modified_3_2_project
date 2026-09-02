@@ -1,7 +1,7 @@
 {
   "hosting": [
     {
-      "site": "project-3-2-c1dda",
+      "site": "campuslb",
       "public": "dist",
       "ignore": [
         "firebase.json",
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "site": "ccroom",
+      "site": "campuslib",
       "public": "dist",
       "ignore": [
         "firebase.json",
