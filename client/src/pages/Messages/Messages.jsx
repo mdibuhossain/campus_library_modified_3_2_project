@@ -1,17 +1,19 @@
 import React from "react";
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Alert, Avatar, Badge, Button, Chip, CircularProgress, IconButton, Skeleton,
   TextField, Tooltip, Typography,
 } from "@mui/material";
 import AddCommentIcon from "@mui/icons-material/AddComment";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import SendIcon from "@mui/icons-material/Send";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ForumIcon from "@mui/icons-material/Forum";
 import PageLayout from "../../Layout/PageLayout";
 import { useAuth } from "../../Hooks/useAuth";
 import UserSearch from "./UserSearch";
+import PushNotice from "../../components/PushNotice";
 import {
   GET_CONVERSATIONS, GET_MESSAGES, SEND_MESSAGE, MARK_CONVERSATION_READ,
 } from "../../queries/query";
@@ -172,15 +174,33 @@ const Messages = () => {
               Direct messages with other members.
             </Typography>
           </div>
-          <Button
-            variant="contained"
-            startIcon={<AddCommentIcon />}
-            onClick={() => setSearchOpen(true)}
-            sx={{ borderRadius: 7, textTransform: "none" }}
-          >
-            New
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Not everyone knows an admin's name to search for, which is the
+                whole reason the directory exists -- so it is reachable from
+                here, not only from the nav. */}
+            <Button
+              component={Link}
+              to="/support"
+              variant="outlined"
+              startIcon={<SupportAgentIcon />}
+              sx={{ borderRadius: 7, textTransform: "none" }}
+            >
+              <span className="hidden sm:inline">Talk to admin</span>
+              <span className="sm:hidden">Admin</span>
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddCommentIcon />}
+              onClick={() => setSearchOpen(true)}
+              sx={{ borderRadius: 7, textTransform: "none" }}
+            >
+              New
+            </Button>
+          </div>
         </div>
+
+        {/* why a reply might not reach you once this tab is closed */}
+        <PushNotice />
 
         {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>{error}</Alert>}
 
@@ -205,9 +225,14 @@ const Messages = () => {
                 <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
                   No conversations yet.
                 </Typography>
-                <Button size="small" sx={{ mt: 1 }} onClick={() => setSearchOpen(true)}>
-                  find someone
-                </Button>
+                <div className="flex flex-col items-center gap-1 mt-1">
+                  <Button size="small" onClick={() => setSearchOpen(true)}>
+                    find someone
+                  </Button>
+                  <Button size="small" component={Link} to="/support" sx={{ textTransform: "none" }}>
+                    or talk to an admin
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="divide-y divide-gray-100 max-h-[70vh] overflow-y-auto">

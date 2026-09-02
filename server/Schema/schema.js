@@ -23,7 +23,9 @@ const Notification = require("../Models/Notification_Model");
 const Conversation = require("../Models/Conversation_Model");
 const Message = require("../Models/Message_Model");
 const { notify } = require("../notifications");
-const { PERMISSION_KEYS } = require("../permissions");
+const { PERMISSION_KEYS, SUPPORT_PERMISSIONS } = require("../permissions");
+const AuditLog = require("../Models/AuditLog_Model");
+const { recordAudit, changedFields } = require("../audit");
 const { verifyToken } = require("../MiddleWare/isAuth");
 const admin = require("firebase-admin");
 
@@ -86,6 +88,13 @@ const requirePermission = async (token, key) => {
   if (!(await can(caller, key))) {
     throw new Error("Unauthorized");
   }
+  return caller;
+};
+
+const requireSuperadmin = async (token) => {
+  const caller = await requireUser(token);
+  const role = (await loadRoles()).get(caller.role);
+  if (!role?.protected) throw new Error("Unauthorized");
   return caller;
 };
 
@@ -245,6 +254,8 @@ const UserStatus = new GraphQLObjectType({
     isProfileComplete: { type: GraphQLBoolean },
     role: { type: GraphQLString },
     permissions: { type: new GraphQLList(GraphQLString) },
+    // the protected/root role. Not a permission, so it cannot be self-granted
+    isSuperadmin: { type: GraphQLBoolean },
   }),
 });
 const DepartmentType = new GraphQLObjectType({
@@ -304,6 +315,187 @@ const PublicUserType = new GraphQLObjectType({
     department: { type: GraphQLString },
   }),
 });
+/* A member of the team, for the Talk to admin page.
+ *
+ * Deliberately separate from publicUser: it carries `role` and
+ * `roleDescription`, which publicUser must not, because searchUsers hands
+ * publicUser records to anyone who types two characters. Only staff are ever
+ * returned here, and their role is the reason they are listed -- a reader needs
+ * it to pick the right person. */
+const SupportContactType = new GraphQLObjectType({
+  name: "supportContact",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    displayName: { type: GraphQLString },
+    email: { type: GraphQLString },
+    photoURL: { type: GraphQLString },
+    designation: { type: GraphQLString },
+    department: { type: GraphQLString },
+    role: { type: GraphQLString },
+    roleDescription: { type: GraphQLString },
+  }),
+});
+/* ------------------------------------------------------------------ history
+ * Types for getUserHistory (superadmin only).
+ *
+ * On timestamps: Room, Task, Submission, Message and Notification each carry a
+ * real date field, and those are used. User, Book, Question and Syllabus carry
+ * none, so `createdAt`/`joinedAt` for those is recovered from the ObjectId,
+ * which embeds its creation second -- a true creation time, not a guess.
+ *
+ * No collection records an EDIT, in either case: an update leaves the _id alone
+ * and overwrites the row. Edit times therefore come only from the audit log,
+ * which starts at deployment.
+ */
+const HistoryUploadType = new GraphQLObjectType({
+  name: "historyUpload",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    kind: { type: GraphQLString },
+    title: { type: GraphQLString },
+    department: { type: GraphQLString },
+    subCategory: { type: GraphQLString },
+    status: { type: GraphQLBoolean },
+    downloadLink: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
+  }),
+});
+const HistoryMessageType = new GraphQLObjectType({
+  name: "historyMessage",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    conversationId: { type: GraphQLID },
+    body: { type: GraphQLString },
+    iat: { type: GraphQLString },
+    outgoing: { type: GraphQLBoolean },
+    counterpartEmail: { type: GraphQLString },
+    counterpartName: { type: GraphQLString },
+  }),
+});
+/* One channel of the user's chat: the person on the other side, plus the
+ * messages exchanged with them in reading order. `messageCount` is the true
+ * total for the thread and `shownCount` is how many of them this response
+ * carries, so the UI can say "showing 40 of 312" rather than quietly truncate. */
+const HistoryConversationType = new GraphQLObjectType({
+  name: "historyConversation",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    counterpartEmail: { type: GraphQLString },
+    counterpartName: { type: GraphQLString },
+    counterpartPhoto: { type: GraphQLString },
+    counterpartDesignation: { type: GraphQLString },
+    counterpartDepartment: { type: GraphQLString },
+    messageCount: { type: GraphQLInt },
+    shownCount: { type: GraphQLInt },
+    lastMessage: { type: GraphQLString },
+    lastMessageAt: { type: GraphQLString },
+    messages: { type: new GraphQLList(HistoryMessageType) },
+  }),
+});
+const HistoryRoomType = new GraphQLObjectType({
+  name: "historyRoom",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    role: { type: GraphQLString },
+    memberCount: { type: GraphQLInt },
+    createdAt: { type: GraphQLString },
+  }),
+});
+const HistoryTaskType = new GraphQLObjectType({
+  name: "historyTask",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    title: { type: GraphQLString },
+    roomName: { type: GraphQLString },
+    deadline: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
+  }),
+});
+const HistorySubmissionType = new GraphQLObjectType({
+  name: "historySubmission",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    taskTitle: { type: GraphQLString },
+    roomName: { type: GraphQLString },
+    filename: { type: GraphQLString },
+    submittedAt: { type: GraphQLString },
+  }),
+});
+const HistoryNotificationType = new GraphQLObjectType({
+  name: "historyNotification",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    title: { type: GraphQLString },
+    body: { type: GraphQLString },
+    kind: { type: GraphQLString },
+    read: { type: GraphQLBoolean },
+    iat: { type: GraphQLString },
+  }),
+});
+const AuditEntryType = new GraphQLObjectType({
+  name: "auditEntry",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    actor: { type: GraphQLString },
+    action: { type: GraphQLString },
+    targetType: { type: GraphQLString },
+    targetLabel: { type: GraphQLString },
+    subject: { type: GraphQLString },
+    // Mixed in Mongo; serialised so the client can render it without the
+    // schema having to enumerate every action's shape
+    details: { type: GraphQLString },
+    iat: { type: GraphQLString },
+  }),
+});
+const HistoryCountsType = new GraphQLObjectType({
+  name: "historyCounts",
+  fields: () => ({
+    books: { type: GraphQLInt },
+    questions: { type: GraphQLInt },
+    syllabus: { type: GraphQLInt },
+    pending: { type: GraphQLInt },
+    messages: { type: GraphQLInt },
+    conversations: { type: GraphQLInt },
+    roomsOwned: { type: GraphQLInt },
+    roomsJoined: { type: GraphQLInt },
+    tasks: { type: GraphQLInt },
+    submissions: { type: GraphQLInt },
+    notifications: { type: GraphQLInt },
+    actions: { type: GraphQLInt },
+    receivedActions: { type: GraphQLInt },
+  }),
+});
+const UserHistoryType = new GraphQLObjectType({
+  name: "userHistory",
+  fields: () => ({
+    _id: { type: GraphQLID },
+    displayName: { type: GraphQLString },
+    email: { type: GraphQLString },
+    photoURL: { type: GraphQLString },
+    authType: { type: GraphQLString },
+    designation: { type: GraphQLString },
+    department: { type: GraphQLString },
+    semester: { type: GraphQLString },
+    role: { type: GraphQLString },
+    roleDescription: { type: GraphQLString },
+    permissions: { type: new GraphQLList(GraphQLString) },
+    isProfileComplete: { type: GraphQLBoolean },
+    deviceCount: { type: GraphQLInt },
+    joinedAt: { type: GraphQLString },
+    counts: { type: HistoryCountsType },
+    uploads: { type: new GraphQLList(HistoryUploadType) },
+    conversations: { type: new GraphQLList(HistoryConversationType) },
+    roomsOwned: { type: new GraphQLList(HistoryRoomType) },
+    roomsJoined: { type: new GraphQLList(HistoryRoomType) },
+    tasks: { type: new GraphQLList(HistoryTaskType) },
+    submissions: { type: new GraphQLList(HistorySubmissionType) },
+    notifications: { type: new GraphQLList(HistoryNotificationType) },
+    actions: { type: new GraphQLList(AuditEntryType) },
+    receivedActions: { type: new GraphQLList(AuditEntryType) },
+  }),
+});
+
 const MessageType = new GraphQLObjectType({
   name: "message",
   fields: () => ({
@@ -574,6 +766,320 @@ const RootQuery = new GraphQLObjectType({
           .limit(limit);
       },
     },
+    /* The team a reader can write to.
+     *
+     * Signed-in only, because the outcome of picking someone is
+     * startConversation, which is itself signed-in only -- listing contacts to
+     * a visitor who cannot message them would be a dead end.
+     *
+     * Roles are read from the same cache every permission check uses, so this
+     * costs one user query. */
+    /* Everything recorded about one user. Superadmin only.
+     *
+     * The `password` column is deliberately NOT returned. It mirrors a
+     * plaintext password, and putting that on a screen is a different risk from
+     * leaving it in a collection -- a shoulder, a screenshot, a screen share.
+     * Nothing here needs it.
+     *
+     * Each list is capped and ordered newest-first; `counts` is computed with
+     * countDocuments so the totals stay honest even when a list is truncated.
+     */
+    getUserHistory: {
+      type: UserHistoryType,
+      args: {
+        _id: { type: GraphQLID },
+        email: { type: GraphQLString },
+        token: { type: GraphQLString },
+        limit: { type: GraphQLInt },
+      },
+      async resolve(_, args) {
+        await requireSuperadmin(args?.token);
+
+        const target = args?._id
+          ? await User.findById(args._id)
+          : await User.findOne({ email: String(args?.email || "").toLowerCase() });
+        if (!target) throw new Error("User not exist!");
+
+        const email = target.email;
+        const cap = Math.min(Math.max(args?.limit || 100, 1), 500);
+        const roles = await loadRoles();
+        const roleDoc = roles.get(target.role);
+
+        const idDate = (doc) => {
+          try { return doc?._id?.getTimestamp?.()?.toISOString() || null; }
+          catch { return null; }
+        };
+
+        // ---- uploads across the three content collections ----------------
+        const uploadOf = (kind) => ({ added_by: email });
+        const [books, questions, syllabi] = await Promise.all([
+          Book.find(uploadOf(), "book_name categories sub_categories status download_link").sort({ _id: -1 }).limit(cap),
+          Question.find(uploadOf(), "book_name categories sub_categories status download_link").sort({ _id: -1 }).limit(cap),
+          Syllabus.find(uploadOf(), "book_name categories sub_categories status download_link").sort({ _id: -1 }).limit(cap),
+        ]);
+        const asUpload = (kind) => (d) => ({
+          _id: d._id,
+          kind,
+          title: d.book_name,
+          department: d.categories,
+          subCategory: d.sub_categories,
+          status: !!d.status,
+          downloadLink: d.download_link,
+          createdAt: idDate(d),
+        });
+        const uploads = [
+          ...books.map(asUpload("book")),
+          ...questions.map(asUpload("question")),
+          ...syllabi.map(asUpload("syllabus")),
+        ].sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+
+        /* ---- conversations, each with its own thread -------------------
+         *
+         * Grouped per conversation rather than returned as one flat list.
+         * A single stream ordered by time interleaves every correspondent,
+         * so a reply sits nowhere near the message it answers and reading a
+         * particular exchange means filtering by eye. Chat is per-channel by
+         * nature, and the history view should match how the conversation
+         * actually happened.
+         *
+         * Fetched as ONE query over all of the user's conversations plus one
+         * aggregate for the true per-thread totals, rather than two queries
+         * per conversation. Messages come back newest-first (that is what the
+         * cap should keep) and each thread is then reversed for reading order.
+         */
+        const convos = await Conversation.find({ participants: email })
+          .sort({ lastMessageAt: -1 })
+          .limit(60);
+        const convoIds = convos.map((c) => c._id);
+        const counterpart = new Map(
+          convos.map((c) => [String(c._id), (c.participants || []).find((x) => x !== email) || ""])
+        );
+
+        // a larger budget than the other lists: this one is split across
+        // threads, so `cap` alone would starve every channel but the busiest
+        const messageCap = Math.min(cap * 6, 2000);
+        const [flatMessages, perThreadTotals] = convoIds.length
+          ? await Promise.all([
+              Message.find({ conversation: { $in: convoIds } }).sort({ _id: -1 }).limit(messageCap),
+              Message.aggregate([
+                { $match: { conversation: { $in: convoIds } } },
+                { $group: { _id: "$conversation", n: { $sum: 1 } } },
+              ]),
+            ])
+          : [[], []];
+        const totalPerThread = new Map(perThreadTotals.map((t) => [String(t._id), t.n]));
+
+        // one lookup for every counterpart, rather than one per message
+        const others = await User.find(
+          { email: { $in: [...new Set([...counterpart.values()].filter(Boolean))] } },
+          "displayName email photoURL designation department"
+        );
+        const otherByEmail = new Map(others.map((u) => [u.email, u]));
+
+        const grouped = new Map(convoIds.map((cid) => [String(cid), []]));
+        flatMessages.forEach((m) => {
+          const bucket = grouped.get(String(m.conversation));
+          if (bucket) bucket.push(m);
+        });
+
+        // ---- classroom ----------------------------------------------------
+        const [ownedRooms, joinedRooms] = await Promise.all([
+          Room.find({ admin: target._id }, "roomName members iat").sort({ _id: -1 }).limit(cap),
+          Room.find({ members: target._id, admin: { $ne: target._id } }, "roomName members iat").sort({ _id: -1 }).limit(cap),
+        ]);
+        const roomName = new Map(
+          [...ownedRooms, ...joinedRooms].map((r) => [String(r._id), r.roomName])
+        );
+        const tasks = await Task.find({ author: target._id }, "title room deadline iat").sort({ _id: -1 }).limit(cap);
+        const submissions = await Submission.find({ user: target._id }).sort({ _id: -1 }).limit(cap).populate("task", "title room");
+
+        // rooms referenced by tasks/submissions may not be in the two lists above
+        const extraRoomIds = [
+          ...tasks.map((t) => String(t.room || "")),
+          ...submissions.map((sub) => String(sub.task?.room || "")),
+        ].filter((id) => id && !roomName.has(id));
+        if (extraRoomIds.length) {
+          const extra = await Room.find({ _id: { $in: [...new Set(extraRoomIds)] } }, "roomName");
+          extra.forEach((r) => roomName.set(String(r._id), r.roomName));
+        }
+
+        const [notifications, actions, receivedActions] = await Promise.all([
+          Notification.find({ email }).sort({ iat: -1 }).limit(cap),
+          AuditLog.find({ actor: email }).sort({ iat: -1 }).limit(cap),
+          AuditLog.find({ subject: email, actor: { $ne: email } }).sort({ iat: -1 }).limit(cap),
+        ]);
+
+        // ---- totals, independent of the caps above -----------------------
+        const [
+          bookCount, questionCount, syllabusCount,
+          pendingBooks, pendingQuestions, pendingSyllabus,
+          messageCount, ownedCount, joinedCount, taskCount, submissionCount,
+          notificationCount, actionCount, receivedCount,
+        ] = await Promise.all([
+          Book.countDocuments({ added_by: email }),
+          Question.countDocuments({ added_by: email }),
+          Syllabus.countDocuments({ added_by: email }),
+          Book.countDocuments({ added_by: email, status: { $ne: true } }),
+          Question.countDocuments({ added_by: email, status: { $ne: true } }),
+          Syllabus.countDocuments({ added_by: email, status: { $ne: true } }),
+          convoIds.length ? Message.countDocuments({ conversation: { $in: convoIds } }) : 0,
+          Room.countDocuments({ admin: target._id }),
+          Room.countDocuments({ members: target._id, admin: { $ne: target._id } }),
+          Task.countDocuments({ author: target._id }),
+          Submission.countDocuments({ user: target._id }),
+          Notification.countDocuments({ email }),
+          AuditLog.countDocuments({ actor: email }),
+          AuditLog.countDocuments({ subject: email, actor: { $ne: email } }),
+        ]);
+
+        const asAudit = (a) => ({
+          _id: a._id,
+          actor: a.actor,
+          action: a.action,
+          targetType: a.targetType,
+          targetLabel: a.targetLabel,
+          subject: a.subject,
+          details: a.meta && Object.keys(a.meta).length ? JSON.stringify(a.meta) : "",
+          iat: a.iat instanceof Date ? a.iat.toISOString() : String(a.iat || ""),
+        });
+
+        return {
+          _id: target._id,
+          displayName: target.displayName,
+          email,
+          photoURL: target.photoURL,
+          authType: target.authType,
+          designation: target.designation,
+          department: target.department,
+          semester: target.semester,
+          role: target.role,
+          roleDescription: roleDoc?.description || "",
+          permissions: roleDoc?.permissions || [],
+          isProfileComplete: isProfileComplete(target),
+          deviceCount: (target.fcmTokens || []).length,
+          joinedAt: idDate(target),
+          counts: {
+            books: bookCount, questions: questionCount, syllabus: syllabusCount,
+            pending: pendingBooks + pendingQuestions + pendingSyllabus,
+            messages: messageCount, conversations: convos.length,
+            roomsOwned: ownedCount, roomsJoined: joinedCount,
+            tasks: taskCount, submissions: submissionCount,
+            notifications: notificationCount,
+            actions: actionCount, receivedActions: receivedCount,
+          },
+          uploads,
+          conversations: convos.map((c) => {
+            const cid = String(c._id);
+            const withEmail = counterpart.get(cid) || "";
+            const withUser = otherByEmail.get(withEmail);
+            // stored newest-first by the query above; a thread reads oldest-first
+            const thread = (grouped.get(cid) || []).slice().reverse();
+            return {
+              _id: c._id,
+              counterpartEmail: withEmail,
+              counterpartName: withUser?.displayName || withEmail,
+              counterpartPhoto: withUser?.photoURL || "",
+              counterpartDesignation: withUser?.designation || "",
+              counterpartDepartment: withUser?.department || "",
+              messageCount: totalPerThread.get(cid) || 0,
+              shownCount: thread.length,
+              lastMessage: c.lastMessage || "",
+              lastMessageAt:
+                c.lastMessageAt instanceof Date ? c.lastMessageAt.toISOString() : null,
+              messages: thread.map((m) => ({
+                _id: m._id,
+                conversationId: m.conversation,
+                body: m.body,
+                iat: m.iat instanceof Date ? m.iat.toISOString() : String(m.iat || ""),
+                outgoing: m.from === email,
+                counterpartEmail: withEmail,
+                counterpartName: withUser?.displayName || withEmail,
+              })),
+            };
+          }),
+          roomsOwned: ownedRooms.map((r) => ({
+            _id: r._id, name: r.roomName, role: "owner",
+            memberCount: (r.members || []).length,
+            createdAt: r.iat instanceof Date ? r.iat.toISOString() : idDate(r),
+          })),
+          roomsJoined: joinedRooms.map((r) => ({
+            _id: r._id, name: r.roomName, role: "member",
+            memberCount: (r.members || []).length,
+            createdAt: r.iat instanceof Date ? r.iat.toISOString() : idDate(r),
+          })),
+          tasks: tasks.map((t) => ({
+            _id: t._id, title: t.title,
+            roomName: roomName.get(String(t.room)) || "",
+            deadline: t.deadline instanceof Date ? t.deadline.toISOString() : null,
+            createdAt: t.iat instanceof Date ? t.iat.toISOString() : idDate(t),
+          })),
+          submissions: submissions.map((sub) => ({
+            _id: sub._id,
+            taskTitle: sub.task?.title || "",
+            roomName: roomName.get(String(sub.task?.room)) || "",
+            filename: sub.originalFilename || "",
+            submittedAt:
+              sub.submittedAt instanceof Date ? sub.submittedAt.toISOString() : idDate(sub),
+          })),
+          notifications: notifications.map((n) => ({
+            _id: n._id, title: n.title, body: n.body, kind: n.kind, read: !!n.read,
+            iat: n.iat instanceof Date ? n.iat.toISOString() : String(n.iat || ""),
+          })),
+          actions: actions.map(asAudit),
+          receivedActions: receivedActions.map(asAudit),
+        };
+      },
+    },
+    getSupportContacts: {
+      type: new GraphQLList(SupportContactType),
+      args: { token: { type: GraphQLString } },
+      async resolve(_, args) {
+        const caller = await requireUser(args?.token);
+        const roles = await loadRoles();
+
+        const staffRoles = [...roles.values()]
+          .map((r) => ({
+            name: r.name,
+            description: r.description || "",
+            // seniority = how much of the support surface the role covers
+            rank: SUPPORT_PERMISSIONS.filter((k) => (r.permissions || []).includes(k)).length,
+          }))
+          .filter((r) => r.rank > 0);
+        if (staffRoles.length === 0) return [];
+
+        const byRole = new Map(staffRoles.map((r) => [r.name, r]));
+        const users = await User.find(
+          {
+            role: { $in: [...byRole.keys()] },
+            // you are not your own support contact
+            email: { $ne: caller.email },
+          },
+          "displayName email photoURL designation department role"
+        ).limit(50);
+
+        return users
+          .map((u) => {
+            const meta = byRole.get(u.role);
+            return {
+              _id: u._id,
+              displayName: u.displayName,
+              email: u.email,
+              photoURL: u.photoURL,
+              designation: u.designation,
+              department: u.department,
+              role: u.role,
+              roleDescription: meta?.description || "",
+              rank: meta?.rank || 0,
+            };
+          })
+          // most senior first, then alphabetical, so the list is stable
+          .sort(
+            (a, b) =>
+              b.rank - a.rank ||
+              String(a.displayName || a.email).localeCompare(String(b.displayName || b.email))
+          );
+      },
+    },
     getConversations: {
       type: new GraphQLList(ConversationType),
       args: { token: { type: GraphQLString } },
@@ -675,6 +1181,7 @@ const RootQuery = new GraphQLObjectType({
           isProfileComplete: isProfileComplete(searchedUser),
           role: searchedUser?.role,
           permissions,
+          isSuperadmin: !!(await loadRoles()).get(searchedUser?.role)?.protected,
         };
       },
     },
@@ -690,12 +1197,18 @@ const mutation = new GraphQLObjectType({
       type: BookType,
       args: { ...GraphQLSchemaTemplateForBook, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        await requirePermission(args?.token, "content.create");
+        const uploader = await requirePermission(args?.token, "content.create");
         const newBook = new Book({
           ...args,
           course_code: args?.course_code.toLowerCase(),
         });
         const saved = await newBook.save();
+        recordAudit({
+          actor: uploader.email, action: "content.create", targetType: "book",
+          targetId: saved._id, targetLabel: saved.book_name,
+          subject: saved.added_by || uploader.email,
+          meta: { department: saved.categories },
+        });
         await notifyReviewers(saved, "book");
         return saved;
       },
@@ -704,9 +1217,15 @@ const mutation = new GraphQLObjectType({
       type: QuestionType,
       args: { ...GraphQLSchemaTemplate, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        await requirePermission(args?.token, "content.create");
+        const uploader = await requirePermission(args?.token, "content.create");
         const newQuestion = new Question({ ...args });
         const saved = await newQuestion.save();
+        recordAudit({
+          actor: uploader.email, action: "content.create", targetType: "question",
+          targetId: saved._id, targetLabel: saved.book_name,
+          subject: saved.added_by || uploader.email,
+          meta: { department: saved.categories },
+        });
         await notifyReviewers(saved, "question");
         return saved;
       },
@@ -715,9 +1234,15 @@ const mutation = new GraphQLObjectType({
       type: SyllabusType,
       args: { ...GraphQLSchemaTemplate, ...GraphQLSchemaAuth },
       async resolve(_, args) {
-        await requirePermission(args?.token, "content.create");
+        const uploader = await requirePermission(args?.token, "content.create");
         const newSyllabus = new Syllabus({ ...args });
         const saved = await newSyllabus.save();
+        recordAudit({
+          actor: uploader.email, action: "content.create", targetType: "syllabus",
+          targetId: saved._id, targetLabel: saved.book_name,
+          subject: saved.added_by || uploader.email,
+          meta: { department: saved.categories },
+        });
         await notifyReviewers(saved, "syllabus");
         return saved;
       },
@@ -999,7 +1524,7 @@ const mutation = new GraphQLObjectType({
         token: { type: GraphQLString },
       },
       async resolve(_, args) {
-        await requirePermission(args?.token, "role.manage");
+        const caller = await requirePermission(args?.token, "role.manage");
         const name = String(args?.name || "").trim().toLowerCase();
         if (!name) throw new Error("Role name is required");
         if (await Role.findOne({ name })) {
@@ -1016,6 +1541,11 @@ const mutation = new GraphQLObjectType({
           isDefault: false,
         }).save();
         invalidateRolesCache();
+        recordAudit({
+          actor: caller.email, action: "role.create", targetType: "role",
+          targetId: created._id, targetLabel: created.name,
+          meta: { permissions },
+        });
         return { ...created.toObject(), userCount: 0 };
       },
     },
@@ -1028,7 +1558,7 @@ const mutation = new GraphQLObjectType({
         token: { type: GraphQLString },
       },
       async resolve(_, args) {
-        await requirePermission(args?.token, "role.manage");
+        const caller = await requirePermission(args?.token, "role.manage");
         const role = await Role.findById(args?._id);
         if (!role) throw new Error("Role not found");
         // the protected role is the lockout insurance -- if its permissions
@@ -1060,6 +1590,18 @@ const mutation = new GraphQLObjectType({
             "That change would leave nobody able to assign roles"
           );
         }
+        /* After the rollback check, so a refused change leaves no row. This is
+         * the most security-relevant edit in the app -- it is how a permission
+         * gets granted to a role -- so the before/after permission sets are
+         * both recorded, not just "updated". */
+        recordAudit({
+          actor: caller.email, action: "role.update", targetType: "role",
+          targetId: updated._id, targetLabel: updated.name,
+          meta: {
+            permissionsBefore: role.permissions,
+            permissionsAfter: updated.permissions,
+          },
+        });
         const userCount = await User.countDocuments({ role: updated.name });
         return { ...updated.toObject(), userCount };
       },
@@ -1068,7 +1610,7 @@ const mutation = new GraphQLObjectType({
       type: AuthActionType,
       args: { _id: { type: GraphQLID }, token: { type: GraphQLString } },
       async resolve(_, args) {
-        await requirePermission(args?.token, "role.manage");
+        const caller = await requirePermission(args?.token, "role.manage");
         const role = await Role.findById(args?._id);
         if (!role) throw new Error("Role not found");
         if (role.protected) {
@@ -1085,6 +1627,11 @@ const mutation = new GraphQLObjectType({
         }
         await Role.deleteOne({ _id: role._id });
         invalidateRolesCache();
+        recordAudit({
+          actor: caller.email, action: "role.delete", targetType: "role",
+          targetId: role._id, targetLabel: role.name,
+          meta: { permissions: role.permissions },
+        });
         return { success: true, message: `Role "${role.name}" deleted` };
       },
     },
@@ -1126,6 +1673,14 @@ const mutation = new GraphQLObjectType({
           });
           throw new Error("That change would leave nobody able to assign roles");
         }
+        /* Recorded after the anti-lockout rollback, so a change that was undone
+         * does not leave a row claiming it happened. `subject` is the target,
+         * which is what makes this show up under "done to this user". */
+        recordAudit({
+          actor: caller.email, action: "role.assign", targetType: "user",
+          targetId: target._id, targetLabel: target.displayName || target.email,
+          subject: target.email, meta: { from: target.role, to: nextRole.name },
+        });
         await notify([target.email], {
           title: "Your role was changed",
           body: `You are now "${nextRole.name}".`,
@@ -1417,7 +1972,15 @@ const mutation = new GraphQLObjectType({
       async resolve(_, args) {
         const doc = await Book.findById(args?._id);
         if (!doc) throw new Error("Content not found");
-        await requireOwnerOr(args?.token, doc, "content.delete.any");
+        const remover = await requireOwnerOr(args?.token, doc, "content.delete.any");
+        /* The label is captured before the delete on purpose: after this the
+         * document is gone, and "deleted <unknown>" would be a useless row. */
+        recordAudit({
+          actor: remover.email, action: "content.delete", targetType: "book",
+          targetId: args?._id, targetLabel: doc.book_name,
+          subject: doc.added_by || "",
+          meta: { department: doc.categories, wasApproved: !!doc.status },
+        });
         return Book.findByIdAndRemove(args?._id);
       },
     },
@@ -1427,7 +1990,15 @@ const mutation = new GraphQLObjectType({
       async resolve(_, args) {
         const doc = await Question.findById(args?._id);
         if (!doc) throw new Error("Content not found");
-        await requireOwnerOr(args?.token, doc, "content.delete.any");
+        const remover = await requireOwnerOr(args?.token, doc, "content.delete.any");
+        /* The label is captured before the delete on purpose: after this the
+         * document is gone, and "deleted <unknown>" would be a useless row. */
+        recordAudit({
+          actor: remover.email, action: "content.delete", targetType: "question",
+          targetId: args?._id, targetLabel: doc.book_name,
+          subject: doc.added_by || "",
+          meta: { department: doc.categories, wasApproved: !!doc.status },
+        });
         return Question.findByIdAndRemove(args?._id);
       },
     },
@@ -1437,7 +2008,15 @@ const mutation = new GraphQLObjectType({
       async resolve(_, args) {
         const doc = await Syllabus.findById(args?._id);
         if (!doc) throw new Error("Content not found");
-        await requireOwnerOr(args?.token, doc, "content.delete.any");
+        const remover = await requireOwnerOr(args?.token, doc, "content.delete.any");
+        /* The label is captured before the delete on purpose: after this the
+         * document is gone, and "deleted <unknown>" would be a useless row. */
+        recordAudit({
+          actor: remover.email, action: "content.delete", targetType: "syllabus",
+          targetId: args?._id, targetLabel: doc.book_name,
+          subject: doc.added_by || "",
+          meta: { department: doc.categories, wasApproved: !!doc.status },
+        });
         return Syllabus.findByIdAndRemove(args?._id);
       },
     },
@@ -1449,11 +2028,22 @@ const mutation = new GraphQLObjectType({
       async resolve(_, args) {
         const doc = await Book.findById(args?._id);
         if (!doc) throw new Error("Content not found");
-        await requireOwnerOr(args?.token, doc, "content.edit.any");
+        const editor = await requireOwnerOr(args?.token, doc, "content.edit.any");
         const tmp = { ...args, course_code: args?.course_code.toLowerCase() };
         delete tmp._id;
         delete tmp.token;
-        return Book.findByIdAndUpdate(args?._id, { $set: tmp }, { new: true });
+        const fields = changedFields(doc.toObject(), tmp);
+        const result = await Book.findByIdAndUpdate(args?._id, { $set: tmp }, { new: true });
+        // only worth a row if something actually differs -- opening the edit
+        // form and pressing save unchanged is not history
+        if (fields.length) {
+          recordAudit({
+            actor: editor.email, action: "content.edit", targetType: "book",
+            targetId: args?._id, targetLabel: result?.book_name || doc.book_name,
+            subject: doc.added_by || "", meta: { fields },
+          });
+        }
+        return result;
       },
     },
     editQuestion: {
@@ -1462,10 +2052,18 @@ const mutation = new GraphQLObjectType({
       async resolve(_, args) {
         const doc = await Question.findById(args?._id);
         if (!doc) throw new Error("Content not found");
-        await requireOwnerOr(args?.token, doc, "content.edit.any");
+        const editor = await requireOwnerOr(args?.token, doc, "content.edit.any");
         const tmp = { ...args };
         delete tmp._id;
         delete tmp.token;
+        const fields = changedFields(doc.toObject(), tmp);
+        if (fields.length) {
+          recordAudit({
+            actor: editor.email, action: "content.edit", targetType: "question",
+            targetId: args?._id, targetLabel: doc.book_name,
+            subject: doc.added_by || "", meta: { fields },
+          });
+        }
         return Question.findByIdAndUpdate(
           args?._id,
           { $set: tmp },
@@ -1479,10 +2077,18 @@ const mutation = new GraphQLObjectType({
       async resolve(_, args) {
         const doc = await Syllabus.findById(args?._id);
         if (!doc) throw new Error("Content not found");
-        await requireOwnerOr(args?.token, doc, "content.edit.any");
+        const editor = await requireOwnerOr(args?.token, doc, "content.edit.any");
         const tmp = { ...args };
         delete tmp._id;
         delete tmp.token;
+        const fields = changedFields(doc.toObject(), tmp);
+        if (fields.length) {
+          recordAudit({
+            actor: editor.email, action: "content.edit", targetType: "syllabus",
+            targetId: args?._id, targetLabel: doc.book_name,
+            subject: doc.added_by || "", meta: { fields },
+          });
+        }
         return Syllabus.findByIdAndUpdate(
           args?._id,
           { $set: tmp },
@@ -1512,12 +2118,20 @@ const mutation = new GraphQLObjectType({
       type: BookType,
       args: { ...GraphQLSchemaAuth, status: { type: GraphQLBoolean } },
       async resolve(_, args) {
-        await requirePermission(args?.token, "content.approve");
+        const reviewer = await requirePermission(args?.token, "content.approve");
         const updated = await Book.findByIdAndUpdate(
           args?._id,
           { $set: { status: args?.status } },
           { new: true }
         );
+        if (updated) {
+          recordAudit({
+            actor: reviewer.email,
+            action: args?.status ? "content.approve" : "content.hide",
+            targetType: "book", targetId: args?._id, targetLabel: updated.book_name,
+            subject: updated.added_by || "",
+          });
+        }
         if (updated?.added_by) {
           await notify([updated.added_by], {
             title: args?.status ? "Your upload was approved" : "Your upload was hidden",
@@ -1533,12 +2147,20 @@ const mutation = new GraphQLObjectType({
       type: QuestionType,
       args: { ...GraphQLSchemaAuth, status: { type: GraphQLBoolean } },
       async resolve(_, args) {
-        await requirePermission(args?.token, "content.approve");
+        const reviewer = await requirePermission(args?.token, "content.approve");
         const updated = await Question.findByIdAndUpdate(
           args?._id,
           { $set: { status: args?.status } },
           { new: true }
         );
+        if (updated) {
+          recordAudit({
+            actor: reviewer.email,
+            action: args?.status ? "content.approve" : "content.hide",
+            targetType: "question", targetId: args?._id, targetLabel: updated.book_name,
+            subject: updated.added_by || "",
+          });
+        }
         if (updated?.added_by) {
           await notify([updated.added_by], {
             title: args?.status ? "Your upload was approved" : "Your upload was hidden",
@@ -1554,12 +2176,20 @@ const mutation = new GraphQLObjectType({
       type: SyllabusType,
       args: { ...GraphQLSchemaAuth, status: { type: GraphQLBoolean } },
       async resolve(_, args) {
-        await requirePermission(args?.token, "content.approve");
+        const reviewer = await requirePermission(args?.token, "content.approve");
         const updated = await Syllabus.findByIdAndUpdate(
           args?._id,
           { $set: { status: args?.status } },
           { new: true }
         );
+        if (updated) {
+          recordAudit({
+            actor: reviewer.email,
+            action: args?.status ? "content.approve" : "content.hide",
+            targetType: "syllabus", targetId: args?._id, targetLabel: updated.book_name,
+            subject: updated.added_by || "",
+          });
+        }
         if (updated?.added_by) {
           await notify([updated.added_by], {
             title: args?.status ? "Your upload was approved" : "Your upload was hidden",

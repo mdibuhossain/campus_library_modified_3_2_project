@@ -15,6 +15,8 @@ const PERMISSIONS = {
 
 const PERMISSION_KEYS = Object.keys(PERMISSIONS);
 
+const SUPPORT_PERMISSIONS = ["content.approve", "user.role.assign", "role.manage"];
+
 // Seed definitions for the migration script. Roles are data, so these are only
 // a starting point -- they can be changed from the role management page after.
 const SEED_ROLES = [
@@ -73,4 +75,4 @@ const SEED_ROLES = [
   },
 ];
 
-module.exports = { PERMISSIONS, PERMISSION_KEYS, SEED_ROLES };
+module.exports = { PERMISSIONS, PERMISSION_KEYS, SEED_ROLES, SUPPORT_PERMISSIONS };

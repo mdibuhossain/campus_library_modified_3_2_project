@@ -241,6 +241,12 @@ const useNotifications = (token) => {
         unreadMessages: unreadMsgData?.getUnreadMessageCount || 0,
         refetchUnreadMessages,
         permission, pushSupported: supported, pushConfigured: !!VAPID_KEY, pushError,
+        /* `pushSupported` starts false and only turns true once Firebase's
+         * async isSupported() resolves, so UI that keys off it would briefly
+         * claim the browser cannot do push at all. `pushCapable` is the
+         * synchronous native check -- false here means definitely unsupported,
+         * which is a safe thing to render on the first frame. */
+        pushCapable: browserCouldSupportPush(),
         enablePush, disablePush, markAllRead, markOneRead,
     };
 };

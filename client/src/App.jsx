@@ -12,7 +12,8 @@ import useRoutePrefetch from "./Hooks/useRoutePrefetch";
 import {
   Home, Department, Search, Request, Login, Register, ForgotPassword,
   CompleteProfile, MakeAdmin, RoleManagement, Messages, EditContent, ChangeDP,
-  Classroom, ClassroomDetails, ContentViewer, ContentManagement, Test,
+  Classroom, ClassroomDetails, ContentViewer, ContentManagement, Test, TalkToAdmin,
+  UserHistoryList, UserHistory,
   RequireAuth, AdminRoute,
 } from "./routes/lazyRoutes";
 
@@ -136,6 +137,40 @@ const AppRoutes = () => {
         element={
           <RequireAuth>
             <Messages />
+          </RequireAuth>
+        }
+      />
+      {/* Reading another member's record -- including their private messages --
+          is gated on the protected root role, not a permission, because a
+          permission could be granted from the roles page by anyone holding
+          role.manage. The server enforces the same check; this only hides the
+          route. */}
+      <Route
+        exact
+        path="/history"
+        element={
+          <AdminRoute superadmin>
+            <UserHistoryList />
+          </AdminRoute>
+        }
+      />
+      <Route
+        exact
+        path="/history/:id"
+        element={
+          <AdminRoute superadmin>
+            <UserHistory />
+          </AdminRoute>
+        }
+      />
+      {/* signed-in only: picking a contact starts a conversation, which is
+          itself signed-in only, so listing them to a visitor is a dead end */}
+      <Route
+        exact
+        path="/support"
+        element={
+          <RequireAuth>
+            <TalkToAdmin />
           </RequireAuth>
         }
       />

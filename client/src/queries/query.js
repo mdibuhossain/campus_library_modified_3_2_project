@@ -113,6 +113,52 @@ const GET_USERS = gql`
     }
   }
 `;
+const GET_USER_HISTORY = gql`
+  query GetUserHistory($_id: ID, $email: String, $token: String!, $limit: Int) {
+    getUserHistory(_id: $_id, email: $email, token: $token, limit: $limit) {
+      _id
+      displayName
+      email
+      photoURL
+      authType
+      designation
+      department
+      semester
+      role
+      roleDescription
+      permissions
+      isProfileComplete
+      deviceCount
+      joinedAt
+      counts {
+        books questions syllabus pending messages conversations
+        roomsOwned roomsJoined tasks submissions notifications
+        actions receivedActions
+      }
+      uploads { _id kind title department subCategory status downloadLink createdAt }
+      conversations {
+        _id
+        counterpartEmail
+        counterpartName
+        counterpartPhoto
+        counterpartDesignation
+        counterpartDepartment
+        messageCount
+        shownCount
+        lastMessage
+        lastMessageAt
+        messages { _id conversationId body iat outgoing counterpartEmail counterpartName }
+      }
+      roomsOwned { _id name role memberCount createdAt }
+      roomsJoined { _id name role memberCount createdAt }
+      tasks { _id title roomName deadline createdAt }
+      submissions { _id taskTitle roomName filename submittedAt }
+      notifications { _id title body kind read iat }
+      actions { _id actor action targetType targetLabel subject details iat }
+      receivedActions { _id actor action targetType targetLabel subject details iat }
+    }
+  }
+`;
 const GET_USER_STATUS = gql`
   query GetUserStatus($email: String!) {
     getUserStatus(email: $email) {
@@ -123,6 +169,7 @@ const GET_USER_STATUS = gql`
       isProfileComplete
       role
       permissions
+      isSuperadmin
     }
   }
 `;
@@ -257,6 +304,20 @@ const SEARCH_USERS = gql`
       photoURL
       designation
       department
+    }
+  }
+`;
+const GET_SUPPORT_CONTACTS = gql`
+  query GetSupportContacts($token: String!) {
+    getSupportContacts(token: $token) {
+      _id
+      displayName
+      email
+      photoURL
+      designation
+      department
+      role
+      roleDescription
     }
   }
 `;
@@ -779,6 +840,7 @@ export {
   GET_USER,
   GET_BOOKS,
   GET_USER_STATUS,
+  GET_USER_HISTORY,
   GET_USERS,
   GET_ALL_DATA,
   GET_SYLLABUS,
@@ -789,6 +851,7 @@ export {
   POST_QUESTION,
   POST_SYLLABUS,
   SEARCH_USERS,
+  GET_SUPPORT_CONTACTS,
   GET_CONVERSATIONS,
   GET_UNREAD_MESSAGE_COUNT,
   GET_MESSAGES,

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import initAuth from "../firebase/initAuth"
 import { purgePersistedCache } from '../apollo/client';
+import { readAuthHint, writeAuthHint } from '../utility/authHint';
 import { POST_USER, GET_USER_STATUS, UPDATE_PROFILE, CHANGE_PASSWORD, COMPLETE_PROFILE, SYNC_PASSWORD, REQUEST_PASSWORD_RESET } from '../queries/query';
 
 
@@ -26,6 +27,11 @@ const useFirebase = () => {
      * guards render a full-page loader mid-attempt. Each action owns its own
      * flag now. */
     const [isLoading, setIsLoading] = useState(true);
+    /* Read once, synchronously, before the first paint -- see utility/authHint.
+     * Held in state rather than read inline so it stays stable for the whole
+     * session: the navbar must not flip prediction mid-bootstrap if some other
+     * code writes the hint while onAuthStateChanged is still pending. */
+    const [authHint] = useState(readAuthHint);
     const [emailAuthLoading, setEmailAuthLoading] = useState(false);
     const [googleAuthLoading, setGoogleAuthLoading] = useState(false);
     const [avatarLoading, setAvatarLoading] = useState(false);
@@ -84,6 +90,7 @@ const useFirebase = () => {
                 isProfileComplete: profileComplete = false,
                 role: userRole = "",
                 permissions: userPermissions = [],
+                isSuperadmin = false,
             } = {}
         } = [],
         loading: userStatusLoading = true,
@@ -362,6 +369,8 @@ const useFirebase = () => {
                  * conversation list, message previews. On a shared browser the
                  * next person could otherwise read all of it out of devtools. */
                 purgePersistedCache()
+                // stop predicting an account that no longer exists
+                writeAuthHint(false)
             })
         // .finally(() => setEmailAuthLoading(false))
         user && redirect();
@@ -396,6 +405,9 @@ const useFirebase = () => {
             }
             else
                 setUser({});
+            /* Record the real answer for the next load, so the first paint after
+             * a refresh predicts correctly instead of guessing "signed out". */
+            writeAuthHint(!!user);
             setIsLoading(false);
         });
         return () => unsubscribed;
@@ -408,6 +420,8 @@ const useFirebase = () => {
         token,
         error,
         admin,
+        // was this browser signed in last time? only meaningful while isLoading
+        authHint,
         logOut,
         setName,
         setEmail,
@@ -424,6 +438,10 @@ const useFirebase = () => {
         can,
         userRole,
         userPermissions,
+        /* The protected/root role. Separate from `can()` on purpose: it is not
+         * a permission, so it cannot be granted from the roles page -- which is
+         * what makes it usable as the gate on reading other people's history. */
+        isSuperadmin,
         userStatusLoading,
         uploadAvatar,
         signWithGoogle,

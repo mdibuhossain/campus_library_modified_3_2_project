@@ -15,6 +15,9 @@ export const CompleteProfile = lazyWithPreload(() => import("../pages/CompletePr
 export const MakeAdmin = lazyWithPreload(() => import("../pages/MakeAdmin/MakeAdmin"));
 export const RoleManagement = lazyWithPreload(() => import("../pages/RoleManagement/RoleManagement"));
 export const Messages = lazyWithPreload(() => import("../pages/Messages/Messages"));
+export const TalkToAdmin = lazyWithPreload(() => import("../pages/Support/TalkToAdmin"));
+export const UserHistoryList = lazyWithPreload(() => import("../pages/Admin/UserHistoryList"));
+export const UserHistory = lazyWithPreload(() => import("../pages/Admin/UserHistory"));
 export const EditContent = lazyWithPreload(() => import("../pages/EditContent/EditContent"));
 export const ChangeDP = lazyWithPreload(() => import("../pages/ChangeDP/ChangeDP"));
 export const Classroom = lazyWithPreload(() => import("../pages/Classroom/Classroom"));
@@ -44,6 +47,8 @@ const EXACT = {
   "/makeadmin": [AdminRoute, MakeAdmin],
   "/roles": [AdminRoute, RoleManagement],
   "/messages": [RequireAuth, Messages],
+  "/support": [RequireAuth, TalkToAdmin],
+  "/history": [AdminRoute, UserHistoryList],
   "/complete-profile": [RequireAuth, CompleteProfile],
 };
 
@@ -54,6 +59,7 @@ const PREFIX = [
   ["/messages/", [RequireAuth, Messages]],
   ["/content/", [ContentViewer]],
   ["/edit/", [RequireAuth, EditContent]],
+  ["/history/", [AdminRoute, UserHistory]],
 ];
 
 /**
