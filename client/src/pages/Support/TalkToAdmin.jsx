@@ -8,17 +8,10 @@ import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import PageLayout from "../../Layout/PageLayout";
 import { useAuth } from "../../Hooks/useAuth";
+import useChatDock from "../../Hooks/useChatDock";
 import { GET_SUPPORT_CONTACTS, START_CONVERSATION } from "../../queries/query";
 import useDocumentMeta from "../../Hooks/useDocumentMeta";
 
-/* Talk to the team.
- *
- * This is a directory, not a ticket system: picking someone opens the ordinary
- * 1:1 chat that already exists, so there is no second inbox for staff to
- * remember to check. The list is derived from *permissions* server-side (see
- * SUPPORT_PERMISSIONS), so it follows role edits without a code change and can
- * never accidentally list an ordinary member.
- */
 const REASONS = [
   "A book, question paper or syllabus is wrong, mislabelled or missing",
   "Something you uploaded is still waiting for approval",
@@ -40,6 +33,7 @@ const ContactSkeleton = () => (
 const TalkToAdmin = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
+  const { openChat } = useChatDock();
   const [error, setError] = React.useState("");
   // which row is opening, so only that button spins
   const [pending, setPending] = React.useState("");
@@ -64,7 +58,14 @@ const TalkToAdmin = () => {
     setPending(person.email);
     startConversation({ variables: { email: person.email, token } })
       .then(({ data: d }) => {
-        if (d?.startConversation?._id) navigate(`/messages/${d.startConversation._id}`);
+        const convo = d?.startConversation;
+        if (!convo?._id) return;
+        openChat({
+          _id: convo._id,
+          counterpartName: convo.other?.displayName || person.displayName,
+          counterpartEmail: convo.other?.email || person.email,
+          counterpartPhoto: convo.other?.photoURL || person.photoURL,
+        });
       })
       .catch((err) => setError(err?.graphQLErrors?.[0]?.message || err.message))
       .finally(() => setPending(""));
@@ -110,8 +111,7 @@ const TalkToAdmin = () => {
             <ContactSkeleton />
           </div>
         ) : contacts.length === 0 ? (
-          /* Two ways to land here: nobody holds a support role yet, or you are
-             the only one who does -- you are excluded from your own list. */
+
           <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
             <SupportAgentIcon sx={{ fontSize: 44, color: "action.disabled" }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 600, mt: 1 }}>
@@ -143,8 +143,7 @@ const TalkToAdmin = () => {
                     <p className="text-sm sm:text-base font-semibold truncate">
                       {person.displayName || person.email}
                     </p>
-                    {/* the role is why this person is on the list, so it is not
-                        decoration -- it is how you pick the right one */}
+
                     <Chip
                       size="small"
                       label={person.role}

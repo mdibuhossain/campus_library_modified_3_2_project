@@ -7,6 +7,7 @@ import { AuthProvider } from "./context/AuthProvider";
 import CircularLoading from "./components/Circular_Loading/CircularLoading";
 import NotFound from "./components/NotFound/NotFound";
 import { UtilityProvider } from "./context/UtilityProvider";
+import { ChatDockProvider } from "./context/ChatDockProvider";
 import { client } from "./apollo/client";
 import useRoutePrefetch from "./Hooks/useRoutePrefetch";
 import {
@@ -18,6 +19,7 @@ import {
 } from "./routes/lazyRoutes";
 
 const Navigation = lazy(() => import("./components/Navigationbar"));
+const ChatDock = lazy(() => import("./components/ChatDock/ChatDock"));
 
 const theme = createTheme({
   typography: {
@@ -30,9 +32,7 @@ const theme = createTheme({
   },
 });
 
-/* Split out so the prefetch hook runs inside the router. It does not read router
- * context, but keeping it here means it mounts once for the app rather than
- * re-registering its listeners whenever a provider above it re-renders. */
+
 const AppRoutes = () => {
   useRoutePrefetch();
 
@@ -200,8 +200,11 @@ function App() {
           <Suspense fallback={<CircularLoading />}>
             <UtilityProvider>
               <AuthProvider>
-                <Navigation />
-                <AppRoutes />
+                <ChatDockProvider>
+                  <Navigation />
+                  <AppRoutes />
+                  <ChatDock />
+                </ChatDockProvider>
               </AuthProvider>
             </UtilityProvider>
           </Suspense>

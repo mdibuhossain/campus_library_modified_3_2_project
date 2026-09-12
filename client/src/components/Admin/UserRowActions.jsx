@@ -5,11 +5,13 @@ import { CircularProgress, IconButton, Tooltip } from "@mui/material";
 import HistoryIcon from "@mui/icons-material/History";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import { useAuth } from "../../Hooks/useAuth";
+import useChatDock from "../../Hooks/useChatDock";
 import { START_CONVERSATION } from "../../queries/query";
 
 const UserRowActions = ({ target, onError, dense = false, showHistory = true, showMessage = true }) => {
   const navigate = useNavigate();
   const { user, token, isSuperadmin } = useAuth();
+  const { openChat } = useChatDock();
   const [startConversation] = useMutation(START_CONVERSATION);
   const [opening, setOpening] = React.useState(false);
 
@@ -25,8 +27,14 @@ const UserRowActions = ({ target, onError, dense = false, showHistory = true, sh
     setOpening(true);
     startConversation({ variables: { email: target.email, token } })
       .then(({ data }) => {
-        const id = data?.startConversation?._id;
-        if (id) navigate(`/messages/${id}`);
+        const convo = data?.startConversation;
+        if (!convo?._id) return;
+        openChat({
+          _id: convo._id,
+          counterpartName: convo.other?.displayName || target.displayName,
+          counterpartEmail: convo.other?.email || target.email,
+          counterpartPhoto: convo.other?.photoURL || target.photoURL,
+        });
       })
       .catch((err) =>
         onError?.(err?.graphQLErrors?.[0]?.message || err.message)

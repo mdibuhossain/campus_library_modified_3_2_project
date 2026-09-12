@@ -59,7 +59,7 @@ const MessageSkeleton = () => (
 const Messages = () => {
   const { cid } = useParams();
   const navigate = useNavigate();
-  const { user, token, refetchNotifications } = useAuth();
+  const { user, token, refetchUnreadMessages } = useAuth();
   const [searchOpen, setSearchOpen] = React.useState(false);
   const [draft, setDraft] = React.useState("");
   const [messages, setMessages] = React.useState([]);
@@ -130,10 +130,17 @@ const Messages = () => {
     if (!cid || !token) return;
     setThreadLoading(true);
     loadMessages("all");
-    markRead({ variables: { conversationId: cid, token } })
-      .then(() => { refetchConversations(); refetchNotifications?.(); })
-      .catch(() => { });
   }, [cid, token]);
+
+  React.useEffect(() => {
+    if (!cid || !token || !messages.length) return;
+    markRead({ variables: { conversationId: cid, token } })
+      .then(() => {
+        refetchConversations();
+        refetchUnreadMessages?.();
+      })
+      .catch(() => { });
+  }, [cid, token, messages.length]);
 
   React.useEffect(() => {
     if (!cid || !token) return;

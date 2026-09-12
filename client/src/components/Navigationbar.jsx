@@ -13,24 +13,12 @@ import { useAuth } from "../Hooks/useAuth";
 import useUtility from "../Hooks/useUtility";
 import DownloadButtonWithAnimate from "./Download_Button/DownloadButtonWithAnimate";
 import NotificationBell from "./NotificationBell";
+import MessagesMenu from "./ChatDock/MessagesMenu";
 
 const AVATAR_FALLBACK = "/assets/images/avator.webp";
 const APP_LINK =
   "https://drive.google.com/file/d/10jLrS9NrfMze-qSXVp_dLvU-ZJa0ZeoA/view?usp=sharing";
 
-/* The bar holds only what a reader uses constantly -- search, departments, and
- * the one action that feeds the library (Upload). Everything else is sorted
- * into one of two menus by *who it belongs to*:
- *
- *   toolRoutes    -- places in the app.      Behind the apps grid.
- *   profileRoutes -- things that are yours.  Behind your avatar.
- *
- * That split is the whole point: "where do I go?" and "what is mine?" stop
- * competing for the same row. `permission` is a key from server/permissions.js;
- * entries without one are visible to every signed-in user. `badge` names a
- * counter resolved at render time, so a reviewer sees the queue without
- * opening the page.
- */
 const toolRoutes = [
   { name: "Classroom", to: "/classroom", icon: AcademicCapIcon, desc: "Rooms, tasks, submissions" },
   // no permission: reaching the team is the one tool everybody needs
@@ -38,8 +26,7 @@ const toolRoutes = [
   { name: "Manage content", to: "/manage", icon: ClipboardCheckIcon, permission: "content.approve", badge: "pending", desc: "Approve or hide uploads" },
   { name: "User roles", to: "/makeadmin", icon: UserGroupIcon, permission: "user.role.assign", desc: "Assign a role to a user" },
   { name: "Roles & permissions", to: "/roles", icon: ShieldCheckIcon, permission: "role.manage", desc: "Create and edit roles" },
-  // `superadmin`, not a permission: this reads other people's private messages,
-  // and a permission key could be self-granted by anyone with role.manage
+
   { name: "User history", to: "/history", icon: ClockIcon, superadmin: true, desc: "Full record of any member" },
 ];
 
@@ -56,24 +43,11 @@ function classNames(...classes) {
 const panelClass =
   "bg-gray-900/95 backdrop-blur-xl rounded-2xl shadow-2xl ring-1 ring-white/10 focus:outline-none";
 
-/* Fully opaque variant, for the departments mega-menu.
- *
- * The 95% panel above is fine on a small dropdown -- the 5% that shows through
- * is a few pixels of blurred nothing. This panel is the full width of the bar
- * and ~500px tall, and it opens directly over the department cards, which are
- * photographs. At that size the same 5% reads as ghosting rather than depth,
- * and it does not depend on backdrop-filter to look right: a browser that does
- * not composite backdrop-filter (or a user with it disabled) gets the page
- * showing through crisply instead of blurred. Opaque removes the variable. */
+
 const solidPanelClass =
   "bg-gray-900 rounded-2xl shadow-2xl ring-1 ring-white/10 focus:outline-none";
 
-/* Circular icon control, the unit the whole right cluster is built from.
- *
- * Facebook's bar works because every control in it is the same size and shape,
- * so the row reads as one object rather than a queue of mismatched buttons.
- * 40px is the tap target; `active` is the filled state a route gets when you
- * are on it. */
+
 const ICON_BTN =
   "relative inline-flex items-center justify-center h-10 w-10 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white/40";
 const iconBtnClass = (on) =>
@@ -82,12 +56,7 @@ const iconBtnClass = (on) =>
     on ? "bg-white/15 text-white" : "text-gray-300 hover:bg-white/10 hover:text-white"
   );
 
-/* A count that must not be missed sits on the icon; anything else would need a
- * label, and a label is what we just removed.
- *
- * Two tones, because three red badges in a row all shouting equally is just
- * noise. Red is reserved for things a person is waiting on you for -- a message,
- * a notification. Amber is a work queue that will still be there in an hour. */
+
 const CountBadge = ({ count, tone = "urgent" }) =>
   count > 0 ? (
     <span
@@ -101,13 +70,7 @@ const CountBadge = ({ count, tone = "urgent" }) =>
   ) : null;
 
 const IconNavLink = ({ to, label, icon: Icon, count = 0 }) => (
-  /* The span is load-bearing. MUI's Tooltip clones its child and merges the
-   * className with clsx(), and clsx silently ignores a *function* -- while
-   * NavLink's className is a function precisely so it can style its own active
-   * state. Handing NavLink straight to Tooltip therefore replaced every class
-   * with "", including `relative`, so the absolutely-positioned unread badge
-   * escaped to the sticky bar and rendered in the far corner of the page.
-   * Wrapping keeps Tooltip's ref on the span and NavLink's classes intact. */
+
   <Tooltip title={label} arrow>
     <span className="inline-flex">
       <NavLink to={to} aria-label={label} className={({ isActive }) => iconBtnClass(isActive)}>
@@ -118,9 +81,7 @@ const IconNavLink = ({ to, label, icon: Icon, count = 0 }) => (
   </Tooltip>
 );
 
-/* Search from anywhere, instead of an icon that navigates to a page where you
- * then have to type. Hands off to /search?q=, so a search is also a shareable
- * URL rather than transient page state. */
+
 const NavSearch = ({ onDone, autoFocus }) => {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -160,11 +121,7 @@ const menuTransition = {
   leaveTo: "transform opacity-0 scale-95",
 };
 
-/* The apps grid -- Google's waffle, holding places rather than settings.
- *
- * Tiles, not a list: each entry gets an icon and a line of explanation, which a
- * text row in the old bar had no room for. "Roles & permissions" next to "User
- * roles" was genuinely ambiguous before. */
+
 const ToolsMenu = ({ routes, badges }) => (
   <Menu as="div" className="relative">
     {({ open }) => (
@@ -226,8 +183,7 @@ const ToolsMenu = ({ routes, badges }) => (
   </Menu>
 );
 
-/* Your account: who you are, your things, and the way out. Nothing that is a
- * *place* in the app belongs here -- that is what the apps grid is for. */
+
 const ProfileMenu = ({ badges }) => {
   const { user, logOut, userRole } = useAuth();
   if (!user?.email) return null;
@@ -341,16 +297,7 @@ const ProfileMenu = ({ badges }) => {
 // Desktop departments: a wide multi-column panel. 33 departments in a 224px
 // scrolling strip wasted the space a large screen has.
 const DepartmentsMenu = ({ list }) => (
-  /* No `relative` here on purpose. With it, the panel anchored to the BUTTON,
-   * which sits mid-bar just after the search box -- so a 46rem panel opened at
-   * roughly x=470 on a 768px screen ran ~420px past the right edge. Capping the
-   * width with min(46rem, 100vw-3rem) limited how wide it got but not where it
-   * started, so it overflowed anyway.
-   *
-   * Without it the panel resolves against the nav row instead (which is
-   * `relative`), so `left-0 right-0` makes it exactly the width of the content
-   * container at every breakpoint. It cannot overflow, because it is measured
-   * from the same box as everything else in the bar. */
+
   <Menu as="div">
     {({ open }) => (
       <>
@@ -401,10 +348,7 @@ const DepartmentsMenu = ({ list }) => (
   </Menu>
 );
 
-/* Mobile department list: expands inline rather than floating.
- * The mobile panel has overflow-y-auto, and an overflow container clips
- * absolutely-positioned children -- a floating dropdown nested inside it got
- * cut off. Two columns because 33 single-column rows is a lot of thumb travel. */
+
 const MobileDeptList = ({ list, onNavigate }) => (
   <Disclosure>
     {({ open }) => (
@@ -455,9 +399,7 @@ const MobileDeptList = ({ list, onNavigate }) => (
   </Disclosure>
 );
 
-/* On a phone the avatar is not in the bar -- messages, notifications and the
- * menu button already fill it -- so the identity that the desktop avatar menu
- * shows has to live here instead, at the head of the Account section. */
+
 const MobileIdentity = () => {
   const { user, userRole } = useAuth();
   return (
@@ -486,9 +428,7 @@ const MobileIdentity = () => {
   );
 };
 
-/* Sign out used to hang off the avatar menu, which on mobile sat in the bar.
- * Moving account links into the panel took the avatar out of the bar, and this
- * with it -- leaving a phone user no way to sign out at all. */
+
 const MobileSignOut = () => {
   const { logOut } = useAuth();
   return (
@@ -508,13 +448,7 @@ const mobileRowClass = ({ isActive }) =>
     "flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-colors"
   );
 
-/* Placeholder for the account cluster during auth bootstrap.
- *
- * Sized to match the messages + notifications + avatar trio exactly, so when
- * the real controls replace it nothing moves -- the avatar simply resolves in
- * place. A spinner was the other option, but a spinner reads as "something is
- * wrong / slow", whereas a skeleton at the final dimensions reads as "this is
- * loading", and it is what the user actually sees on every refresh. */
+
 const AccountSkeleton = ({ count = 3 }) => (
   <div className="flex items-center gap-1 animate-pulse motion-reduce:animate-none" aria-hidden="true">
     {Array.from({ length: count }).map((_, i) => (
@@ -529,30 +463,14 @@ export default function Navigation() {
   const { user, isLoading, authHint, can, unreadMessages, isSuperadmin } = useAuth();
   const { deptNavList, deptLoading, books, questions, syllabus } = useUtility();
 
-  /* Three states, not two.
-   *
-   * This used to be a plain `user?.email ? account : guest`, with the isLoading
-   * check nested *inside* the account branch -- where it could never run during
-   * bootstrap. So while Firebase was still reading its IndexedDB session,
-   * `user` was `{}` and the navbar confidently painted "Log in / Sign up" at a
-   * returning user, then swapped in their avatar a few hundred ms later.
-   *
-   * `authPending` is that third state. During it we draw neither branch as
-   * fact: `authHint` (see utility/authHint) says which way the load is going to
-   * resolve, so the skeleton stands in for the account chrome only when there
-   * is genuinely an account coming. A first-time visitor still gets Log in /
-   * Sign up on the first paint, with no spinner. */
+
   const signedIn = !!(user?.email || user?.displayName);
   const authPending = isLoading && !signedIn;
   const expectAccount = signedIn || (authPending && authHint);
-  /* No hint is itself a prediction -- of "signed out" -- so the guest actions
-   * paint on the first frame for a first-time visitor. Only a load that expects
-   * an account has anything to wait for. */
+
   const showGuestActions = !expectAccount;
 
-  /* How much is waiting for review. The data is already in the client for the
-   * library pages, so surfacing it in the nav costs nothing -- and a reviewer
-   * no longer has to open the page to discover there is nothing to do. */
+
   const pendingCount = useMemo(() => {
     if (!can("content.approve")) return 0;
     const all = [...(books || []), ...(questions || []), ...(syllabus || [])];
@@ -636,11 +554,9 @@ export default function Navigation() {
                         {visibleTools.length > 0 && (
                           <ToolsMenu routes={visibleTools} badges={badges} />
                         )}
-                        <IconNavLink
-                          to="/messages"
-                          label="Messages"
-                          icon={ChatAlt2Icon}
-                          count={unreadMessages}
+                        <MessagesMenu
+                          iconClass={iconBtnClass}
+                          badge={<CountBadge count={unreadMessages} />}
                         />
                         <NotificationBell />
                         <ProfileMenu badges={badges} />

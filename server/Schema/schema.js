@@ -904,7 +904,7 @@ const RootQuery = new GraphQLObjectType({
         }
 
         const [notifications, actions, receivedActions] = await Promise.all([
-          Notification.find({ email }).sort({ iat: -1 }).limit(cap),
+          Notification.find({ email, kind: { $ne: "message" } }).sort({ iat: -1 }).limit(cap),
           AuditLog.find({ actor: email }).sort({ iat: -1 }).limit(cap),
           AuditLog.find({ subject: email, actor: { $ne: email } }).sort({ iat: -1 }).limit(cap),
         ]);
@@ -927,7 +927,7 @@ const RootQuery = new GraphQLObjectType({
           Room.countDocuments({ members: target._id, admin: { $ne: target._id } }),
           Task.countDocuments({ author: target._id }),
           Submission.countDocuments({ user: target._id }),
-          Notification.countDocuments({ email }),
+          Notification.countDocuments({ email, kind: { $ne: "message" } }),
           AuditLog.countDocuments({ actor: email }),
           AuditLog.countDocuments({ subject: email, actor: { $ne: email } }),
         ]);
@@ -1143,9 +1143,10 @@ const RootQuery = new GraphQLObjectType({
       async resolve(_, args) {
         const caller = await requireUser(args?.token);
         const limit = Math.min(Math.max(args?.limit || 20, 1), 50);
+        const feed = { email: caller.email, kind: { $ne: "message" } };
         const [items, unread] = await Promise.all([
-          Notification.find({ email: caller.email }).sort({ iat: -1 }).limit(limit),
-          Notification.countDocuments({ email: caller.email, read: false }),
+          Notification.find(feed).sort({ iat: -1 }).limit(limit),
+          Notification.countDocuments({ ...feed, read: false }),
         ]);
         return { items, unread };
       },
@@ -1424,7 +1425,7 @@ const mutation = new GraphQLObjectType({
       async resolve(_, args) {
         const caller = await requireUser(args?.token);
         // no _id marks the whole feed read
-        const filter = { email: caller.email, read: false };
+        const filter = { email: caller.email, read: false, kind: { $ne: "message" } };
         if (args?._id) filter._id = args._id;
         const r = await Notification.updateMany(filter, { $set: { read: true } });
         return { success: true, message: `${r.modifiedCount} marked read` };
@@ -1438,6 +1439,7 @@ const mutation = new GraphQLObjectType({
       args: {
         secret: { type: GraphQLString },
         withinHours: { type: GraphQLInt },
+        dryRun: { type: GraphQLBoolean },
       },
       async resolve(_, args, context) {
         // trimmed: a stray newline or space in a dashboard-pasted env var is a
@@ -1479,7 +1481,9 @@ const mutation = new GraphQLObjectType({
           reminderSentAt: null,
         }).populate({ path: "room", select: "roomName members" });
 
+        const dryRun = !!args?.dryRun;
         let notified = 0;
+        const planned = [];
         for (const task of tasks) {
           const memberIds = task.room?.members || [];
           if (memberIds.length) {
@@ -1495,17 +1499,32 @@ const mutation = new GraphQLObjectType({
               .filter((e) => e && !done.has(e));
             if (pending.length) {
               const left = Math.round((new Date(task.deadline) - now) / 3600000);
-              await notify(pending, {
-                title: `Deadline approaching: ${task.title}`,
-                body: `Due in about ${left} hour(s) in ${task.room?.roomName || "your classroom"}.`,
-                link: task.room?._id ? `/classroom/${task.room._id}` : "/classroom",
-                kind: "classroom",
-              });
+              if (dryRun) {
+                planned.push(`${task.title} -> ${pending.length} member(s), due in ~${left}h`);
+              } else {
+                await notify(pending, {
+                  title: `Deadline approaching: ${task.title}`,
+                  body: `Due in about ${left} hour(s) in ${task.room?.roomName || "your classroom"}.`,
+                  link: task.room?._id ? `/classroom/${task.room._id}` : "/classroom",
+                  kind: "classroom",
+                });
+              }
               notified += pending.length;
             }
           }
-          task.reminderSentAt = now;
-          await task.save();
+          if (!dryRun) {
+            task.reminderSentAt = now;
+            await task.save();
+          }
+        }
+        if (dryRun) {
+          return {
+            success: true,
+            message:
+              `DRY RUN — nothing sent, nothing marked. ${tasks.length} task(s) due within ${hours}h, ` +
+              `${notified} reminder(s) would go out` +
+              (planned.length ? `: ${planned.join("; ")}` : "."),
+          };
         }
         return {
           success: true,
