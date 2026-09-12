@@ -2,19 +2,19 @@ import React from "react";
 import { useQuery } from "@apollo/client";
 import { Link } from "react-router-dom";
 import {
-  Alert, Avatar, Chip, InputAdornment, Skeleton, TextField, Typography,
+  Alert, Avatar, Chip, Skeleton, Typography,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import HistoryIcon from "@mui/icons-material/History";
 import PageLayout from "../../Layout/PageLayout";
 import { useAuth } from "../../Hooks/useAuth";
 import { GET_USERS } from "../../queries/query";
 import UserRowActions from "../../components/Admin/UserRowActions";
+import UserFilters from "../../components/Admin/UserFilters";
+import useUserFilters from "../../Hooks/useUserFilters";
 import useDocumentMeta from "../../Hooks/useDocumentMeta";
 
 const UserHistoryList = () => {
   const { token } = useAuth();
-  const [q, setQ] = React.useState("");
   const [actionError, setActionError] = React.useState("");
 
   useDocumentMeta({ title: "User history | Campus Classroom" });
@@ -26,13 +26,9 @@ const UserHistoryList = () => {
   });
 
   const users = data?.getUsers || [];
-  const needle = q.trim().toLowerCase();
-  const shown = needle
-    ? users.filter((u) =>
-        [u.displayName, u.email, u.department, u.role]
-          .some((f) => String(f || "").toLowerCase().includes(needle))
-      )
-    : users;
+
+  const filterState = useUserFilters(users);
+  const { result: shown, isFiltered } = filterState;
 
   return (
     <PageLayout>
@@ -64,19 +60,7 @@ const UserHistoryList = () => {
           </Alert>
         )}
 
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Filter by name, email, department or role…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          sx={{ mb: 2 }}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment>
-            ),
-          }}
-        />
+        <UserFilters state={filterState} className="mb-4" />
 
         {loading && users.length === 0 ? (
           <div className="space-y-2">
@@ -92,13 +76,10 @@ const UserHistoryList = () => {
           </div>
         ) : shown.length === 0 ? (
           <Typography variant="body2" sx={{ color: "text.secondary", py: 6, textAlign: "center" }}>
-            {needle ? `Nobody matches “${q}”.` : "No users."}
+            {isFiltered ? "No user matches these filters." : "No users."}
           </Typography>
         ) : (
           <>
-            <p className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-              {shown.length} of {users.length} users
-            </p>
             <div className="space-y-2">
               {shown.map((u) => (
                 <div
