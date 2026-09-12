@@ -6,6 +6,7 @@ import YourDepartment from '../../components/Home/YourDepartment';
 import PageLayout from '../../Layout/PageLayout';
 import useLibraryStats from '../../Hooks/useLibraryStats';
 import useDocumentMeta from '../../Hooks/useDocumentMeta';
+import { metaForPath } from '../../seo/siteMeta.mjs';
 
 /**
  * The home page was previously just <Departments />: a 33-tile index, ~6,400px
@@ -25,11 +26,7 @@ import useDocumentMeta from '../../Hooks/useDocumentMeta';
 const Home = () => {
     const { totals, byDept, recent, dataLoading } = useLibraryStats();
 
-    useDocumentMeta({
-        title: 'Campus Classroom — books, question papers and syllabus',
-        description:
-            'Books, question papers and syllabus for every department, uploaded and checked by students and teachers.',
-    });
+    useDocumentMeta(metaForPath('/'));
 
     return (
         <PageLayout>

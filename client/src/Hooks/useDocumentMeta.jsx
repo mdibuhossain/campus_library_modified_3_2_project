@@ -1,43 +1,75 @@
 import { useEffect } from "react";
+import { SITE, absolute } from "../seo/siteMeta.mjs";
 
-/* Sets <title> and a couple of meta tags for a page, restoring the previous
- * values on unmount.
- *
- * Replaces react-helmet, which is unmaintained (last published 2020) and whose
- * react-side-effect dependency still uses UNSAFE_componentWillMount -- the
- * source of the "Using UNSAFE_componentWillMount in strict mode" warning
- * attributed to SideEffect(NullComponent). Only one page ever used it, for a
- * title and two meta tags, which is a few lines of DOM work.
- */
-const setMeta = (name, content) => {
-    if (!content) return undefined;
-    let tag = document.head.querySelector(`meta[name="${name}"]`);
+const upsert = (selector, create, attr, value) => {
+    if (!value) return undefined;
+    let tag = document.head.querySelector(selector);
     const created = !tag;
     if (!tag) {
-        tag = document.createElement("meta");
-        tag.setAttribute("name", name);
+        tag = create();
         document.head.appendChild(tag);
     }
-    const previous = tag.getAttribute("content");
-    tag.setAttribute("content", content);
+    const previous = tag.getAttribute(attr);
+    tag.setAttribute(attr, value);
     return () => {
         if (created) tag.remove();
-        else if (previous !== null) tag.setAttribute("content", previous);
+        else if (previous !== null) tag.setAttribute(attr, previous);
     };
 };
 
-const useDocumentMeta = ({ title, description, keywords }) => {
+const named = (name, content) =>
+    upsert(`meta[name="${name}"]`, () => {
+        const el = document.createElement("meta");
+        el.setAttribute("name", name);
+        return el;
+    }, "content", content);
+
+const property = (prop, content) =>
+    upsert(`meta[property="${prop}"]`, () => {
+        const el = document.createElement("meta");
+        el.setAttribute("property", prop);
+        return el;
+    }, "content", content);
+
+const canonical = (href) =>
+    upsert('link[rel="canonical"]', () => {
+        const el = document.createElement("link");
+        el.setAttribute("rel", "canonical");
+        return el;
+    }, "href", href);
+
+const useDocumentMeta = ({ title, description, keywords, image, noindex, type = "website" }) => {
     useEffect(() => {
         const previousTitle = document.title;
         if (title) document.title = title;
-        const restoreDescription = setMeta("description", description);
-        const restoreKeywords = setMeta("keywords", keywords);
+
+        const url = absolute(window.location.pathname);
+        const card = image ? (image.startsWith("http") ? image : `${SITE.url}${image}`) : `${SITE.url}${SITE.image}`;
+        const robots = noindex
+            ? "noindex, nofollow"
+            : "index, follow, max-image-preview:large, max-snippet:-1";
+
+        const restores = [
+            named("description", description),
+            named("keywords", keywords),
+            named("robots", robots),
+            canonical(noindex ? undefined : url),
+            property("og:title", title),
+            property("og:description", description),
+            property("og:url", url),
+            property("og:type", type),
+            property("og:image", card),
+            named("twitter:card", "summary_large_image"),
+            named("twitter:title", title),
+            named("twitter:description", description),
+            named("twitter:image", card),
+        ];
+
         return () => {
             document.title = previousTitle;
-            restoreDescription?.();
-            restoreKeywords?.();
+            restores.forEach((r) => r?.());
         };
-    }, [title, description, keywords]);
+    }, [title, description, keywords, image, noindex, type]);
 };
 
 export default useDocumentMeta;

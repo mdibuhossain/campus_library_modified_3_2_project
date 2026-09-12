@@ -14,8 +14,11 @@ import { Alert, CircularProgress, Divider, IconButton } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import CloseIcon from '@mui/icons-material/Close';
 import PageLayout from '../../Layout/PageLayout';
+import useDocumentMeta from "../../Hooks/useDocumentMeta";
+import { metaForPath } from "../../seo/siteMeta.mjs";
 
 const Register = () => {
+    useDocumentMeta(metaForPath("/signup"));
     const { signWithGoogle, name, setName, setEmail, setPassword, signUpWithEmail,
         emailAuthLoading, googleAuthLoading, error, setError } = useAuth();
     const busy = emailAuthLoading || googleAuthLoading;

@@ -1,3 +1,18 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+Disallow: /messages
+Disallow: /history
+Disallow: /settings
+Disallow: /manage
+Disallow: /pending
+Disallow: /mycontent
+Disallow: /makeadmin
+Disallow: /roles
+Disallow: /edit
+Disallow: /complete-profile
+Disallow: /support
+Disallow: /test
+Disallow: /forgot-password
+
+Sitemap: https://campuslib.web.app/sitemap.xml

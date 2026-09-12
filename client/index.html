@@ -3,15 +3,73 @@
 
 <head>
   <meta charset="utf-8" />
-  <link rel="shortcut icon" href="assets/images/logo.webp" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="description" content="Campus Classroom is a online classroom and library of BSMRSTU" />
-  <title>Campus Classroom</title>
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="shortcut icon" href="/assets/images/logo.webp" type="image/webp" />
+  <link rel="apple-touch-icon" href="/assets/images/icon-192.png" />
+  <!--seo-->
+  <title>Campus Classroom — Books, Question Papers &amp; Syllabus for BSMRSTU</title>
+  <meta name="description"
+    content="Free books, question papers and syllabus for every BSMRSTU department. Uploaded and checked by students and teachers, with classrooms for coursework." />
+  <link rel="canonical" href="https://campuslib.web.app" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Campus Classroom" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:url" content="https://campuslib.web.app" />
+  <meta property="og:title" content="Campus Classroom — Books, Question Papers &amp; Syllabus for BSMRSTU" />
+  <meta property="og:description"
+    content="Free books, question papers and syllabus for every BSMRSTU department. Uploaded and checked by students and teachers, with classrooms for coursework." />
+  <meta property="og:image" content="https://campuslib.web.app/assets/images/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Campus Classroom — everything for your semester, in one place" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Campus Classroom — Books, Question Papers &amp; Syllabus for BSMRSTU" />
+  <meta name="twitter:description"
+    content="Free books, question papers and syllabus for every BSMRSTU department. Uploaded and checked by students and teachers, with classrooms for coursework." />
+  <meta name="twitter:image" content="https://campuslib.web.app/assets/images/og-cover.png" />
+  <meta name="twitter:image:alt" content="Campus Classroom — everything for your semester, in one place" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://campuslib.web.app/#website",
+        "url": "https://campuslib.web.app",
+        "name": "Campus Classroom",
+        "description": "Books, question papers and syllabus for every department",
+        "inLanguage": "en",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://campuslib.web.app/search?q={search_term_string}"
+          },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "EducationalOrganization",
+        "@id": "https://campuslib.web.app/#org",
+        "name": "Campus Classroom",
+        "url": "https://campuslib.web.app",
+        "logo": "https://campuslib.web.app/assets/images/icon-512.png",
+        "description": "A student-run library of books, question papers and syllabus for BSMRSTU."
+      }
+    ]
+  }
+  </script>
+  <!--/seo-->
 </head>
 
 <body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <noscript>
+    Campus Classroom is a library of books, question papers and syllabus for every
+    BSMRSTU department. Please enable JavaScript to browse and download material.
+  </noscript>
   <div id="root"></div>
   <script type="module" src="/src/index.jsx"></script>
 </body>

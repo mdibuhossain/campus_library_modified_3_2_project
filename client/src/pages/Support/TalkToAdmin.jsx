@@ -47,6 +47,7 @@ const TalkToAdmin = () => {
   useDocumentMeta({
     title: "Talk to admin | Campus Classroom",
     description: "Message the admins and moderators who run the Campus Classroom library.",
+    noindex: true,
   });
 
   const { data, loading } = useQuery(GET_SUPPORT_CONTACTS, {

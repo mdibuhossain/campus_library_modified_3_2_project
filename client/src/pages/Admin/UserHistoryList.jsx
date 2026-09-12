@@ -17,7 +17,7 @@ const UserHistoryList = () => {
   const { token } = useAuth();
   const [actionError, setActionError] = React.useState("");
 
-  useDocumentMeta({ title: "User history | Campus Classroom" });
+  useDocumentMeta({ title: "User history | Campus Classroom", noindex: true });
 
   const { data, loading, error } = useQuery(GET_USERS, {
     variables: { token },

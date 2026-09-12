@@ -13,8 +13,11 @@ import { useAuth } from '../../Hooks/useAuth';
 import { CircularProgress, Divider } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import PageLayout from '../../Layout/PageLayout';
+import useDocumentMeta from "../../Hooks/useDocumentMeta";
+import { metaForPath } from "../../seo/siteMeta.mjs";
 
 const Login = () => {
+    useDocumentMeta(metaForPath("/login"));
     const { signWithGoogle, error, email, password, signInWithEmail, setEmail, setPassword,
         emailAuthLoading, googleAuthLoading } = useAuth();
     // one attempt at a time: the button that is working shows the spinner, the

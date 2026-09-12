@@ -19,6 +19,8 @@ import { POST_BOOK, POST_QUESTION, POST_SYLLABUS, GET_BOOKS, GET_QUESTIONS, GET_
 import useUtility from '../../Hooks/useUtility';
 import { tagTitle } from '../../utility/tagTitle';
 import { semesterList } from '../../utility/semesterList';
+import useDocumentMeta from "../../Hooks/useDocumentMeta";
+import { metaForPath } from "../../seo/siteMeta.mjs";
 
 const KINDS = [
     { value: 'book', label: 'Book', icon: <MenuBookIcon fontSize="small" /> },
@@ -42,6 +44,7 @@ const looksLikeLink = (v) =>
     !v || /^(https?:\/\/)?[\w-]+(\.[\w-]+)+([/?#][^\s]*)?$/i.test(v.trim());
 
 const Request = () => {
+    useDocumentMeta(metaForPath("/request"));
     const { user, token } = useAuth();
     const { getDepartments, deptLoading } = useUtility();
 
@@ -145,7 +148,7 @@ const Request = () => {
         <PageLayout>
             <div className="flex-1 w-full max-w-6xl mx-auto px-4 py-8">
                 <div className="text-center mb-8">
-                    <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
                         Share a resource
                     </Typography>
                     <Typography variant="body1" sx={{ color: 'text.secondary', mt: 1, maxWidth: '38rem', mx: 'auto' }}>

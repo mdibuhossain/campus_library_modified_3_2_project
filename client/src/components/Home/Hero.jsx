@@ -43,6 +43,7 @@ const Hero = ({ totals, loading }) => {
       <div className="max-w-3xl mx-auto px-4 pt-10 pb-9 text-center">
         <Typography
           variant="h3"
+          component="h1"
           sx={{ fontWeight: 800, fontSize: { xs: "1.85rem", sm: "2.4rem" }, lineHeight: 1.15 }}
         >
           Everything for your semester, in one place

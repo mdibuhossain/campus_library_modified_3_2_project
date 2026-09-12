@@ -1,5 +1,4 @@
 import styled from '@emotion/styled'
-import { tagTitle } from '../../utility/tagTitle';
 
 const Banner = styled.section`
     /* Was calc(100vh - 64px): a whole screen of just the department name, so
@@ -18,13 +17,13 @@ const Banner = styled.section`
     background-attachment: scroll;
     filter: contrast(0.9);
     font-family: 'Secular One', sans-serif;
-    &:after{
-        content: "${(props) => tagTitle[props.title] || props.title}";
+    & > h1 {
         color: #bfff00;
         display: flex;
         justify-content: center;
         align-items: center;
         font-size: clamp(1.35rem, 5vw, 2.75rem);
+        line-height: 1.15;
         text-align: center;
         position: absolute;
         left: 50%;
@@ -34,6 +33,8 @@ const Banner = styled.section`
         max-width: 90%;
         border: 2px solid white;
         padding: 0.5em 1.25em;
+        margin: 0;
+        z-index: 1;
         -webkit-mask-image: linear-gradient(-75deg, rgba(0,0,0,.75) 30%, #000 50%, rgba(0,0,0,.75) 70%);
         -webkit-mask-size: 200%;
         animation: shine 1.85s linear infinite;
@@ -49,7 +50,7 @@ const Banner = styled.section`
         background: rgba(16, 22, 50,.7);
     }
     @media (prefers-reduced-motion: reduce) {
-        &:after { animation: none; -webkit-mask-image: none; }
+        & > h1 { animation: none; -webkit-mask-image: none; }
     }
 `
 

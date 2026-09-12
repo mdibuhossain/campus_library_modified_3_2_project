@@ -267,6 +267,7 @@ const UserHistory = () => {
   const h = data?.getUserHistory;
   useDocumentMeta({
     title: h ? `${h.displayName || h.email} — history | Campus Classroom` : "User history",
+    noindex: true,
   });
 
   const c = h?.counts || {};

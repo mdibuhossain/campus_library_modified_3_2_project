@@ -8,6 +8,8 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Alert, Chip, CircularProgress, IconButton, Tab, Tabs, Typography } from '@mui/material';
 import PageLayout from '../../Layout/PageLayout';
 import useUtility from '../../Hooks/useUtility';
+import useDocumentMeta from "../../Hooks/useDocumentMeta";
+import { metaForPath } from "../../seo/siteMeta.mjs";
 
 const TYPES = [
     { key: 'all', label: 'All' },
@@ -19,6 +21,7 @@ const TYPES = [
 const norm = (v) => String(v ?? '').toLowerCase();
 
 const Search = () => {
+    useDocumentMeta(metaForPath("/search"));
     // Build the corpus from the three typed lists rather than the pre-merged
     // `allData`, so each hit can say what kind of thing it is.
     const { books, questions, syllabus, dataLoading } = useUtility();
@@ -92,7 +95,7 @@ const Search = () => {
     return (
         <PageLayout>
             <div className="flex-1 w-full max-w-3xl mx-auto px-4 pt-8 pb-12">
-                <Typography variant="h4" sx={{ fontWeight: 700, textAlign: 'center' }}>
+                <Typography variant="h4" component="h1" sx={{ fontWeight: 700, textAlign: 'center' }}>
                     Search the library
                 </Typography>
                 <Typography
