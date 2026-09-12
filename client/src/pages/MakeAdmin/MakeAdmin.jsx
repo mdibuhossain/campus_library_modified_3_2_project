@@ -4,6 +4,7 @@ import Pagination from '@mui/material/Pagination';
 import { useAuth } from "../../Hooks/useAuth";
 import PageLayout from "../../Layout/PageLayout";
 import { GET_USERS, GET_ROLES, ASSIGN_ROLE } from "../../queries/query";
+import UserRowActions from "../../components/Admin/UserRowActions";
 import { useState } from "react";
 
 const PER_PAGE = 6;
@@ -75,7 +76,7 @@ const MakeAdmin = () => {
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="sm:grid sm:justify-self-end sm:mt-0 mt-1 content-center">
+                                    <div className="flex items-center justify-end gap-1 sm:justify-self-end sm:mt-0 mt-1">
                                         <Tooltip title={reason} placement="top" arrow>
                                             <span>
                                                 <Select
@@ -95,6 +96,9 @@ const MakeAdmin = () => {
                                                 </Select>
                                             </span>
                                         </Tooltip>
+                                        {/* superadmin only: jump to this member's
+                                            full record, or open a chat with them */}
+                                        <UserRowActions target={item} onError={setError} dense />
                                     </div>
                                 </div>
                             );

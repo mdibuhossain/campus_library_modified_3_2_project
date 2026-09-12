@@ -9,17 +9,13 @@ import HistoryIcon from "@mui/icons-material/History";
 import PageLayout from "../../Layout/PageLayout";
 import { useAuth } from "../../Hooks/useAuth";
 import { GET_USERS } from "../../queries/query";
+import UserRowActions from "../../components/Admin/UserRowActions";
 import useDocumentMeta from "../../Hooks/useDocumentMeta";
 
-/* Pick a user, then read everything recorded about them.
- *
- * Filtered in the browser rather than through searchUsers: this list is only
- * ever shown to a superadmin, who is entitled to see every row anyway, and the
- * whole point of the page is to browse rather than to know a name in advance.
- */
 const UserHistoryList = () => {
   const { token } = useAuth();
   const [q, setQ] = React.useState("");
+  const [actionError, setActionError] = React.useState("");
 
   useDocumentMeta({ title: "User history | Campus Classroom" });
 
@@ -62,6 +58,11 @@ const UserHistoryList = () => {
         </Alert>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error.message}</Alert>}
+        {actionError && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setActionError("")}>
+            {actionError}
+          </Alert>
+        )}
 
         <TextField
           fullWidth
@@ -100,18 +101,22 @@ const UserHistoryList = () => {
             </p>
             <div className="space-y-2">
               {shown.map((u) => (
-                <Link
+                <div
                   key={u._id}
-                  to={`/history/${u._id}`}
-                  className="bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-3 hover:border-violet-300 transition-colors block"
+                  className="bg-white rounded-xl border border-gray-200 p-3 flex items-center gap-3 hover:border-violet-300 transition-colors"
                 >
-                  <Avatar src={u.photoURL || undefined} sx={{ width: 40, height: 40, fontSize: 14 }}>
-                    {(u.displayName || u.email)?.slice(0, 2).toUpperCase()}
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate">{u.displayName || u.email}</p>
-                    <p className="text-xs text-gray-500 truncate">{u.email}</p>
-                  </div>
+                  <Link
+                    to={`/history/${u._id}`}
+                    className="flex items-center gap-3 min-w-0 flex-1 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300"
+                  >
+                    <Avatar src={u.photoURL || undefined} sx={{ width: 40, height: 40, fontSize: 14 }}>
+                      {(u.displayName || u.email)?.slice(0, 2).toUpperCase()}
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate">{u.displayName || u.email}</p>
+                      <p className="text-xs text-gray-500 truncate">{u.email}</p>
+                    </div>
+                  </Link>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {u.department && (
                       <span className="text-[10px] text-gray-400 uppercase hidden sm:block">{u.department}</span>
@@ -121,8 +126,16 @@ const UserHistoryList = () => {
                       label={u.role || "—"}
                       sx={{ height: 20, fontSize: 11, textTransform: "capitalize" }}
                     />
+                    {/* history is what the row itself already does, so only the
+                        message action earns a button here */}
+                    <UserRowActions
+                      target={u}
+                      onError={setActionError}
+                      dense
+                      showHistory={false}
+                    />
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </>
